@@ -3,13 +3,25 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Dashboard Patrimoine Automatique</title>
+    <title>Mon Patrimoine Multi-Comptes</title>
     <style>
-        /* --- THÈME SOMBRE GLOBAL & RÉDUCTION APPLE/IPHONE --- */
+        /* --- CORE DESIGN SYSTEM --- */
+        :root {
+            --bg-color: #000000;
+            --card-bg: rgba(255, 255, 255, 0.03);
+            --card-blur: blur(20px);
+            --card-border: 1px solid rgba(255, 255, 255, 0.08);
+            --text-main: #ffffff;
+            --text-muted: rgba(255, 255, 255, 0.4);
+            --accent-blue: #00bfff;
+            --accent-green: #2ecc71;
+            --accent-red: #e74c3c;
+        }
+
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            background-color: #000000;
-            color: #ffffff;
+            background-color: var(--bg-color);
+            color: var(--text-main);
             margin: 0;
             padding: 0;
             display: flex;
@@ -20,23 +32,51 @@
 
         .container {
             width: 100%;
-            max-width: 480px; /* Parfait pour l'affichage sur iPhone */
+            max-width: 480px; /* Format idéal pour une utilisation d'une seule main sur iPhone */
             padding: 15px;
             box-sizing: border-box;
         }
 
-        /* --- STYLE LIQUID GLASS (GLASSMORPHISM) --- */
+        /* --- LIQUID GLASS COMPONENTS --- */
         .glass-card {
-            background: rgba(255, 255, 255, 0.03);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.08);
+            background: var(--card-bg);
+            backdrop-filter: var(--card-blur);
+            -webkit-backdrop-filter: var(--card-blur);
+            border: var(--card-border);
             border-radius: 16px;
             padding: 20px;
             margin-bottom: 15px;
             box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.4);
         }
 
+        /* --- NAVIGATION TABS --- */
+        .tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 15px;
+        }
+
+        .tab-btn {
+            flex: 1;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            color: var(--text-muted);
+            padding: 12px;
+            border-radius: 10px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .tab-btn.active {
+            background: rgba(255, 255, 255, 0.12);
+            border-color: rgba(255, 255, 255, 0.2);
+            color: var(--text-main);
+        }
+
+        /* --- TYPOGRAPHIE & STRINGS --- */
         h2, h3 {
             margin-top: 0;
             font-weight: 500;
@@ -44,15 +84,13 @@
         }
 
         .section-title {
-            color: rgba(255, 255, 255, 0.4);
-            font-size: 0.8rem;
+            color: var(--text-muted);
+            font-size: 0.75rem;
             text-transform: uppercase;
             letter-spacing: 1px;
-            margin-bottom: 10px;
-            margin-top: 5px;
+            margin-bottom: 8px;
         }
 
-        /* --- LOGIQUE D'AFFICHAGE DES CHIFFRES --- */
         .flex-row {
             display: flex;
             justify-content: space-between;
@@ -60,31 +98,30 @@
             margin-bottom: 10px;
         }
 
-        .valeur { font-weight: 600; color: #00bfff; font-variant-numeric: tabular-nums; }
-        .valeur-total { font-weight: 700; color: #2ecc71; font-size: 1.4rem; font-variant-numeric: tabular-nums; }
-        .plus-value { color: #2ecc71; font-weight: 500; }
-        .moins-value { color: #e74c3c; font-weight: 500; }
+        .valeur-total { font-weight: 700; color: var(--accent-green); font-size: 1.6rem; font-variant-numeric: tabular-nums; }
+        .valeur { font-weight: 600; color: var(--accent-blue); font-variant-numeric: tabular-nums; }
+        .sub-text { font-size: 0.75rem; color: var(--text-muted); margin-top: 2px; }
 
-        /* --- SÉLECTEUR TACTILE IPAD/IPHONE (BOUTON DE CHARGEMENT) --- */
-        .btn-import {
+        /* --- TACTILE ACTIONS FOR IOS --- */
+        .btn-action {
             display: flex;
             align-items: center;
             justify-content: center;
             gap: 10px;
-            background: linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0.03));
-            color: #ffffff;
+            background: linear-gradient(135deg, rgba(255,255,255,0.08), rgba(255,255,255,0.02));
+            color: var(--text-main);
             padding: 15px;
             border-radius: 14px;
             cursor: pointer;
-            border: 1px solid rgba(255, 255, 255, 0.12);
+            border: 1px solid rgba(255, 255, 255, 0.1);
             font-weight: 500;
             text-align: center;
             transition: all 0.2s ease;
             -webkit-tap-highlight-color: transparent;
         }
 
-        .btn-import:active {
-            background: rgba(255, 255, 255, 0.18);
+        .btn-action:active {
+            background: rgba(255, 255, 255, 0.15);
             transform: scale(0.98);
         }
 
@@ -98,20 +135,19 @@
             font-weight: 500;
         }
 
-        /* --- TABLEAUX ULTRA-SCANNABLES --- */
+        /* --- TABLES SYSTEM --- */
         table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 5px;
         }
 
         th {
             text-align: left;
-            color: rgba(255, 255, 255, 0.3);
+            color: var(--text-muted);
             font-size: 0.75rem;
             font-weight: 400;
-            padding-bottom: 6px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding-bottom: 8px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
         }
 
         td {
@@ -121,10 +157,12 @@
             vertical-align: middle;
         }
 
-        .sub-text {
-            font-size: 0.75rem;
-            color: rgba(255, 255, 255, 0.4);
-            margin-top: 2px;
+        .badge {
+            font-size: 0.7rem;
+            padding: 2px 6px;
+            border-radius: 4px;
+            background: rgba(255, 255, 255, 0.1);
+            font-weight: 500;
         }
     </style>
 </head>
@@ -132,68 +170,91 @@
 
     <div class="container">
         
-        <div class="glass-card">
-            <div class="section-title">Patrimoine Net Total</div>
-            <div class="flex-row" style="margin-bottom: 15px;">
-                <span id="total-global" class="valeur-total">0.00 €</span>
+        <div class="tabs">
+            <button id="tab-global-btn" class="tab-btn active" onclick="changerOnglet('global')">Synthèse</button>
+            <button id="tab-titres-btn" class="tab-btn" onclick="changerOnglet('titres')">Portefeuille</button>
+            <button id="tab-flux-btn" class="tab-btn" onclick="changerOnglet('flux')">Historique</button>
+        </div>
+
+        <div id="view-global" class="view-section">
+            <div class="glass-card">
+                <div class="section-title">Valorisation Estimée (Cash Inclus)</div>
+                <div class="flex-row" style="margin-bottom: 15px;">
+                    <span id="total-global" class="valeur-total">0.00 €</span>
+                </div>
+                
+                <div class="section-title">Répartition des Souches Espèces</div>
+                <div class="flex-row">
+                    <span>Compte-Espèces PEA :</span>
+                    <span id="pea-cash" class="valeur">0.00 €</span>
+                </div>
+                <div class="flex-row">
+                    <span>Compte-Espèces CTO :</span>
+                    <span id="cto-cash" class="valeur">0.00 €</span>
+                </div>
             </div>
-            
-            <div class="section-title">Poches Espèces (Cash disponible)</div>
-            <div class="flex-row">
-                <span>Cash liquide PEA :</span>
-                <span id="pea-cash" class="valeur">0.00 €</span>
-            </div>
-            <div class="flex-row">
-                <span>Cash liquide CTO :</span>
-                <span id="cto-cash" class="valeur">0.00 €</span>
+
+            <div class="glass-card">
+                <h3>⚙️ Synchronisation Courtier</h3>
+                <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 15px; line-height: 1.4;">
+                    Glissez votre fichier d'export de transactions. Le parseur recalcule vos positions, déduit vos liquidités et calcule vos PRU exacts.
+                </p>
+                
+                <label for="courtier-csv" class="btn-action">
+                    📥 Sélectionner l'export (.csv)
+                </label>
+                <input type="file" id="courtier-csv" accept=".csv" style="display: none;" onchange="traiterImportCourtier(event)">
+                
+                <div id="import-feedback"></div>
             </div>
         </div>
 
-        <div class="glass-card">
-            <h3>📥 Automatisation par CSV</h3>
-            <p style="color: rgba(255, 255, 255, 0.5); font-size: 0.85rem; margin-bottom: 15px; line-height: 1.4;">
-                Glissez votre fichier d'export de transactions. Le script trie, calcule vos PRU fiscaux et vos liquidités sans saisie manuelle.
-            </p>
-            
-            <label for="courtier-csv" class="btn-import">
-                📊 Importer le fichier .csv
-            </label>
-            <input type="file" id="courtier-csv" accept=".csv" style="display: none;" onchange="analyserEtCalculerPatrimoine(event)">
-            
-            <div id="import-feedback"></div>
+        <div id="view-titres" class="view-section" style="display: none;">
+            <div class="glass-card">
+                <h3>📈 Lignes Ouvertes (PEA & CTO)</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Actif</th>
+                            <th style="text-align: center;">Quantité</th>
+                            <th style="text-align: right;">PRU Fiscal</th>
+                            <th style="text-align: right;">Total Investi</th>
+                        </tr>
+                    </thead>
+                    <tbody id="table-actifs">
+                        </tbody>
+                </table>
+            </div>
         </div>
 
-        <div class="glass-card">
-            <h3>📈 Lignes de Titres (PEA & CTO)</h3>
-            <table>
-                <thead>
-                    <tr>
-                        <th>Actif</th>
-                        <th style="text-align: center;">Quantité</th>
-                        <th style="text-align: right;">PRU Fiscal</th>
-                        <th style="text-align: right;">Total Investi</th>
-                    </tr>
-                </thead>
-                <tbody id="table-actifs">
-                    <tr>
-                        <td colspan="4" style="color: rgba(255,255,255,0.3); text-align: center; padding: 20px 0;">
-                            Aucun actif importé. Utilisez le module ci-dessus.
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
+        <div id="view-flux" class="view-section" style="display: none;">
+            <div class="glass-card">
+                <h3>📜 Journal des Événements</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Type</th>
+                            <th>Détails</th>
+                            <th style="text-align: right;">Flux Net</th>
+                        </tr>
+                    </thead>
+                    <tbody id="table-flux">
+                        </tbody>
+                </table>
+            </div>
         </div>
 
     </div>
 
     <script>
-        // 1. Structure centrale de l'application (Stockée sous 'patrimoine_multi_v6')
+        // 1. Déclaration de l'état global persistant
         let appData = JSON.parse(localStorage.getItem('patrimoine_multi_v6')) || {
             pea: { historique: [], especes: 0, actifs: {} },
             cto: { historique: [], especes: 0, actifs: {} }
         };
 
-        // Parseur CSV chirurgical pour ignorer les virgules logées dans les chaînes de caractères complexes
+        // Parseur de lignes CSV pour sécuriser le traitement des virgules internes
         function decouperLigneCSV(ligne) {
             const resultat = [];
             let enGuillemets = false;
@@ -213,8 +274,8 @@
             return resultat;
         }
 
-        // 2. Fonction maîtresse d'importation et de traitement des formules
-        function analyserEtCalculerPatrimoine(event) {
+        // 2. Moteur principal d'analyse automatique du fichier courtier
+        function traiterImportCourtier(event) {
             const fichier = event.target.files[0];
             const feedback = document.getElementById('import-feedback');
             if (!fichier) return;
@@ -223,15 +284,14 @@
             reader.onload = function(e) {
                 try {
                     const lignes = e.target.result.split(/\r?\n/);
-                    if (lignes.length < 2) throw new Error("Le fichier CSV est vide.");
+                    if (lignes.length < 2) throw new Error("Format ou contenu du fichier CSV invalide.");
 
                     const entetes = decouperLigneCSV(lignes[0]);
 
-                    // Reset complet et propre pour reconstruire le patrimoine d'après l'historique exact
+                    // Reset sélectif : on repart de zéro pour reconstruire l'état à partir des faits bruts
                     appData.pea = { historique: [], especes: 0, actifs: {} };
                     appData.cto = { historique: [], especes: 0, actifs: {} };
 
-                    // Lecture séquentielle de chaque ligne
                     for (let i = 1; i < lignes.length; i++) {
                         if (!lignes[i].trim()) continue;
 
@@ -239,156 +299,161 @@
                         const r = {};
                         entetes.forEach((nom, idx) => { r[nom] = colonnes[idx] || ""; });
 
-                        // Extraction et parsing des valeurs numériques
                         const montantNet = parseFloat(r.amount) || 0;
                         const prixUnitaire = parseFloat(r.price) || 0;
-                        const quantiteMouvement = parseFloat(r.shares) || 0;
-                        const fraisCourtage = parseFloat(r.fee) || 0;
-                        const taxesTransaction = parseFloat(r.tax) || 0;
+                        const qteMouvement = parseFloat(r.shares) || 0;
+                        const frais = parseFloat(r.fee) || 0;
+                        const taxe = parseFloat(r.tax) || 0;
 
-                        // Sélection de l'enveloppe cible (PEA ou CTO par défaut si "DEFAULT")
-                        let enveloppe = (r.account_type === "PEA") ? appData.pea : appData.cto;
+                        // Routage automatique enveloppe fiscale
+                        let env = (r.account_type === "PEA") ? appData.pea : appData.cto;
 
-                        // ÉVOLUTION 1 : Gestion de la poche espèces (Le cash)
-                        enveloppe.especes += montantNet;
+                        // Ajustement de la poche cash disponible
+                        env.especes += montantNet;
 
-                        // ÉVOLUTION 2 : Traitement et construction des Lignes de titres en direct
                         if (r.category === "TRADING") {
                             const isin = r.symbol;
-                            const nomActif = r.name;
+                            const nom = r.name;
 
-                            // Initialisation de l'actif s'il n'existe pas encore dans notre dictionnaire
-                            if (!enveloppe.actifs[isin]) {
-                                enveloppe.actifs[isin] = { nom: nomActif, qte: 0, totalInvestiNet: 0, pru: 0 };
+                            if (!env.actifs[isin]) {
+                                env.actifs[isin] = { nom: nom, qte: 0, totalInvesti: 0, pru: 0 };
                             }
 
-                            let actif = enveloppe.actifs[isin];
+                            let actif = env.actifs[isin];
 
                             if (r.type === "BUY") {
-                                // Achat : On cumule les parts et on intègre les frais/taxes dans le coût de revient réel
-                                actif.qte += Math.abs(quantiteMouvement);
-                                // Le montantNet étant négatif au moment de l'achat, on extrait sa valeur absolue
-                                actif.totalInvestiNet += Math.abs(montantNet);
+                                actif.qte += Math.abs(qteMouvement);
+                                actif.totalInvesti += Math.abs(montantNet);
                             } else if (r.type === "SELL") {
-                                // Vente : On déduit proportionnellement les parts
                                 if (actif.qte > 0) {
-                                    // Calcul du PRU actuel avant de liquider la ligne
-                                    actif.pru = actif.totalInvestiNet / actif.qte;
-                                    actif.qte -= Math.abs(quantiteMouvement);
-                                    // Ajustement du capital restant investi
-                                    actif.totalInvestiNet = actif.qte * actif.pru;
+                                    actif.pru = actif.totalInvesti / actif.qte;
+                                    actif.qte -= Math.abs(qteMouvement);
+                                    actif.totalInvesti = actif.qte * actif.pru; 
                                 }
                             }
 
-                            // Recalcul du PRU Fiscal exact (Prix d'achat moyen ajusté des frais et taxes)
                             if (actif.qte > 0) {
-                                actif.pru = actif.totalInvestiNet / actif.qte;
+                                actif.pru = actif.totalInvesti / actif.qte;
                             } else {
-                                // Ligne entièrement soldée, on nettoie pour ne pas fausser l'affichage
-                                delete enveloppe.actifs[isin];
+                                delete env.actifs[isin];
                             }
 
-                            // Ajout dans l'historique visuel
-                            enveloppe.historique.push({
+                            env.historique.push({
                                 date: r.date,
                                 type: r.type === "BUY" ? "Achat" : "Vente",
-                                nom: nomActif,
-                                impact: montantNet
+                                details: `${nom} (${isin})`,
+                                compte: r.account_type === "PEA" ? "PEA" : "CTO",
+                                flux: montantNet
                             });
 
                         } else if (r.category === "CASH") {
-                            // Enregistrement des flux annexes (Virements, Dividendes reçus)
                             let libelle = "Virement";
                             if (r.type === "DIVIDEND" || r.type === "DIVIDEND_EQUIVALENT_PAYMENT") libelle = "Dividende";
                             if (r.type === "INTEREST_PAYMENT") libelle = "Intérêts";
 
-                            enveloppe.historique.push({
+                            env.historique.push({
                                 date: r.date,
                                 type: libelle,
-                                nom: r.name || r.description || "Mouvement Cash",
-                                impact: montantNet
+                                details: r.name || r.description || "Mouvement Cash",
+                                compte: r.account_type === "PEA" ? "PEA" : "CTO",
+                                flux: montantNet
                             });
                         }
                     }
 
-                    // Enregistrement finalisé dans le localStorage de ton application
+                    // Synchro LocalStorage
                     localStorage.setItem('patrimoine_multi_v6', JSON.stringify(appData));
 
-                    // Notification de succès en vert style Liquid Glass
+                    // Notification Glass vert
                     feedback.style.display = "block";
                     feedback.style.background = "rgba(46, 204, 113, 0.15)";
                     feedback.style.color = "#2ecc71";
                     feedback.style.border = "1px solid rgba(46, 204, 113, 0.3)";
-                    feedback.innerHTML = "✅ Base de données recalculée à 100 % !";
+                    feedback.innerHTML = "✅ Base recalculée et synchronisée !";
 
-                    // Rafraîchir instantanément l'affichage à l'écran
-                    mettreAJourRenduInterface();
+                    renouvelerRendu();
 
                 } catch (err) {
                     feedback.style.display = "block";
                     feedback.style.background = "rgba(231, 76, 60, 0.15)";
                     feedback.style.color = "#e74c3c";
                     feedback.style.border = "1px solid rgba(231, 76, 60, 0.3)";
-                    feedback.innerText = "❌ Erreur de traitement : " + err.message;
+                    feedback.innerText = "❌ Échec de l'importation : " + err.message;
                 }
             };
             reader.readAsText(fichier);
         }
 
-        // 3. Fonction d'affichage dynamique (Rendu HTML)
-        function mettreAJourRenduInterface() {
-            const cashPEA = appData.pea.especes || 0;
-            const cashCTO = appData.cto.especes || 0;
+        // 3. Système de rendu et de mise à jour de l'interface
+        function renouvelerRendu() {
+            const cPEA = appData.pea.especes || 0;
+            const cCTO = appData.cto.especes || 0;
 
-            // Affichage des compteurs espèces
-            document.getElementById('pea-cash').innerText = cashPEA.toFixed(2) + " €";
-            document.getElementById('cto-cash').innerText = cashCTO.toFixed(2) + " €";
+            document.getElementById('pea-cash').innerText = cPEA.toFixed(2) + " €";
+            document.getElementById('cto-cash').innerText = cCTO.toFixed(2) + " €";
 
-            let totalTitresRecalcules = 0;
-            let htmlTableauActifs = "";
+            let totalTitres = 0;
+            let htmlActifs = "";
 
-            // Parcours et addition des lignes d'actifs du PEA
+            // Traitement visuel PEA
             for (let isin in appData.pea.actifs) {
-                let act = appData.pea.actifs[isin];
-                totalTitresRecalcules += act.totalInvestiNet;
-                htmlTableauActifs += `
-                    <tr>
-                        <td><strong>${act.nom}</strong><div class="sub-text">PEA • ${isin}</div></td>
-                        <td style="text-align: center; font-variant-numeric: tabular-nums;">${act.qte.toFixed(4)}</td>
-                        <td style="text-align: right; font-variant-numeric: tabular-nums;">${act.pru.toFixed(2)} €</td>
-                        <td style="text-align: right; font-weight: 500; font-variant-numeric: tabular-nums;">${act.totalInvestiNet.toFixed(2)} €</td>
-                    </tr>
-                `;
+                let a = appData.pea.actifs[isin];
+                totalTitres += a.totalInvesti;
+                htmlActifs += genererLigneTableau(a, "PEA", isin);
             }
 
-            // Parcours et addition des lignes d'actifs du CTO
+            // Traitement visuel CTO
             for (let isin in appData.cto.actifs) {
-                let act = appData.cto.actifs[isin];
-                totalTitresRecalcules += act.totalInvestiNet;
-                htmlTableauActifs += `
+                let a = appData.cto.actifs[isin];
+                totalTitres += a.totalInvesti;
+                htmlActifs += genererLigneTableau(a, "CTO", isin);
+            }
+
+            document.getElementById('table-actifs').innerHTML = htmlActifs || `<tr><td colspan="4" style="color:var(--text-muted); text-align:center; padding:20px 0;">Aucun actif en portefeuille.</td></tr>`;
+            document.getElementById('total-global').innerText = (totalTitres + cPEA + cCTO).toFixed(2) + " €";
+
+            // Journal des flux complet
+            const totalHistorique = [...appData.pea.historique, ...appData.cto.historique]
+                                    .sort((a, b) => new Date(b.date) - new Date(a.date));
+
+            let htmlFlux = "";
+            totalHistorique.forEach(f => {
+                let color = f.flux >= 0 ? "var(--accent-green)" : "var(--accent-red)";
+                let sign = f.flux >= 0 ? "+" : "";
+                htmlFlux += `
                     <tr>
-                        <td><strong>${act.nom}</strong><div class="sub-text">CTO • ${isin}</div></td>
-                        <td style="text-align: center; font-variant-numeric: tabular-nums;">${act.qte.toFixed(4)}</td>
-                        <td style="text-align: right; font-variant-numeric: tabular-nums;">${act.pru.toFixed(2)} €</td>
-                        <td style="text-align: right; font-weight: 500; font-variant-numeric: tabular-nums;">${act.totalInvestiNet.toFixed(2)} €</td>
+                        <td style="color: var(--text-muted); font-size:0.8rem;">${f.date}</td>
+                        <td><span class="badge">${f.type}</span><div class="sub-text" style="margin-top:2px;">${f.compte}</div></td>
+                        <td>${f.details}</td>
+                        <td style="text-align: right; color: ${color}; font-weight: 500; font-variant-numeric: tabular-nums;">${sign}${f.flux.toFixed(2)} €</td>
                     </tr>
                 `;
-            }
-
-            // Remplissage du tableau si des lignes existent
-            if (htmlTableauActifs !== "") {
-                document.getElementById('table-actifs').innerHTML = htmlTableauActifs;
-            } else {
-                document.getElementById('table-actifs').innerHTML = `<tr><td colspan="4" style="color: rgba(255,255,255,0.3); text-align: center; padding: 20px 0;">Aucune ligne d'actif ouverte.</td></tr>`;
-            }
-
-            // Calcul du Patrimoine global (Valeur totale injectée en bourse + le cash restant sur les deux comptes)
-            const patrimoineNetTotal = totalTitresRecalcules + cashPEA + cashCTO;
-            document.getElementById('total-global').innerText = patrimoineNetTotal.toFixed(2) + " €";
+            });
+            document.getElementById('table-flux').innerHTML = htmlFlux || `<tr><td colspan="4" style="color:var(--text-muted); text-align:center; padding:20px 0;">Aucun mouvement répertorié.</td></tr>`;
         }
 
-        // Lancement au démarrage de la page
-        window.onload = mettreAJourRenduInterface;
+        function genererLigneTableau(actif, tag, isin) {
+            return `
+                <tr>
+                    <td><strong>${actif.nom}</strong><div class="sub-text">${tag} • ${isin}</div></td>
+                    <td style="text-align: center; font-variant-numeric: tabular-nums;">${actif.qte.toFixed(4)}</td>
+                    <td style="text-align: right; font-variant-numeric: tabular-nums;">${actif.pru.toFixed(2)} €</td>
+                    <td style="text-align: right; font-weight: 500; font-variant-numeric: tabular-nums;">${actif.totalInvesti.toFixed(2)} €</td>
+                </tr>
+            `;
+        }
+
+        // 4. Système de routage d'onglets locaux (iOS friendly)
+        function changerOnglet(cible) {
+            document.querySelectorAll('.view-section').forEach(v => v.style.display = "none");
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            
+            document.getElementById(`view-${cible}`).style.display = "block";
+            document.getElementById(`tab-${cible}-btn`).classList.add('active');
+        }
+
+        // Exécution au chargement
+        window.onload = renouvelerRendu;
     </script>
 </body>
 </html>
