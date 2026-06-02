@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Mon Patrimoine</title>
+    <title>Mon Patrimoine Financier</title>
     <style>
-        /* --- STYLE GENERAL & THEME SOMBRE --- */
+        /* --- DESIGN LIQUID GLASS & DARK MODE --- */
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             background-color: #000000;
             color: #ffffff;
             margin: 0;
@@ -19,12 +19,11 @@
 
         .container {
             width: 100%;
-            max-width: 500px; /* Taille idéale pour iPhone */
+            max-width: 500px;
             padding: 15px;
             box-sizing: border-box;
         }
 
-        /* --- STYLE LIQUID GLASS (GLASSMORPHISM) --- */
         .glass-card {
             background: rgba(255, 255, 255, 0.03);
             backdrop-filter: blur(15px);
@@ -36,24 +35,20 @@
             box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
         }
 
-        h2, h3 {
-            margin-top: 0;
-            font-weight: 500;
-        }
+        h2, h3 { margin-top: 0; font-weight: 500; }
 
         .solde-container {
             display: flex;
             justify-content: space-between;
-            margin-bottom: 10px;
+            margin-bottom: 12px;
             font-size: 1.1rem;
+            padding-bottom: 8px;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
         }
 
-        .valeur {
-            font-weight: 600;
-            color: #00bfff;
-        }
+        .valeur { font-weight: 600; color: #00bfff; }
+        .valeur-total { font-weight: 700; color: #2ecc71; }
 
-        /* --- STYLISATION DU BOUTON D'IMPORT --- */
         .btn-import {
             display: flex;
             align-items: center;
@@ -67,12 +62,7 @@
             border: 1px solid rgba(255, 255, 255, 0.1);
             font-weight: 500;
             text-align: center;
-            transition: background 0.2s ease;
-            -webkit-tap-highlight-color: transparent; /* Supprime le flash bleu sur iPhone */
-        }
-
-        .btn-import:active {
-            background: rgba(255, 255, 255, 0.15);
+            -webkit-tap-highlight-color: transparent;
         }
 
         #import-feedback {
@@ -82,30 +72,11 @@
             border-radius: 10px;
             text-align: center;
             margin-top: 15px;
-            line-height: 1.4;
         }
 
-        /* --- STYLE DU TABLEAU DE COMPTES --- */
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 10px;
-        }
-
-        th {
-            text-align: left;
-            color: rgba(255, 255, 255, 0.4);
-            font-size: 0.8rem;
-            font-weight: 400;
-            padding-bottom: 8px;
-            text-transform: uppercase;
-        }
-
-        td {
-            padding: 10px 0;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-            font-size: 0.9rem;
-        }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th { text-align: left; color: rgba(255, 255, 255, 0.4); font-size: 0.8rem; padding-bottom: 8px; text-transform: uppercase; }
+        td { padding: 10px 0; border-bottom: 1px solid rgba(255, 255, 255, 0.05); font-size: 0.9rem; }
     </style>
 </head>
 <body>
@@ -113,22 +84,26 @@
     <div class="container">
         
         <div class="glass-card">
-            <h2>Mon Portefeuille</h2>
+            <h2>Synthèse des Liquidités</h2>
             
             <div class="solde-container">
-                <span>Espèces PEA :</span>
+                <span>Espèces PEA (Cash) :</span>
                 <span id="pea-cash" class="valeur">0.00 €</span>
             </div>
             <div class="solde-container">
-                <span>Espèces CTO :</span>
+                <span>Espèces CTO (Cash) :</span>
                 <span id="cto-cash" class="valeur">0.00 €</span>
+            </div>
+            <div class="solde-container" style="border: none; margin-top: 15px;">
+                <span>Total Cash Disponible :</span>
+                <span id="total-cash" class="valeur-total">0.00 €</span>
             </div>
         </div>
 
         <div class="glass-card">
-            <h3>📥 Synchronisation Courtier</h3>
+            <h3>📥 Importation Fichier Courtier</h3>
             <p style="color: rgba(255, 255, 255, 0.5); font-size: 0.85rem; margin-bottom: 15px; line-height: 1.4;">
-                Importez votre fichier CSV exporté pour mettre à jour automatiquement vos historiques et vos soldes espèces.
+                Sélectionnez votre export CSV pour recalculer proprement vos enveloppes.
             </p>
             
             <label for="courtier-csv-file" class="btn-import">
@@ -140,19 +115,19 @@
         </div>
 
         <div class="glass-card">
-            <h3>Derniers mouvements (PEA)</h3>
+            <h3>Derniers mouvements traités</h3>
             <table>
                 <thead>
                     <tr>
                         <th>Date</th>
                         <th>Type</th>
-                        <th>Actif</th>
-                        <th>Total</th>
+                        <th>Actif / Libellé</th>
+                        <th style="text-align: right;">Impact Cash</th>
                     </tr>
                 </thead>
-                <tbody id="table-historique-pea">
+                <tbody id="table-verification">
                     <tr>
-                        <td colspan="4" style="color: rgba(255,255,255,0.3); text-align: center;">Aucune donnée importée</td>
+                        <td colspan="4" style="color: rgba(255,255,255,0.3); text-align: center;">Aucune donnée synchronisée</td>
                     </tr>
                 </tbody>
             </table>
@@ -161,14 +136,13 @@
     </div>
 
     <script>
-        // 1. Initialisation de la structure de données locale (appData)
-        // Elle tente de charger ton localStorage actuel, sinon elle crée une base propre.
+        // Initialisation propre
         let appData = JSON.parse(localStorage.getItem('patrimoine_multi_v6')) || {
             pea: { historique: [], especes: 0 },
             cto: { historique: [], especes: 0 }
         };
 
-        // Fonction pour nettoyer les guillemets et séparer correctement les colonnes du CSV
+        // Parseur robuste pour nettoyer les guillemets et respecter les virgules de ton fichier
         function parseLigneCSV(ligne) {
             const resultat = [];
             let enGuillemets = false;
@@ -189,7 +163,6 @@
             return resultat;
         }
 
-        // 2. Traitement du fichier CSV importé
         function importerCSV_Courtier(event) {
             const fichier = event.target.files[0];
             const feedback = document.getElementById('import-feedback');
@@ -202,55 +175,39 @@
                     const contenu = e.target.result;
                     const lignes = contenu.split(/\r?\n/);
                     
-                    if (lignes.length < 2) {
-                        throw new Error("Le fichier semble vide ou mal formaté.");
-                    }
+                    if (lignes.length < 2) throw new Error("Fichier vide.");
 
-                    // Récupération de la première ligne pour connaître le nom des colonnes
                     const entetes = parseLigneCSV(lignes[0]);
                     
-                    let countPEA = 0;
-                    let countCTO = 0;
-
-                    // Remise à zéro propre pour éviter les doublons à chaque import
+                    // Reset propre des compteurs pour éviter les cumuls erronés
                     appData.pea.historique = [];
                     appData.cto.historique = [];
                     appData.pea.especes = 0;
                     appData.cto.especes = 0;
 
-                    // On parcourt chaque ligne du fichier (sauf l'en-tête index 0)
                     for (let i = 1; i < lignes.length; i++) {
-                        if (!lignes[i].trim()) continue; // Ignore les lignes vides de fin de fichier
+                        if (!lignes[i].trim()) continue;
 
                         const colonnes = parseLigneCSV(lignes[i]);
                         const r = {};
-                        
-                        // On crée un objet "clé: valeur" basé sur l'en-tête (ex: r.amount, r.account_type)
-                        entetes.forEach((nom, index) => {
-                            r[nom] = colonnes[index] || "";
-                        });
+                        entetes.forEach((nom, index) => { r[nom] = colonnes[index] || ""; });
 
-                        // Conversions numériques
                         const montantNet = parseFloat(r.amount) || 0;
                         const prixUnitaire = parseFloat(r.price) || 0;
                         const quantite = parseFloat(r.shares) || 0;
                         const frais = parseFloat(r.fee) || 0;
                         const taxe = parseFloat(r.tax) || 0;
 
-                        // Sélection automatique du bon compte (PEA ou CTO)
-                        let compteCible = appData.cto;
-                        if (r.account_type === "PEA") {
-                            compteCible = appData.pea;
-                            countPEA++;
-                        } else {
-                            countCTO++;
-                        }
+                        // Routage intelligent vers PEA ou CTO (DEFAULT)
+                        let compteCible = (r.account_type === "PEA") ? appData.pea : appData.cto;
 
-                        // Mise à jour de la poche espèces (le cash disponible)
-                        compteCible.especes += montantNet;
-
-                        // Structuration et ajout du mouvement dans l'historique de l'application
+                        // --- LA CORRECTION DES SIGNES ET LOGIQUE FINANCIÈRE ---
+                        
                         if (r.category === "TRADING") {
+                            // Si BUY (Achat) : Le montantNet dans ton fichier est déjà NÉGATIF (ex: -165.24). 
+                            // Donc faire "+= montantNet" vient bien soustraire l'argent de la poche espèces.
+                            compteCible.especes += montantNet;
+
                             compteCible.historique.push({
                                 date: r.date,
                                 type: r.type === "BUY" ? "Achat" : "Vente",
@@ -258,89 +215,92 @@
                                 ticker: r.symbol,
                                 quantite: Math.abs(quantite),
                                 prix: prixUnitaire,
-                                total: Math.abs(montantNet),
+                                impact_cash: montantNet, // On garde le vrai signe pour le calcul
                                 frais: Math.abs(frais) + Math.abs(taxe)
                             });
-                        } else if (r.category === "CASH" && (r.type === "DIVIDEND" || r.type === "DIVIDEND_EQUIVALENT_PAYMENT")) {
-                            compteCible.historique.push({
-                                date: r.date,
-                                type: "Dividende",
-                                nom: r.name,
-                                total: montantNet
-                            });
+
                         } else if (r.category === "CASH") {
-                            let libelle = "Virement";
-                            if (r.type === "INTEREST_PAYMENT") libelle = "Intérêts";
-                            
+                            // Gestion des flux de liquidités (Virements, Dividendes, Intérêts)
+                            compteCible.especes += montantNet;
+
+                            let typeMouvement = "Virement";
+                            if (r.type === "DIVIDEND" || r.type === "DIVIDEND_EQUIVALENT_PAYMENT") typeMouvement = "Dividende";
+                            if (r.type === "INTEREST_PAYMENT") typeMouvement = "Intérêts";
+
                             compteCible.historique.push({
                                 date: r.date,
-                                type: libelle,
-                                nom: r.description || "Mouvement Cash",
-                                total: montantNet
+                                type: typeMouvement,
+                                nom: r.name || r.description || "Mouvement Cash",
+                                ticker: r.symbol || "",
+                                quantite: 0,
+                                prix: 0,
+                                impact_cash: montantNet,
+                                frais: Math.abs(taxe)
                             });
                         }
                     }
 
-                    // 3. Sauvegarde définitive dans le localStorage de ton iPhone
+                    // Sauvegarde dans ton localStorage v6
                     localStorage.setItem('patrimoine_multi_v6', JSON.stringify(appData));
 
-                    // Affichage du message de succès (Style Glassmorphism Vert)
+                    // Feedback Vert
                     feedback.style.display = "block";
                     feedback.style.background = "rgba(46, 204, 113, 0.15)";
                     feedback.style.color = "#2ecc71";
                     feedback.style.border = "1px solid rgba(46, 204, 113, 0.3)";
-                    feedback.innerHTML = `✅ Synchronisation terminée !<br>${countPEA} lignes PEA et ${countCTO} lignes CTO ajoutées.`;
+                    feedback.innerHTML = `✅ Calculs mis à jour avec succès !`;
 
-                    // Actualiser les éléments affichés à l'écran
                     mettreAJourInterface();
 
                 } catch (erreur) {
-                    // Affichage du message d'erreur (Style Glassmorphism Rouge)
                     feedback.style.display = "block";
                     feedback.style.background = "rgba(231, 76, 60, 0.15)";
                     feedback.style.color = "#e74c3c";
                     feedback.style.border = "1px solid rgba(231, 76, 60, 0.3)";
-                    feedback.innerText = "❌ Fichier illisible : " + erreur.message;
+                    feedback.innerText = "❌ Erreur : " + erreur.message;
                 }
             };
-
             reader.readAsText(fichier);
         }
 
-        // 4. Fonction d'affichage à l'écran
         function mettreAJourInterface() {
-            // Mise à jour des compteurs de cash sur l'écran d'accueil
-            document.getElementById('pea-cash').innerText = (appData.pea.especes || 0).toFixed(2) + " €";
-            document.getElementById('cto-cash').innerText = (appData.cto.especes || 0).toFixed(2) + " €";
+            const peaCash = appData.pea.especes || 0;
+            const ctoCash = appData.cto.especes || 0;
+            const totalGlobal = peaCash + ctoCash;
 
-            // Remplissage du tableau d'historique du PEA à titre d'exemple
-            const tbodyPEA = document.getElementById('table-historique-pea');
-            if (appData.pea.historique.length === 0) {
-                tbodyPEA.innerHTML = `<tr><td colspan="4" style="color: rgba(255,255,255,0.3); text-align: center;">Aucun mouvement</td></tr>`;
+            // Rendu des comptes sur l'écran
+            document.getElementById('pea-cash').innerText = peaCash.toFixed(2) + " €";
+            document.getElementById('cto-cash').innerText = ctoCash.toFixed(2) + " €";
+            document.getElementById('total-cash').innerText = totalGlobal.toFixed(2) + " €";
+
+            // Remplissage du tableau de contrôle (Fusion des historiques pour vérification)
+            const tbody = document.getElementById('table-verification');
+            const toutHistorique = [...appData.pea.historique, ...appData.cto.historique]
+                                    .sort((a, b) => new Date(b.date) - new Date(a.date)); // Du plus récent au plus ancien
+
+            if (toutHistorique.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="4" style="color: rgba(255,255,255,0.3); text-align: center;">Aucun mouvement</td></tr>`;
                 return;
             }
 
-            // On prend les 5 derniers mouvements pour ne pas surcharger l'écran de l'iPhone
-            let htmlHTML = "";
-            const derniersMouvements = appData.pea.historique.slice(0, 5);
-            
-            derniersMouvements.forEach(m => {
-                let couleurType = m.type === "Achat" ? "#e74c3c" : "#2ecc71";
-                if(m.type === "Virement" || m.type === "Dividende") couleurType = "#00bfff";
-
-                htmlHTML += `
+            let html = "";
+            toutHistorique.slice(0, 10).forEach(m => {
+                let couleurImpact = m.impact_cash >= 0 ? "#2ecc71" : "#e74c3c";
+                let signe = m.impact_cash >= 0 ? "+" : "";
+                
+                html += `
                     <tr>
-                        <td style="color: rgba(255,255,255,0.6); font-size: 0.85rem;">${m.date}</td>
-                        <td style="color: ${couleurType}; font-weight: 500;">${m.type}</td>
+                        <td style="color: rgba(255,255,255,0.5); font-size: 0.8rem;">${m.date}</td>
+                        <td><small style="background: rgba(255,255,255,0.1); padding: 2px 6px; border-radius:4px;">${m.type}</small></td>
                         <td>${m.nom}</td>
-                        <td style="text-align: right; font-weight: 500;">${m.total.toFixed(2)} €</td>
+                        <td style="text-align: right; color: ${couleurImpact}; font-weight: 500;">${signe}${m.impact_cash.toFixed(2)} €</td>
                     </tr>
                 `;
             });
-            tbodyPEA.innerHTML = htmlHTML;
+            tbody.innerHTML = html;
         }
 
-        // Lancement automatique au chargement initial de la PWA
+        // Lancement au démarrage
         window.onload = mettreAJourInterface;
     </script>
 </body>
