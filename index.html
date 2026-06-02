@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Mon Patrimoine Financier</title>
+    <title>Dashboard Patrimoine Automatique</title>
     <style>
-        /* --- DESIGN LIQUID GLASS & DARK MODE --- */
+        /* --- THÈME SOMBRE GLOBAL & RÉDUCTION APPLE/IPHONE --- */
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             background-color: #000000;
             color: #ffffff;
             margin: 0;
@@ -15,54 +15,77 @@
             display: flex;
             flex-direction: column;
             align-items: center;
+            -webkit-font-smoothing: antialiased;
         }
 
         .container {
             width: 100%;
-            max-width: 500px;
+            max-width: 480px; /* Parfait pour l'affichage sur iPhone */
             padding: 15px;
             box-sizing: border-box;
         }
 
+        /* --- STYLE LIQUID GLASS (GLASSMORPHISM) --- */
         .glass-card {
             background: rgba(255, 255, 255, 0.03);
-            backdrop-filter: blur(15px);
-            -webkit-backdrop-filter: blur(15px);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
             border: 1px solid rgba(255, 255, 255, 0.08);
             border-radius: 16px;
             padding: 20px;
-            margin-bottom: 20px;
-            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+            margin-bottom: 15px;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.4);
         }
 
-        h2, h3 { margin-top: 0; font-weight: 500; }
+        h2, h3 {
+            margin-top: 0;
+            font-weight: 500;
+            letter-spacing: -0.5px;
+        }
 
-        .solde-container {
+        .section-title {
+            color: rgba(255, 255, 255, 0.4);
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 10px;
+            margin-top: 5px;
+        }
+
+        /* --- LOGIQUE D'AFFICHAGE DES CHIFFRES --- */
+        .flex-row {
             display: flex;
             justify-content: space-between;
-            margin-bottom: 12px;
-            font-size: 1.1rem;
-            padding-bottom: 8px;
-            border-bottom: 1px solid rgba(255,255,255,0.05);
+            align-items: center;
+            margin-bottom: 10px;
         }
 
-        .valeur { font-weight: 600; color: #00bfff; }
-        .valeur-total { font-weight: 700; color: #2ecc71; }
+        .valeur { font-weight: 600; color: #00bfff; font-variant-numeric: tabular-nums; }
+        .valeur-total { font-weight: 700; color: #2ecc71; font-size: 1.4rem; font-variant-numeric: tabular-nums; }
+        .plus-value { color: #2ecc71; font-weight: 500; }
+        .moins-value { color: #e74c3c; font-weight: 500; }
 
+        /* --- SÉLECTEUR TACTILE IPAD/IPHONE (BOUTON DE CHARGEMENT) --- */
         .btn-import {
             display: flex;
             align-items: center;
             justify-content: center;
             gap: 10px;
-            background: rgba(255, 255, 255, 0.07);
+            background: linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0.03));
             color: #ffffff;
-            padding: 14px;
-            border-radius: 12px;
+            padding: 15px;
+            border-radius: 14px;
             cursor: pointer;
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.12);
             font-weight: 500;
             text-align: center;
+            transition: all 0.2s ease;
             -webkit-tap-highlight-color: transparent;
+        }
+
+        .btn-import:active {
+            background: rgba(255, 255, 255, 0.18);
+            transform: scale(0.98);
         }
 
         #import-feedback {
@@ -71,12 +94,38 @@
             padding: 12px;
             border-radius: 10px;
             text-align: center;
-            margin-top: 15px;
+            margin-top: 12px;
+            font-weight: 500;
         }
 
-        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-        th { text-align: left; color: rgba(255, 255, 255, 0.4); font-size: 0.8rem; padding-bottom: 8px; text-transform: uppercase; }
-        td { padding: 10px 0; border-bottom: 1px solid rgba(255, 255, 255, 0.05); font-size: 0.9rem; }
+        /* --- TABLEAUX ULTRA-SCANNABLES --- */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 5px;
+        }
+
+        th {
+            text-align: left;
+            color: rgba(255, 255, 255, 0.3);
+            font-size: 0.75rem;
+            font-weight: 400;
+            padding-bottom: 6px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        td {
+            padding: 12px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+            font-size: 0.88rem;
+            vertical-align: middle;
+        }
+
+        .sub-text {
+            font-size: 0.75rem;
+            color: rgba(255, 255, 255, 0.4);
+            margin-top: 2px;
+        }
     </style>
 </head>
 <body>
@@ -84,50 +133,52 @@
     <div class="container">
         
         <div class="glass-card">
-            <h2>Synthèse des Liquidités</h2>
+            <div class="section-title">Patrimoine Net Total</div>
+            <div class="flex-row" style="margin-bottom: 15px;">
+                <span id="total-global" class="valeur-total">0.00 €</span>
+            </div>
             
-            <div class="solde-container">
-                <span>Espèces PEA (Cash) :</span>
+            <div class="section-title">Poches Espèces (Cash disponible)</div>
+            <div class="flex-row">
+                <span>Cash liquide PEA :</span>
                 <span id="pea-cash" class="valeur">0.00 €</span>
             </div>
-            <div class="solde-container">
-                <span>Espèces CTO (Cash) :</span>
+            <div class="flex-row">
+                <span>Cash liquide CTO :</span>
                 <span id="cto-cash" class="valeur">0.00 €</span>
-            </div>
-            <div class="solde-container" style="border: none; margin-top: 15px;">
-                <span>Total Cash Disponible :</span>
-                <span id="total-cash" class="valeur-total">0.00 €</span>
             </div>
         </div>
 
         <div class="glass-card">
-            <h3>📥 Importation Fichier Courtier</h3>
+            <h3>📥 Automatisation par CSV</h3>
             <p style="color: rgba(255, 255, 255, 0.5); font-size: 0.85rem; margin-bottom: 15px; line-height: 1.4;">
-                Sélectionnez votre export CSV pour recalculer proprement vos enveloppes.
+                Glissez votre fichier d'export de transactions. Le script trie, calcule vos PRU fiscaux et vos liquidités sans saisie manuelle.
             </p>
             
-            <label for="courtier-csv-file" class="btn-import">
-                📁 Choisir le fichier CSV
+            <label for="courtier-csv" class="btn-import">
+                📊 Importer le fichier .csv
             </label>
-            <input type="file" id="courtier-csv-file" accept=".csv" style="display: none;" onchange="importerCSV_Courtier(event)">
+            <input type="file" id="courtier-csv" accept=".csv" style="display: none;" onchange="analyserEtCalculerPatrimoine(event)">
             
             <div id="import-feedback"></div>
         </div>
 
         <div class="glass-card">
-            <h3>Derniers mouvements traités</h3>
+            <h3>📈 Lignes de Titres (PEA & CTO)</h3>
             <table>
                 <thead>
                     <tr>
-                        <th>Date</th>
-                        <th>Type</th>
-                        <th>Actif / Libellé</th>
-                        <th style="text-align: right;">Impact Cash</th>
+                        <th>Actif</th>
+                        <th style="text-align: center;">Quantité</th>
+                        <th style="text-align: right;">PRU Fiscal</th>
+                        <th style="text-align: right;">Total Investi</th>
                     </tr>
                 </thead>
-                <tbody id="table-verification">
+                <tbody id="table-actifs">
                     <tr>
-                        <td colspan="4" style="color: rgba(255,255,255,0.3); text-align: center;">Aucune donnée synchronisée</td>
+                        <td colspan="4" style="color: rgba(255,255,255,0.3); text-align: center; padding: 20px 0;">
+                            Aucun actif importé. Utilisez le module ci-dessus.
+                        </td>
                     </tr>
                 </tbody>
             </table>
@@ -136,18 +187,17 @@
     </div>
 
     <script>
-        // Initialisation propre
+        // 1. Structure centrale de l'application (Stockée sous 'patrimoine_multi_v6')
         let appData = JSON.parse(localStorage.getItem('patrimoine_multi_v6')) || {
-            pea: { historique: [], especes: 0 },
-            cto: { historique: [], especes: 0 }
+            pea: { historique: [], especes: 0, actifs: {} },
+            cto: { historique: [], especes: 0, actifs: {} }
         };
 
-        // Parseur robuste pour nettoyer les guillemets et respecter les virgules de ton fichier
-        function parseLigneCSV(ligne) {
+        // Parseur CSV chirurgical pour ignorer les virgules logées dans les chaînes de caractères complexes
+        function decouperLigneCSV(ligne) {
             const resultat = [];
             let enGuillemets = false;
             let valeurCourante = '';
-            
             for (let i = 0; i < ligne.length; i++) {
                 let char = ligne[i];
                 if (char === '"') {
@@ -163,145 +213,182 @@
             return resultat;
         }
 
-        function importerCSV_Courtier(event) {
+        // 2. Fonction maîtresse d'importation et de traitement des formules
+        function analyserEtCalculerPatrimoine(event) {
             const fichier = event.target.files[0];
             const feedback = document.getElementById('import-feedback');
-            
             if (!fichier) return;
 
             const reader = new FileReader();
             reader.onload = function(e) {
                 try {
-                    const contenu = e.target.result;
-                    const lignes = contenu.split(/\r?\n/);
-                    
-                    if (lignes.length < 2) throw new Error("Fichier vide.");
+                    const lignes = e.target.result.split(/\r?\n/);
+                    if (lignes.length < 2) throw new Error("Le fichier CSV est vide.");
 
-                    const entetes = parseLigneCSV(lignes[0]);
-                    
-                    // Reset propre des compteurs pour éviter les cumuls erronés
-                    appData.pea.historique = [];
-                    appData.cto.historique = [];
-                    appData.pea.especes = 0;
-                    appData.cto.especes = 0;
+                    const entetes = decouperLigneCSV(lignes[0]);
 
+                    // Reset complet et propre pour reconstruire le patrimoine d'après l'historique exact
+                    appData.pea = { historique: [], especes: 0, actifs: {} };
+                    appData.cto = { historique: [], especes: 0, actifs: {} };
+
+                    // Lecture séquentielle de chaque ligne
                     for (let i = 1; i < lignes.length; i++) {
                         if (!lignes[i].trim()) continue;
 
-                        const colonnes = parseLigneCSV(lignes[i]);
+                        const colonnes = decouperLigneCSV(lignes[i]);
                         const r = {};
-                        entetes.forEach((nom, index) => { r[nom] = colonnes[index] || ""; });
+                        entetes.forEach((nom, idx) => { r[nom] = colonnes[idx] || ""; });
 
+                        // Extraction et parsing des valeurs numériques
                         const montantNet = parseFloat(r.amount) || 0;
                         const prixUnitaire = parseFloat(r.price) || 0;
-                        const quantite = parseFloat(r.shares) || 0;
-                        const frais = parseFloat(r.fee) || 0;
-                        const taxe = parseFloat(r.tax) || 0;
+                        const quantiteMouvement = parseFloat(r.shares) || 0;
+                        const fraisCourtage = parseFloat(r.fee) || 0;
+                        const taxesTransaction = parseFloat(r.tax) || 0;
 
-                        // Routage intelligent vers PEA ou CTO (DEFAULT)
-                        let compteCible = (r.account_type === "PEA") ? appData.pea : appData.cto;
+                        // Sélection de l'enveloppe cible (PEA ou CTO par défaut si "DEFAULT")
+                        let enveloppe = (r.account_type === "PEA") ? appData.pea : appData.cto;
 
-                        // --- LA CORRECTION DES SIGNES ET LOGIQUE FINANCIÈRE ---
-                        
+                        // ÉVOLUTION 1 : Gestion de la poche espèces (Le cash)
+                        enveloppe.especes += montantNet;
+
+                        // ÉVOLUTION 2 : Traitement et construction des Lignes de titres en direct
                         if (r.category === "TRADING") {
-                            // Si BUY (Achat) : Le montantNet dans ton fichier est déjà NÉGATIF (ex: -165.24). 
-                            // Donc faire "+= montantNet" vient bien soustraire l'argent de la poche espèces.
-                            compteCible.especes += montantNet;
+                            const isin = r.symbol;
+                            const nomActif = r.name;
 
-                            compteCible.historique.push({
+                            // Initialisation de l'actif s'il n'existe pas encore dans notre dictionnaire
+                            if (!enveloppe.actifs[isin]) {
+                                enveloppe.actifs[isin] = { nom: nomActif, qte: 0, totalInvestiNet: 0, pru: 0 };
+                            }
+
+                            let actif = enveloppe.actifs[isin];
+
+                            if (r.type === "BUY") {
+                                // Achat : On cumule les parts et on intègre les frais/taxes dans le coût de revient réel
+                                actif.qte += Math.abs(quantiteMouvement);
+                                // Le montantNet étant négatif au moment de l'achat, on extrait sa valeur absolue
+                                actif.totalInvestiNet += Math.abs(montantNet);
+                            } else if (r.type === "SELL") {
+                                // Vente : On déduit proportionnellement les parts
+                                if (actif.qte > 0) {
+                                    // Calcul du PRU actuel avant de liquider la ligne
+                                    actif.pru = actif.totalInvestiNet / actif.qte;
+                                    actif.qte -= Math.abs(quantiteMouvement);
+                                    // Ajustement du capital restant investi
+                                    actif.totalInvestiNet = actif.qte * actif.pru;
+                                }
+                            }
+
+                            // Recalcul du PRU Fiscal exact (Prix d'achat moyen ajusté des frais et taxes)
+                            if (actif.qte > 0) {
+                                actif.pru = actif.totalInvestiNet / actif.qte;
+                            } else {
+                                // Ligne entièrement soldée, on nettoie pour ne pas fausser l'affichage
+                                delete enveloppe.actifs[isin];
+                            }
+
+                            // Ajout dans l'historique visuel
+                            enveloppe.historique.push({
                                 date: r.date,
                                 type: r.type === "BUY" ? "Achat" : "Vente",
-                                nom: r.name,
-                                ticker: r.symbol,
-                                quantite: Math.abs(quantite),
-                                prix: prixUnitaire,
-                                impact_cash: montantNet, // On garde le vrai signe pour le calcul
-                                frais: Math.abs(frais) + Math.abs(taxe)
+                                nom: nomActif,
+                                impact: montantNet
                             });
 
                         } else if (r.category === "CASH") {
-                            // Gestion des flux de liquidités (Virements, Dividendes, Intérêts)
-                            compteCible.especes += montantNet;
+                            // Enregistrement des flux annexes (Virements, Dividendes reçus)
+                            let libelle = "Virement";
+                            if (r.type === "DIVIDEND" || r.type === "DIVIDEND_EQUIVALENT_PAYMENT") libelle = "Dividende";
+                            if (r.type === "INTEREST_PAYMENT") libelle = "Intérêts";
 
-                            let typeMouvement = "Virement";
-                            if (r.type === "DIVIDEND" || r.type === "DIVIDEND_EQUIVALENT_PAYMENT") typeMouvement = "Dividende";
-                            if (r.type === "INTEREST_PAYMENT") typeMouvement = "Intérêts";
-
-                            compteCible.historique.push({
+                            enveloppe.historique.push({
                                 date: r.date,
-                                type: typeMouvement,
+                                type: libelle,
                                 nom: r.name || r.description || "Mouvement Cash",
-                                ticker: r.symbol || "",
-                                quantite: 0,
-                                prix: 0,
-                                impact_cash: montantNet,
-                                frais: Math.abs(taxe)
+                                impact: montantNet
                             });
                         }
                     }
 
-                    // Sauvegarde dans ton localStorage v6
+                    // Enregistrement finalisé dans le localStorage de ton application
                     localStorage.setItem('patrimoine_multi_v6', JSON.stringify(appData));
 
-                    // Feedback Vert
+                    // Notification de succès en vert style Liquid Glass
                     feedback.style.display = "block";
                     feedback.style.background = "rgba(46, 204, 113, 0.15)";
                     feedback.style.color = "#2ecc71";
                     feedback.style.border = "1px solid rgba(46, 204, 113, 0.3)";
-                    feedback.innerHTML = `✅ Calculs mis à jour avec succès !`;
+                    feedback.innerHTML = "✅ Base de données recalculée à 100 % !";
 
-                    mettreAJourInterface();
+                    // Rafraîchir instantanément l'affichage à l'écran
+                    mettreAJourRenduInterface();
 
-                } catch (erreur) {
+                } catch (err) {
                     feedback.style.display = "block";
                     feedback.style.background = "rgba(231, 76, 60, 0.15)";
                     feedback.style.color = "#e74c3c";
                     feedback.style.border = "1px solid rgba(231, 76, 60, 0.3)";
-                    feedback.innerText = "❌ Erreur : " + erreur.message;
+                    feedback.innerText = "❌ Erreur de traitement : " + err.message;
                 }
             };
             reader.readAsText(fichier);
         }
 
-        function mettreAJourInterface() {
-            const peaCash = appData.pea.especes || 0;
-            const ctoCash = appData.cto.especes || 0;
-            const totalGlobal = peaCash + ctoCash;
+        // 3. Fonction d'affichage dynamique (Rendu HTML)
+        function mettreAJourRenduInterface() {
+            const cashPEA = appData.pea.especes || 0;
+            const cashCTO = appData.cto.especes || 0;
 
-            // Rendu des comptes sur l'écran
-            document.getElementById('pea-cash').innerText = peaCash.toFixed(2) + " €";
-            document.getElementById('cto-cash').innerText = ctoCash.toFixed(2) + " €";
-            document.getElementById('total-cash').innerText = totalGlobal.toFixed(2) + " €";
+            // Affichage des compteurs espèces
+            document.getElementById('pea-cash').innerText = cashPEA.toFixed(2) + " €";
+            document.getElementById('cto-cash').innerText = cashCTO.toFixed(2) + " €";
 
-            // Remplissage du tableau de contrôle (Fusion des historiques pour vérification)
-            const tbody = document.getElementById('table-verification');
-            const toutHistorique = [...appData.pea.historique, ...appData.cto.historique]
-                                    .sort((a, b) => new Date(b.date) - new Date(a.date)); // Du plus récent au plus ancien
+            let totalTitresRecalcules = 0;
+            let htmlTableauActifs = "";
 
-            if (toutHistorique.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="4" style="color: rgba(255,255,255,0.3); text-align: center;">Aucun mouvement</td></tr>`;
-                return;
-            }
-
-            let html = "";
-            toutHistorique.slice(0, 10).forEach(m => {
-                let couleurImpact = m.impact_cash >= 0 ? "#2ecc71" : "#e74c3c";
-                let signe = m.impact_cash >= 0 ? "+" : "";
-                
-                html += `
+            // Parcours et addition des lignes d'actifs du PEA
+            for (let isin in appData.pea.actifs) {
+                let act = appData.pea.actifs[isin];
+                totalTitresRecalcules += act.totalInvestiNet;
+                htmlTableauActifs += `
                     <tr>
-                        <td style="color: rgba(255,255,255,0.5); font-size: 0.8rem;">${m.date}</td>
-                        <td><small style="background: rgba(255,255,255,0.1); padding: 2px 6px; border-radius:4px;">${m.type}</small></td>
-                        <td>${m.nom}</td>
-                        <td style="text-align: right; color: ${couleurImpact}; font-weight: 500;">${signe}${m.impact_cash.toFixed(2)} €</td>
+                        <td><strong>${act.nom}</strong><div class="sub-text">PEA • ${isin}</div></td>
+                        <td style="text-align: center; font-variant-numeric: tabular-nums;">${act.qte.toFixed(4)}</td>
+                        <td style="text-align: right; font-variant-numeric: tabular-nums;">${act.pru.toFixed(2)} €</td>
+                        <td style="text-align: right; font-weight: 500; font-variant-numeric: tabular-nums;">${act.totalInvestiNet.toFixed(2)} €</td>
                     </tr>
                 `;
-            });
-            tbody.innerHTML = html;
+            }
+
+            // Parcours et addition des lignes d'actifs du CTO
+            for (let isin in appData.cto.actifs) {
+                let act = appData.cto.actifs[isin];
+                totalTitresRecalcules += act.totalInvestiNet;
+                htmlTableauActifs += `
+                    <tr>
+                        <td><strong>${act.nom}</strong><div class="sub-text">CTO • ${isin}</div></td>
+                        <td style="text-align: center; font-variant-numeric: tabular-nums;">${act.qte.toFixed(4)}</td>
+                        <td style="text-align: right; font-variant-numeric: tabular-nums;">${act.pru.toFixed(2)} €</td>
+                        <td style="text-align: right; font-weight: 500; font-variant-numeric: tabular-nums;">${act.totalInvestiNet.toFixed(2)} €</td>
+                    </tr>
+                `;
+            }
+
+            // Remplissage du tableau si des lignes existent
+            if (htmlTableauActifs !== "") {
+                document.getElementById('table-actifs').innerHTML = htmlTableauActifs;
+            } else {
+                document.getElementById('table-actifs').innerHTML = `<tr><td colspan="4" style="color: rgba(255,255,255,0.3); text-align: center; padding: 20px 0;">Aucune ligne d'actif ouverte.</td></tr>`;
+            }
+
+            // Calcul du Patrimoine global (Valeur totale injectée en bourse + le cash restant sur les deux comptes)
+            const patrimoineNetTotal = totalTitresRecalcules + cashPEA + cashCTO;
+            document.getElementById('total-global').innerText = patrimoineNetTotal.toFixed(2) + " €";
         }
 
-        // Lancement au démarrage
-        window.onload = mettreAJourInterface;
+        // Lancement au démarrage de la page
+        window.onload = mettreAJourRenduInterface;
     </script>
 </body>
 </html>
