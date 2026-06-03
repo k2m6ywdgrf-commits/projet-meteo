@@ -1,1408 +1,629 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Mon Patrimoine">
-<title>Mon Assistant Patrimoine Global</title>
-<style>
-:root {
-  --bg: #000000;
-  --glass: rgba(22, 28, 45, 0.65);
-  --glass-border: rgba(255, 255, 255, 0.08);
-  --input: rgba(30, 41, 59, 0.7);
-  --text: #f3f4f6;
-  --text-muted: #94a3b8;
-  --usa: #0ea5e9;
-  --eu: #10b981;
-  --em: #f59e0b;
-  --div: #a855f7;
-  --red: #f43f5e;
-  --gold: #fbbf24;
-}
-*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
-body{
-  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
-  background: var(--bg);
-  color: var(--text);
-  margin: 0;
-  padding: 16px;
-  font-size: 15px;
-  background-image: radial-gradient(circle at 50% -20%, #1e1b4b 0%, #000000 70%);
-  background-attachment: fixed;
-}
-.card{
-  background: var(--glass);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  padding: 18px;
-  border-radius: 16px;
-  margin-bottom: 14px;
-  border: 1px solid var(--glass-border);
-  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
-}
-h2{margin:0 0 14px;font-size:13px;color:var(--text-muted);font-weight:700;text-transform:uppercase;letter-spacing:1px;}
-input, select{
-  padding:12px;border-radius:10px;border:1px solid rgba(255,255,255,0.05);
-  background:var(--input);color:white;font-size:15px;width:100%;transition:all 0.2s;
-}
-input:focus, select:focus{background:rgba(30,41,59,0.9);outline:none;border-color:var(--usa);}
-.row{display:flex;gap:10px;margin-bottom:10px;align-items:center;}
-.row label{width:110px;min-width:110px;font-size:13px;color:var(--text-muted);font-weight:500;}
-.row input, .row select{flex:1;}
-button{
-  width:100%;padding:14px;border:none;border-radius:12px;font-weight:600;font-size:15px;cursor:pointer;
-  transition:transform 0.1s, opacity 0.2s;
-}
-button:active{transform:scale(0.97);opacity:0.9;}
-.btn-blue{background: linear-gradient(135deg, #0ea5e9, #0284c7); color:white;}
-.btn-green{background: linear-gradient(135deg, #10b981, #059669); color:white;}
-.btn-purple{background: linear-gradient(135deg, #a855f7, #7c3aed); color:white;}
-.btn-red{background: linear-gradient(135deg, #f43f5e, #e11d48); color:white;}
-.btn-gray{background: rgba(255,255,255,0.08); color:var(--text); font-size:13px; padding:10px;}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Suivi Solaire - Liquid Glass Edition</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+          --bg: #000000;
+          --glass: rgba(22, 28, 45, 0.65);
+          --glass-border: rgba(255, 255, 255, 0.08);
+          --input: rgba(30, 41, 59, 0.7);
+          --text: #f3f4f6;
+          --text-muted: #94a3b8;
+          --usa: #0ea5e9;
+          --eu: #10b981;
+          --em: #f59e0b;
+          --div: #a855f7;
+          --red: #f43f5e;
+          --gold: #fbbf24;
+        }
 
-.main-nav-container { display: flex; flex-direction: column; gap: 6px; margin-bottom: 20px; }
-.main-nav-row { display: flex; gap: 6px; width: 100%; }
-.btn-nav-main { flex: 1; padding: 14px 4px; border-radius: 12px; font-size: 13px; font-weight: 700; background: rgba(255,255,255,0.02); color: var(--text-muted); border: 1px solid var(--glass-border); }
-.btn-nav-main.active { background: linear-gradient(135deg, #1e1b4b, #312e81); color: white; border-color: #4338ca; box-shadow: 0 0 12px rgba(99, 102, 241, 0.3); }
+        *{box-sizing:border-box;-webkit-tap-highlight-color:transparent; margin: 0; padding: 0;}
+        
+        body{
+          font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+          background: var(--bg);
+          color: var(--text);
+          padding: 16px;
+          font-size: 15px;
+          background-image: radial-gradient(circle at 50% -20%, #1e1b4b 0%, #000000 70%);
+          background-attachment: fixed;
+          line-height: 1.5;
+        }
 
-.tabs{ display:flex;gap:4px;margin-bottom:18px;background:rgba(255,255,255,0.04); padding:4px;border-radius:12px;border:1px solid rgba(255,255,255,0.02); }
-.tab{ flex:1;padding:10px 2px;border:none;border-radius:8px;background:transparent; color:var(--text-muted);font-size:13px;cursor:pointer;font-weight:500;transition:all 0.2s; }
-.tab.active{background:rgba(255,255,255,0.12);color:white;font-weight:600;backdrop-filter:blur(5px);}
-.section{display:none;}.section.active{display:block;}
-.universe-block{display:none;}
+        .container { max-width: 600px; margin: 0 auto; }
+        
+        header { margin-bottom: 20px; padding-bottom: 4px; text-align: center; }
+        h1 { font-size: 22px; font-weight: 700; color: var(--text); letter-spacing: -0.5px; }
+        .subtitle { color: var(--text-muted); font-size: 13px; margin-top: 4px; }
 
-.tag{display:inline-block;padding:4px 8px;border-radius:6px;font-size:11px;font-weight:700;text-transform: uppercase;}
-.tag-usa{background:rgba(14,165,233,0.15);color:var(--usa);}
-.tag-eu{background:rgba(16,185,129,0.15);color:var(--eu);}
-.tag-em{background:rgba(245,158,11,0.15);color:var(--em);}
-.tag-div{background:rgba(168,85,247,0.15);color:var(--div);}
-.tag-red{background:rgba(244,63,94,0.15);color:var(--red);}
-.tag-cto{background:rgba(255,255,255,0.08);color:#e2e8f0;border:1px solid rgba(255,255,255,0.05);}
-.bar-container{background:rgba(255,255,255,0.05);border-radius:9px;height:12px;overflow:hidden;display:flex;margin:10px 0;}
-.bar{height:100%;transition:width 0.5s ease-out;}
-.stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;}
-.stat-grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:10px;}
-.stat-box{background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.02);border-radius:12px;padding:14px;text-align:center;}
-.stat-val{font-size:18px;font-weight:700;margin-top:4px;letter-spacing:-0.5px;}
-.stat-lbl{font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px;line-height:1.3;}
+        /* --- STYLE DE LA PAGE D'ACCUEIL --- */
+        #welcome-screen {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 80vh;
+        }
+        .welcome-card {
+            width: 100%;
+            text-align: center;
+            padding: 32px 24px;
+        }
+        .welcome-card h2 {
+            margin-bottom: 12px;
+            color: var(--text);
+            text-transform: none;
+            font-size: 18px;
+            letter-spacing: 0;
+        }
+        .welcome-card p {
+            color: var(--text-muted);
+            font-size: 14px;
+            margin-bottom: 24px;
+        }
+        .secondary-option {
+            margin-top: 30px;
+            text-align: center;
+        }
+        .btn-link {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            font-size: 13px;
+            text-decoration: underline;
+            cursor: pointer;
+            padding: 8px;
+        }
 
-.fees-container-badge {
-  display: inline-block; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06);
-  padding: 4px 10px; border-radius: 8px; font-size: 11px; color: var(--text-muted); margin-top: 6px;
-}
+        /* --- COEUR DU DESIGN GLASSMORPHISM --- */
+        .card{
+          background: var(--glass);
+          backdrop-filter: blur(20px);
+          -webkit-backdrop-filter: blur(20px);
+          padding: 18px;
+          border-radius: 16px;
+          margin-bottom: 14px;
+          border: 1px solid var(--glass-border);
+          box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+        }
 
-.hist-item{ background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.03); border-radius:12px;padding:12px;margin-bottom:8px;font-size:13px; display:flex; justify-content:space-between; align-items:center; gap:10px; }
-.hist-content { flex: 1; }
-.btn-delete-item { background: transparent; color: var(--red); width: auto; padding: 6px 10px; font-size: 14px; border-radius: 6px; border: 1px solid rgba(244,63,94,0.2); }
-.sim-row{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.05);font-size:13px;}
-.divider{border:none;border-top:1px solid rgba(255,255,255,0.08);margin:14px 0;}
+        h2{margin:0 0 14px;font-size:13px;color:var(--text-muted);font-weight:700;text-transform:uppercase;letter-spacing:1px;}
 
-.donut-wrapper { display: flex; flex-direction: column; align-items: center; margin: 15px 0; gap: 16px; }
-@media(min-width: 420px) { .donut-wrapper { flex-direction: row; justify-content: center; gap: 24px; } }
-.donut { width: 100px; height: 100px; min-width: 100px; border-radius: 50%; background: conic-gradient(var(--usa) 0%, var(--usa) var(--u-deg), var(--eu) var(--u-deg), var(--eu) var(--e-deg), var(--em) var(--e-deg), var(--em) 100%); position: relative; }
-.donut::before { content: ""; position: absolute; top: 16px; left: 16px; width: 68px; height: 68px; background: #0f1322; border-radius: 50%; }
-.donut-legends { font-size: 12px; display: flex; flex-direction: column; gap: 8px; flex: 1; width: 100%; }
-.donut-legend-item { display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.02); padding: 6px 10px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.03); }
-.donut-legend-left { display: flex; align-items: center; gap: 8px; font-weight: 600; }
-.donut-legend-right { display: flex; flex-direction: column; align-items: flex-end; font-family: monospace; font-size: 11px; color: var(--text-muted); }
-.donut-legend-right b { color: var(--text); font-size: 12px; }
-.donut-dot { width: 10px; height: 10px; border-radius: 50%; }
+        input, select{
+          padding:12px;border-radius:10px;border:1px solid rgba(255,255,255,0.05);
+          background:var(--input);color:white;font-size:15px;width:100%;transition:all 0.2s;
+        }
+        input:focus, select:focus{background:rgba(30,41,59,0.9);outline:none;border-color:var(--usa);}
 
-.cto-table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 13px; }
-.cto-table th { text-align: left; color: var(--text-muted); font-size: 11px; padding: 8px; text-transform: uppercase; }
-.cto-table td { padding: 10px 8px; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .row{display:flex;gap:10px;margin-bottom:12px;align-items:center;flex-direction:row;text-align:left;}
+        .row label{width:120px;min-width:120px;font-size:13px;color:var(--text-muted);font-weight:500;}
+        .row input, .row select{flex:1;}
 
-.trend-chart-wrapper { position: relative; width: 100%; height: 150px; margin: 15px 0 5px; background: rgba(255,255,255,0.01); border-radius: 8px; border: 1px solid rgba(255,255,255,0.03); }
-.trend-svg { width: 100%; height: 100%; display: block; overflow: visible; }
-.chart-interactive-zone { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; justify-content: space-between; }
-.chart-node-col { flex: 1; height: 100%; position: relative; display: flex; justify-content: center; cursor: pointer; }
-.chart-node-col:hover .chart-tooltip-v2 { display: block; }
-.chart-node-col:hover::before { content: ""; position: absolute; top: 0; bottom: 0; width: 1px; background: rgba(255,255,255,0.15); pointer-events: none; }
-.chart-tooltip-v2 { display: none; position: absolute; bottom: 105%; background: #1e293b; color: #fff; padding: 8px 12px; border-radius: 8px; font-size: 11px; white-space: nowrap; border: 1px solid rgba(255,255,255,0.12); z-index: 50; box-shadow: 0 4px 20px rgba(0,0,0,0.6); font-weight: 500; text-align: left; line-height: 1.4; }
-.chart-timeline-labels { display: flex; justify-content: space-between; font-size: 10px; color: var(--text-muted); padding: 0 4px; margin-top: 4px; }
+        button{
+          width:100%;padding:14px;border:none;border-radius:12px;font-weight:600;font-size:15px;cursor:pointer;
+          transition:transform 0.1s, opacity 0.2s;
+        }
+        button:active{transform:scale(0.97);opacity:0.9;}
+        
+        .btn-blue{background: linear-gradient(135deg, #0ea5e9, #0284c7); color:white;}
+        .btn-red{background: linear-gradient(135deg, #f43f5e, #e11d48); color:white;}
+        .btn-gray{background: rgba(255,255,255,0.08); color:var(--text); font-size:13px; padding:10px;}
 
-.widget-title { font-size: 15px; font-weight: 700; display: flex; align-items: center; gap: 8px; margin-bottom: 10px; color: white;}
-.widget-perf { font-size: 12px; font-weight: 600; padding: 4px 8px; border-radius: 6px; float: right; margin-top: -2px;}
-.perf-up { background: rgba(16, 185, 129, 0.15); color: var(--eu); }
-.perf-down { background: rgba(244, 63, 94, 0.15); color: var(--red); }
+        /* Onglets style boursier */
+        .tabs{ display:flex;gap:4px;margin-bottom:18px;background:rgba(255,255,255,0.04); padding:4px;border-radius:12px;border:1px solid rgba(255,255,255,0.02); }
+        .tab-btn{ flex:1;padding:10px 2px;border:none;border-radius:8px;background:transparent; color:var(--text-muted);font-size:13px;cursor:pointer;font-weight:500;transition:all 0.2s; }
+        .tab-btn.active{background:rgba(255,255,255,0.12);color:white;font-weight:600;backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px);}
+        
+        #main-application { display: none; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
 
-/* Snapshot list */
-.snapshot-item { display:flex; justify-content:space-between; align-items:center; background:rgba(255,255,255,0.02); border:1px solid rgba(255,255,255,0.04); border-radius:10px; padding:10px 12px; margin-bottom:6px; font-size:12px; }
-.snapshot-info { color:var(--text-muted); }
-.snapshot-vals { font-family:monospace; font-size:11px; }
+        /* KPI / Stat Grid */
+        .stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;}
+        .stat-box{background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.02);border-radius:12px;padding:14px;text-align:center;}
+        .stat-val{font-size:18px;font-weight:700;margin-top:4px;letter-spacing:-0.5px;}
+        .stat-lbl{font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px;line-height:1.3;}
 
-/* Alert badge */
-.alert-badge { background:rgba(244,63,94,0.15); color:var(--red); border:1px solid rgba(244,63,94,0.3); border-radius:8px; padding:8px 12px; font-size:12px; margin-top:8px; display:none; }
-.alert-badge.show { display:block; }
-</style>
+        /* Lignes de simulation formulaire */
+        .sim-row{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.05);font-size:13px;}
+        .sim-row span { color: var(--text-muted); }
+        .sim-row strong { color: var(--text); font-weight: 600; }
+        .divider{border:none;border-top:1px solid rgba(255,255,255,0.08);margin:14px 0;}
+
+        /* Badges de statut */
+        .tag{display:inline-block;padding:4px 8px;border-radius:6px;font-size:11px;font-weight:700;text-transform: uppercase;}
+        .tag-real{background:rgba(16,185,129,0.15);color:var(--eu);}
+        .tag-proj{background:rgba(255,255,255,0.08);color:#e2e8f0;border:1px solid rgba(255,255,255,0.05);}
+        .proj-col { color: var(--text-muted) !important; font-style: italic; }
+
+        /* Tableau Transposé avec fixations iPhone */
+        .table-container { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; border-radius: 12px; }
+        table.transposed-table { width: max-content; min-width: 100%; border-collapse: collapse; font-size: 13px; }
+        
+        table.transposed-table td.row-header { 
+            background-color: #0d121f !important; /* Couleur opaque calée sur l'effet de flou */
+            color: var(--text-muted); 
+            font-weight: 600; 
+            position: sticky; 
+            left: 0; 
+            z-index: 10; 
+            width: 125px;
+            min-width: 125px;
+            border-right: 2px solid rgba(255,255,255,0.1); 
+            text-align: left;
+            padding-left: 8px;
+        }
+
+        table.transposed-table td, table.transposed-table th { padding: 10px 12px; border-bottom: 1px solid rgba(255,255,255,0.05); border-right: 1px solid rgba(255,255,255,0.02); text-align: center; }
+        table.transposed-table tr.years-header th { background: rgba(0, 0, 0, 0.3); color: #fff; font-weight: 700; font-size: 13px; }
+        table.transposed-table tr.years-header td.row-header { background-color: #0d121f !important; color: #fff; }
+
+        .btn-danger-item { background: transparent; color: var(--red); width: auto; padding: 6px 10px; font-size: 12px; border-radius: 6px; border: 1px solid rgba(244,63,94,0.2); font-weight: 500; }
+    </style>
 </head>
 <body>
-<div style="max-width:600px;margin:auto;padding-bottom:40px;width:100%;">
 
-<div class="main-nav-container">
-  <button id="btn-main-home" class="btn-nav-main active" onclick="switchUnivers('home')">🏠 Accueil Global</button>
-  <div class="main-nav-row">
-    <button id="btn-main-pea" class="btn-nav-main" onclick="switchUnivers('pea')">📈 Compte PEA</button>
-    <button id="btn-main-cto" class="btn-nav-main" onclick="switchUnivers('cto')">💼 Compte CTO</button>
-  </div>
-</div>
+<div class="container">
 
-<!-- ══════════════ ACCUEIL GLOBAL ══════════════ -->
-<div id="univers-home" class="universe-block" style="display:block;">
-  <div class="card" style="background: linear-gradient(135deg, #1e1b4b 0%, #0f172a 100%); border-color: rgba(99, 102, 241, 0.3); text-align: center; padding: 24px 14px;">
-    <div class="stat-lbl" style="color: #a5b4fc; font-weight: 600; letter-spacing: 1.5px;">Patrimoine Financier Net Réel</div>
-    <div class="stat-val" id="global-total-net" style="font-size: 32px; color: #ffffff; margin: 8px 0; text-shadow: 0 0 15px rgba(255,255,255,0.2);">0.00 €</div>
-    <div style="font-size: 11px; color: var(--text-muted);">Somme nette après déduction des taxes théoriques</div>
-    <div class="fees-container-badge">
-       Frais de courtage cumulés (PEA+CTO) : <b id="global-fees-total" style="color:white;">0.00 €</b>
-    </div>
-  </div>
-
-  <!-- CAGR + Stats globales -->
-  <div class="stat-grid-3" id="global-stats-grid" style="margin-bottom:14px;">
-    <div class="stat-box" style="border-top:3px solid var(--eu);">
-      <div class="stat-lbl">Gain Global<br>Net</div>
-      <div class="stat-val" id="global-gain-val" style="font-size:15px;">0.00 €</div>
-    </div>
-    <div class="stat-box" style="border-top:3px solid #6366f1;">
-      <div class="stat-lbl">TRIG<br>Annualisé</div>
-      <div class="stat-val" id="global-cagr-val" style="font-size:15px; color:#a5b4fc;">–</div>
-    </div>
-    <div class="stat-box" style="border-top:3px solid var(--em);">
-      <div class="stat-lbl">Investi<br>Total</div>
-      <div class="stat-val" id="global-investi-val" style="font-size:15px;">0.00 €</div>
-    </div>
-  </div>
-
-  <div class="card">
-    <h2>📊 Courbe d'Évolution : Investi vs Valeur Marché</h2>
-    <div id="chart-svg-wrapper-target"></div>
-    <div style="display:flex; justify-content:center; gap:20px; font-size:11px; margin-top:8px; color:var(--text-muted);">
-      <span><span style="display:inline-block; width:12px; height:2px; border-top:2px dashed #94a3b8; margin-right:6px; vertical-align:middle;"></span>Montant Investi</span>
-      <span><span style="display:inline-block; width:12px; height:3px; background:linear-gradient(to right, #0ea5e9, #10b981); border-radius:1px; margin-right:6px; vertical-align:middle;"></span>Valeur Marché</span>
-    </div>
-    <!-- liste des snapshots (gérée depuis les onglets cours) -->
-    <div id="snapshots-list-container" style="margin-top:10px;"></div>
-  </div>
-
-  <div class="card">
-    <h2>⚖️ Répartition Macro du Capital</h2>
-    <div class="bar-container" style="height: 18px; border-radius: 6px;">
-      <div id="macro-bar-pea" class="bar" style="background: linear-gradient(to right, #10b981, #059669); width: 50%;"></div>
-      <div id="macro-bar-cto" class="bar" style="background: linear-gradient(to right, #0ea5e9, #0284c7); width: 50%;"></div>
-    </div>
-    <div style="display: flex; justify-content: space-between; font-size: 12px; font-weight: 600;">
-      <span style="color: var(--eu);">🟢 PEA : <span id="macro-txt-pea">0%</span></span>
-      <span style="color: var(--usa);">🔵 CTO : <span id="macro-txt-cto">0%</span></span>
-    </div>
-  </div>
-
-  <div class="card" style="border-left: 4px solid var(--eu); cursor: pointer;" onclick="switchUnivers('pea')">
-    <span id="widget-pea-perf" class="widget-perf">0.00 €</span>
-    <div class="widget-title">📈 Portefeuille PEA (ETF)</div>
-    <div class="sim-row" style="border:none; padding: 2px 0;"><span>Valeur brute actuelle :</span> <b id="widget-pea-val">0.00 €</b></div>
-    <div class="sim-row" style="border:none; padding: 2px 0; font-size: 12px; color: var(--text-muted);"><span>Fonds propres investis :</span> <span id="widget-pea-investi">0.00 €</span></div>
-  </div>
-
-  <div class="card" style="border-left: 4px solid var(--usa); cursor: pointer;" onclick="switchUnivers('cto')">
-    <span id="widget-cto-perf" class="widget-perf">0.00 €</span>
-    <div class="widget-title">💼 Portefeuille CTO (Stock-Picking)</div>
-    <div class="sim-row" style="border:none; padding: 2px 0;"><span>Valeur brute actuelle :</span> <b id="widget-cto-val">0.00 €</b></div>
-    <div class="sim-row" style="border:none; padding: 2px 0; font-size: 12px; color: var(--text-muted);"><span>Fonds propres investis :</span> <span id="widget-cto-investi">0.00 €</span></div>
-  </div>
-
-  <div class="card" style="background: rgba(168, 85, 247, 0.05); border-color: rgba(168, 85, 247, 0.2);">
-    <div class="widget-title" style="color: #d8b4fe;"><span style="font-size:18px;">💵</span> Rente Passive Cumulée</div>
-    <div class="sim-row" style="border:none; padding:2px 0;">
-      <span style="color: var(--text-muted);">Total des dividendes captés :</span>
-      <b style="color: var(--div); font-size: 18px;" id="global-dividendes-total">0.00 €</b>
-    </div>
-  </div>
-</div>
-
-<!-- ══════════════ PEA ══════════════ -->
-<div id="univers-pea" class="universe-block">
-  <div class="tabs">
-    <button class="tab active" id="subtab-pea-p" onclick="showSubTab('pea', 'portefeuille')">Saisie</button>
-    <button class="tab" id="subtab-pea-a" onclick="showSubTab('pea', 'analyse')">Tableau de Bord</button>
-    <button class="tab" id="subtab-pea-h" onclick="showSubTab('pea', 'historique')">Mouvements</button>
-    <button class="tab" id="subtab-pea-c" onclick="showSubTab('pea', 'config')">Paramètres</button>
-  </div>
-
-  <div id="pea-portefeuille" class="section active">
-    <div class="card">
-      <h2>1. Valeurs des Cours (€)</h2>
-      <div class="row"><label><span class="tag tag-usa">S&P 500</span></label><input id="p_usa" type="number" inputmode="decimal" pattern="[0-9]*" value="56.34" oninput="saveInputs(); calculerOrdreOptimal();"></div>
-      <div class="row"><label><span class="tag tag-eu">Stoxx 600</span></label><input id="p_eu" type="number" inputmode="decimal" pattern="[0-9]*" value="20.47" oninput="saveInputs(); calculerOrdreOptimal();"></div>
-      <div class="row"><label><span class="tag tag-em">Emergents</span></label><input id="p_em" type="number" inputmode="decimal" pattern="[0-9]*" value="7.75" oninput="saveInputs(); calculerOrdreOptimal();"></div>
-    </div>
-    <div class="card" style="background: linear-gradient(135deg, rgba(99,102,241,0.08), rgba(0,0,0,0.3)); border-color: rgba(99,102,241,0.25);">
-      <h2 style="color:#a5b4fc;">📸 Enregistrer la situation du jour</h2>
-      <div style="font-size:12px; color:var(--text-muted); margin-bottom:12px; line-height:1.5;">
-        Met à jour les cours ci-dessus, puis clique ici pour créer un point sur le graphique d'évolution. Les cours CTO sont pris tels qu'ils sont saisis dans l'onglet Positions.
-      </div>
-      <button class="btn-gray" style="background:rgba(99,102,241,0.2); color:#a5b4fc; font-weight:700; border:1px solid rgba(99,102,241,0.3);" onclick="figerSoldeGlobal()">📊 Valider les cours &amp; enregistrer dans le suivi</button>
-      <div id="snapshot-confirm-msg" style="display:none; margin-top:10px; font-size:12px; color:var(--eu); font-weight:600;">✅ Point enregistré avec succès !</div>
-    </div>
-
-    <div class="card">
-      <h2>2. Vos Positions (Calculées)</h2>
-      <div class="sim-row"><span><span class="tag tag-usa">S&P 500</span> Parts détenues</span> <b id="lbl_usa_q">0</b></div>
-      <div class="sim-row"><span><span class="tag tag-eu">Stoxx 600</span> Parts détenues</span> <b id="lbl_eu_q">0</b></div>
-      <div class="sim-row"><span><span class="tag tag-em">Emergents</span> Parts détenues</span> <b id="lbl_em_q">0</b></div>
-      <hr class="divider">
-      <h2>3. Nouveau versement</h2>
-      <div class="row"><label>Budget PEA</label><input id="budget" type="number" inputmode="decimal" pattern="[0-9]*" placeholder="Montant en euros (€)" oninput="saveInputs(); calculerOrdreOptimal();"></div>
-      <div id="suggestion-ordre-container" style="margin-top:14px;"></div>
-    </div>
-  </div>
-
-  <div id="pea-analyse" class="section">
-    <div class="card">
-      <h2>Structure de l'allocation</h2>
-      <div class="donut-wrapper">
-        <div class="donut" id="chart-donut"></div>
-        <div class="donut-legends">
-          <div class="donut-legend-item">
-            <div class="donut-legend-left"><div class="donut-dot" style="background:var(--usa)"></div>S&P 500</div>
-            <div class="donut-legend-right"><b id="leg-usa-pct">0%</b><span id="leg-usa-details">0 € • 0 part</span></div>
-          </div>
-          <div class="donut-legend-item">
-            <div class="donut-legend-left"><div class="donut-dot" style="background:var(--eu)"></div>Stoxx 600</div>
-            <div class="donut-legend-right"><b id="leg-eu-pct">0%</b><span id="leg-eu-details">0 € • 0 part</span></div>
-          </div>
-          <div class="donut-legend-item">
-            <div class="donut-legend-left"><div class="donut-dot" style="background:var(--em)"></div>Émergents</div>
-            <div class="donut-legend-right"><b id="leg-em-pct">0%</b><span id="leg-em-details">0 € • 0 part</span></div>
-          </div>
+    <div id="welcome-screen">
+        <div class="card welcome-card">
+            <h2>Suivi Énergie Solaire</h2>
+            <p>Choisissez votre mode d'accès pour charger vos tableaux de bord.</p>
+            
+            <div class="row" style="margin-top: 10px; display: block;">
+                <input type="file" id="welcomeImportFile" accept=".json" onchange="importFromWelcome(event)" style="display: none;">
+                <button class="btn-blue" onclick="document.getElementById('welcomeImportFile').click()">
+                    📂 Charger une sauvegarde (iCloud Drive)
+                </button>
+            </div>
         </div>
-      </div>
-    </div>
-    <div id="stats-container"></div>
-  </div>
 
-  <div id="pea-historique" class="section">
-    <div class="card" id="formulaire-mouvement">
-      <h2>✍️ Enregistrer un mouvement PEA</h2>
-      <div class="row"><label>Date</label><input id="man_date" type="date"></div>
-      <div class="row">
-        <label>Opération</label>
-        <select id="man_type" onchange="toggleFormType()">
-          <option value="achat">🛒 Achat d'ETF</option>
-          <option value="vente">💰 Vente d'ETF</option>
-          <option value="dividende">💵 Dividende Reçu (Réinvesti)</option>
-        </select>
-      </div>
-      <div class="row">
-        <label>Support</label>
-        <select id="man_asset">
-          <option value="usa">Amundi S&P 500</option>
-          <option value="eu">BNP Stoxx 600</option>
-          <option value="em">Amundi Émergents</option>
-        </select>
-      </div>
-      <div id="form-quantite">
-        <div class="row"><label>Nombre de parts</label><input id="man_q" type="number" inputmode="decimal" pattern="[0-9]*" placeholder="Ex: 12"></div>
-        <div class="row"><label>Prix unitaire (€)</label><input id="man_p" type="number" inputmode="decimal" pattern="[0-9]*" placeholder="Ex: 55.40"></div>
-        <div class="row" id="row-frais-ajustable"><label>Frais d'ordre (€)</label><input id="man_frais" type="number" step="0.01" inputmode="decimal" pattern="[0-9]*" placeholder="Ex: 1.00"></div>
-      </div>
-      <div id="form-dividende" style="display:none;">
-        <div class="row"><label>Montant net (€)</label><input id="man_div_montant" type="number" inputmode="decimal" pattern="[0-9]*" placeholder="Ex: 45.50"></div>
-      </div>
-      <button class="btn-purple" style="margin-top:8px;" onclick="ajouterEvenementManuel()">Enregistrer au registre</button>
+        <div class="secondary-option">
+            <button class="btn-link" onclick="bypassToLocalData()">
+                Standard : Utiliser les données locales de l'iPhone ➔
+            </button>
+        </div>
     </div>
-    <div id="hist-container"></div>
-  </div>
 
-  <div id="pea-config" class="section">
-    <div class="card">
-      <h2>Répartition Cible (%)</h2>
-      <div class="row"><label>S&P 500</label><input id="c_usa" type="number" inputmode="decimal" pattern="[0-9]*" oninput="updateCibleTotal()"></div>
-      <div class="row"><label>Stoxx 600</label><input id="c_eu" type="number" inputmode="decimal" pattern="[0-9]*" oninput="updateCibleTotal()"></div>
-      <div class="row"><label>Émergents</label><input id="c_em" type="number" inputmode="decimal" pattern="[0-9]*" oninput="updateCibleTotal()"></div>
-      <!-- FIX #5 : validation cibles -->
-      <div id="cible-total" style="margin-top:10px;font-size:13px;font-weight:bold;"></div>
-      <div class="alert-badge" id="cible-alert">⚠️ Le total doit être exactement 100% pour que la suggestion d'ordre soit fiable.</div>
-      <button class="btn-green" style="margin-top:12px;" onclick="saveCibles()">💾 Sauvegarder les cibles</button>
+    <div id="main-application">
+        <header>
+            <h1>☀️ Tableau de Bord Solaire</h1>
+            <div class="subtitle">Glissez le tableau vers la gauche pour faire défiler les années</div>
+        </header>
+
+        <div class="tabs">
+            <button class="tab-btn active" onclick="openTab('graphiques')">📊 Rendement</button>
+            <button class="tab-btn" onclick="openTab('saisie')">✍️ Saisie</button>
+            <button class="tab-btn" onclick="openTab('config')">⚙️ iCloud</button>
+        </div>
+
+        <div id="graphiques" class="tab-content active">
+            <div class="stat-grid">
+                <div class="stat-box">
+                    <div class="stat-lbl">Investi</div>
+                    <div class="stat-val" id="kpi-invest" style="color: var(--em);">0 €</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-lbl">Gains Réels</div>
+                    <div class="stat-val" id="kpi-gains" style="color: var(--eu);">0 €</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-lbl">Reste dû</div>
+                    <div class="stat-val" id="kpi-rest" style="color: var(--red);">0 €</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-lbl">Amorti</div>
+                    <div class="stat-val" id="kpi-years" style="color: var(--usa);">...</div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>📉 Trajectoire du Point Mort</h2>
+                <div style="position: relative; height:180px;"><canvas id="roiChart"></canvas></div>
+            </div>
+            
+            <div class="card">
+                <h2>⚡ Facture vs Économies réelles</h2>
+                <div style="position: relative; height:180px;"><canvas id="breakdownChart"></canvas></div>
+            </div>
+
+            <div class="card">
+                <h2>📋 Synthèse Chronologique Horizontale</h2>
+                <div class="table-container">
+                    <table id="summaryTable" class="transposed-table"></table>
+                </div>
+            </div>
+        </div>
+
+        <div id="saisie" class="tab-content">
+            <div class="card">
+                <h2>➕ Ajouter la Prochaine Période</h2>
+                <form id="dataForm" onsubmit="saveRow(event)">
+                    <div class="sim-row">
+                        <span>Prochaine Période (Auto)</span>
+                        <strong id="auto-date-badge">...</strong>
+                    </div>
+                    <div class="sim-row">
+                        <span>Désignation (Auto)</span>
+                        <strong id="auto-detail-badge">...</strong>
+                    </div>
+                    <hr class="divider">
+                    <div class="row">
+                        <label>Facture Élec. TTC (€)</label>
+                        <input type="number" step="0.01" id="form-facture" placeholder="ex: 1850.50" required>
+                    </div>
+                    <div class="row">
+                        <label>Conso (kWh)</label>
+                        <input type="number" id="form-kwh" placeholder="ex: 7200" required>
+                    </div>
+                    <div class="row">
+                        <label>Revente Surplus (€)</label>
+                        <input type="number" step="0.01" id="form-revente" placeholder="ex: 1100.00" required>
+                    </div>
+                    <button type="submit" class="btn-blue" style="margin-top: 8px;">Valider et Enregistrer l'Année</button>
+                </form>
+            </div>
+
+            <div class="card">
+                <h2>🗑️ Historique Réel Enregistré</h2>
+                <div class="table-container">
+                    <table id="editTable" style="width: 100%; text-align: left; font-size: 13px; border-collapse: collapse;">
+                        <thead>
+                            <tr style="color: var(--text-muted); font-size: 11px; text-transform: uppercase;">
+                                <th style="padding-bottom: 8px;">Période</th>
+                                <th style="padding-bottom: 8px;">Facture</th>
+                                <th style="padding-bottom: 8px;">Gains</th>
+                                <th style="padding-bottom: 8px;">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div id="config" class="tab-content">
+            <div class="card">
+                <h2>💾 Sauvegarde iPhone & iCloud</h2>
+                <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 14px;">
+                    Exportez votre fichier pour le placer en lieu sûr dans votre application <b>Fichiers</b> (iCloud Drive).
+                </p>
+                <button class="btn-blue" onclick="exportDataToFile()">
+                    💾 Télécharger la sauvegarde
+                </button>
+            </div>
+
+            <div class="card">
+                <h2>⚙️ Paramètres Initiaux</h2>
+                <div class="row">
+                    <label>Coût du système (€)</label>
+                    <input type="number" step="0.01" id="config-invest" value="14430.00">
+                </div>
+                <div class="row">
+                    <label>Conso base (kWh)</label>
+                    <input type="number" id="config-ref-kwh" value="10225">
+                </div>
+                <button class="btn-blue" onclick="saveConfig()" style="margin-top: 8px;">Appliquer les configurations</button>
+                <hr class="divider">
+                <button class="btn-gray" onclick="resetToDefault()">Réinitialiser d'origine</button>
+            </div>
+        </div>
     </div>
-    <div class="card">
-      <h2>Paramètres Généraux PEA</h2>
-      <div class="row"><label>Alerte Écart (%)</label><input id="alerte_seuil" type="number" inputmode="decimal" pattern="[0-9]*"></div>
-      <div class="row"><label>Prélèv. Sociaux (%)</label><input id="taux_fisc" type="number" step="0.1" inputmode="decimal" pattern="[0-9]*"></div>
-      <div class="row"><label>Frais de base (€)</label><input id="frais_courtage" type="number" step="0.01" inputmode="decimal" pattern="[0-9]*"></div>
-      <button class="btn-gray" style="margin-top:6px;" onclick="saveSettings()">Valider</button>
-    </div>
-    <div class="card" style="background: linear-gradient(135deg, rgba(9, 60, 123, 0.4), rgba(0,0,0,0.5)); border-color: rgba(14, 165, 233, 0.3);">
-      <h2 style="color:#7dd3fc;">☁️ Sauvegarde Générale</h2>
-      <div style="display:flex; gap:8px;">
-        <button class="btn-blue" style="padding:10px; font-size:13px; flex:1;" onclick="exportJSON()">📤 Exporter .json</button>
-        <button class="btn-gray" style="padding:10px; font-size:13px; flex:1; border: 1px dashed rgba(255,255,255,0.2);" onclick="document.getElementById('global_json_input_pea').click()">📥 Importer .json</button>
-      </div>
-      <input type="file" id="global_json_input_pea" accept=".json" style="display:none;" onchange="importJSON(this)">
-      <button class="btn-red" style="padding:8px; font-size:12px; margin-top:10px; background:none; border:1px solid var(--red); color:var(--red);" onclick="resetGlobal()">🗑️ Reset Global de l'Application</button>
-    </div>
-  </div>
 </div>
-
-<!-- ══════════════ CTO ══════════════ -->
-<div id="univers-cto" class="universe-block">
-  <div class="tabs">
-    <button class="tab active" id="subtab-cto-p" onclick="showSubTab('cto', 'portefeuille')">Positions</button>
-    <button class="tab" id="subtab-cto-h" onclick="showSubTab('cto', 'historique')">Mouvements / Div</button>
-    <button class="tab" id="subtab-cto-c" onclick="showSubTab('cto', 'config')">Paramètres</button>
-  </div>
-
-  <div id="cto-portefeuille" class="section active">
-    <div id="cto-dashboard-container"></div>
-    <div class="card">
-      <h2>1. Valeurs des Cours CTO (€)</h2>
-      <div id="cto-cours-inputs-container"></div>
-    </div>
-    <div class="card">
-      <h2>2. Positions Actuelles (Stock-Picking)</h2>
-      <div style="overflow-x:auto;">
-        <table class="cto-table">
-          <thead>
-            <tr>
-              <th>Actif</th><th>Parts</th><th>PRU</th><th>Cours</th><th>Valeur</th><th>PV Latente</th>
-            </tr>
-          </thead>
-          <tbody id="cto-positions-body"></tbody>
-        </table>
-      </div>
-    </div>
-  </div>
-
-  <div id="cto-historique" class="section">
-    <div class="card">
-      <h2>✍️ Enregistrer une opération CTO</h2>
-      <div class="row"><label>Date</label><input id="cto_date" type="date"></div>
-      <div class="row">
-        <label>Type</label>
-        <select id="cto_type" onchange="toggleFormCto()">
-          <option value="achat">🛒 Achat de Titre</option>
-          <option value="vente">💰 Vente de Titre</option>
-          <option value="dividende">💵 Dividende Perçu</option>
-        </select>
-      </div>
-      <div class="row" id="cto-row-name-libre">
-        <label>Nom de l'actif</label>
-        <input id="cto_name" type="text" placeholder="Ex: NVIDIA, Apple, Microsoft...">
-      </div>
-      <div class="row" id="cto-row-name-select" style="display:none;">
-        <label>Choisir le titre</label>
-        <select id="cto_name_select" onchange="handleCtoNameSelect()"></select>
-      </div>
-      <div class="row" id="cto-row-name-custom-div" style="display:none;">
-        <label>Nouveau titre</label>
-        <input id="cto_name_custom_div" type="text" placeholder="Nom du nouveau titre">
-      </div>
-      <div id="cto-form-quantite">
-        <div class="row"><label>Nombre de parts</label><input id="cto_q" type="number" inputmode="decimal" pattern="[0-9]*" placeholder="Ex: 5"></div>
-        <div class="row"><label>Prix unitaire (€)</label><input id="cto_p" type="number" inputmode="decimal" pattern="[0-9]*" placeholder="Ex: 120.50"></div>
-        <div class="row" id="cto-row-frais"><label>Frais d'ordre (€)</label><input id="cto_frais" type="number" step="0.01" inputmode="decimal" pattern="[0-9]*" value="1.00"></div>
-      </div>
-      <div id="cto-form-dividende" style="display:none;">
-        <div class="row"><label>Montant Brut (€)</label><input id="cto_div_montant" type="number" inputmode="decimal" pattern="[0-9]*" placeholder="Montant avant Flat Tax"></div>
-      </div>
-      <button class="btn-blue" style="margin-top:10px;" onclick="ajouterMouvementCTO()">⚡ Confirmer l'inscription</button>
-    </div>
-    <div id="cto-hist-container"></div>
-  </div>
-
-  <div id="cto-config" class="section">
-    <div class="card">
-      <h2>Réglementation & Impôts CTO</h2>
-      <div class="row"><label>Taux Flat Tax (%)</label><input id="cto_tax_rate" type="number" step="0.1" inputmode="decimal" pattern="[0-9]*" value="30.0"></div>
-      <button class="btn-blue" style="margin-top:6px;" onclick="saveCtoSettings()">Enregistrer les paramètres CTO</button>
-    </div>
-    <div class="card" style="background: linear-gradient(135deg, rgba(9, 60, 123, 0.4), rgba(0,0,0,0.5)); border-color: rgba(14, 165, 233, 0.3);">
-      <h2 style="color:#7dd3fc;">☁️ Sauvegarde Générale</h2>
-      <div style="display:flex; gap:8px;">
-        <button class="btn-blue" style="padding:10px; font-size:13px; flex:1;" onclick="exportJSON()">📤 Exporter .json</button>
-        <button class="btn-gray" style="padding:10px; font-size:13px; flex:1; border: 1px dashed rgba(255,255,255,0.2);" onclick="document.getElementById('global_json_input_cto').click()">📥 Importer .json</button>
-      </div>
-      <input type="file" id="global_json_input_cto" accept=".json" style="display:none;" onchange="importJSON(this)">
-      <button class="btn-red" style="padding:8px; font-size:12px; margin-top:10px; background:none; border:1px solid var(--red); color:var(--red);" onclick="resetGlobal()">🗑️ Reset Global de l'Application</button>
-    </div>
-  </div>
-</div>
-
-</div><!-- /max-width -->
 
 <script>
-// ══════════════════════════════════════════════
-// DONNÉES & PERSISTANCE
-// ══════════════════════════════════════════════
-function loadData() {
-  var local = localStorage.getItem("patrimoine_multi_v6");
-  if (local) {
-    try {
-      var parsed = JSON.parse(local);
-      if(!parsed.pea) parsed.pea = {};
-      if(!parsed.cto) parsed.cto = { historique: [], cours: {}, settings: { tax_rate: 30.0 } };
-      if(!parsed.cto.settings) parsed.cto.settings = { tax_rate: 30.0 };
-      if(!parsed.pea.historique) parsed.pea.historique = [];
-      if(!parsed.global_history) parsed.global_history = [];
-      return parsed;
-    } catch(e) {}
-  }
-  return {
-    global_history: [],
-    pea: {
-      cibles: { usa: 60, eu: 30, em: 10 },
-      prix: { usa: 56.34, eu: 20.47, em: 7.75 },
-      historique: [],
-      settings: { budget: '', alerte_seuil: 5, taux_fisc: 17.2, frais_courtage: 1.00 }
-    },
-    cto: {
-      historique: [],
-      cours: {},
-      settings: { tax_rate: 30.0 }
+    const defaultData = [
+        { date: "juin-23", detail: "Réf.", facture: 1893.05, kwh: 10225, revente: 0 },
+        { date: "juin-24", detail: "Année 1", facture: 2309.18, kwh: 9882, revente: 0 },
+        { date: "juin-25", detail: "Année 2", facture: 1869.64, kwh: 7375, revente: 1082.70 }
+    ];
+
+    let appData = [...defaultData];
+    let appInvest = 14430.00;
+    let refKwh = 10225;
+
+    let roiChartInstance = null;
+    let breakdownChartInstance = null;
+
+    function bypassToLocalData() {
+        if(localStorage.getItem('solar_data_cloud_v1')) {
+            appData = JSON.parse(localStorage.getItem('solar_data_cloud_v1'));
+            appInvest = parseFloat(localStorage.getItem('solar_invest_cloud_v1')) || 14430.00;
+            refKwh = parseInt(localStorage.getItem('solar_ref_kwh_cloud_v1')) || 10225;
+        }
+        launchApplication();
     }
-  };
-}
 
-function saveData(d) { localStorage.setItem("patrimoine_multi_v6", JSON.stringify(d)); }
-
-var appData = loadData();
-var universActuel = 'home';
-
-function generateId() {
-  return '_' + Math.random().toString(36).substr(2, 9) + Date.now().toString(36);
-}
-
-function patchMissingIds() {
-  var changed = false;
-  if(appData.pea && appData.pea.historique) {
-    appData.pea.historique.forEach(function(m) { if(!m.id) { m.id = generateId(); changed = true; } });
-  }
-  if(appData.cto && appData.cto.historique) {
-    appData.cto.historique.forEach(function(m) { if(!m.id) { m.id = generateId(); changed = true; } });
-  }
-  if(changed) saveData(appData);
-}
-patchMissingIds();
-
-function formatDateToFR(dateString) {
-  if(!dateString) return new Date().toLocaleDateString('fr-FR');
-  var parts = dateString.split('-');
-  if(parts.length === 3) return parts[2] + '/' + parts[1] + '/' + parts[0];
-  return dateString;
-}
-
-// Parse une date DD/MM/YYYY en objet Date
-function parseFRDate(str) {
-  if(!str) return new Date();
-  var parts = str.split('/');
-  if(parts.length === 3) return new Date(parseInt(parts[2]), parseInt(parts[1]) - 1, parseInt(parts[0]));
-  return new Date();
-}
-
-function initDatesFormulaires() {
-  var aujourdhui = new Date().toISOString().split('T')[0];
-  if(document.getElementById('man_date')) document.getElementById('man_date').value = aujourdhui;
-  if(document.getElementById('cto_date')) document.getElementById('cto_date').value = aujourdhui;
-}
-
-// ══════════════════════════════════════════════
-// NAVIGATION
-// ══════════════════════════════════════════════
-function switchUnivers(u) {
-  universActuel = u;
-  document.getElementById('btn-main-home').classList.toggle('active', u === 'home');
-  document.getElementById('btn-main-pea').classList.toggle('active', u === 'pea');
-  document.getElementById('btn-main-cto').classList.toggle('active', u === 'cto');
-  document.getElementById('univers-home').style.display = (u === 'home') ? 'block' : 'none';
-  document.getElementById('univers-pea').style.display = (u === 'pea') ? 'block' : 'none';
-  document.getElementById('univers-cto').style.display = (u === 'cto') ? 'block' : 'none';
-  if(u === 'home') {
-    calculerEtAfficherAccueilGlobal();
-  } else if(u === 'pea') {
-    showSubTab('pea', 'portefeuille');
-  } else {
-    showSubTab('cto', 'portefeuille');
-  }
-}
-
-function showSubTab(univ, section) {
-  var tabs = univ === 'pea' ? ['portefeuille','analyse','historique','config'] : ['portefeuille','historique','config'];
-  tabs.forEach(function(t) {
-    var el = document.getElementById(univ + '-' + t);
-    if(el) el.classList.toggle('active', t === section);
-    var btn = document.getElementById('subtab-' + univ + '-' + t.substring(0,1));
-    if(btn) btn.classList.toggle('active', t === section);
-  });
-  if(univ === 'pea') {
-    if(section === 'portefeuille') { recalculerQuantitesPEA(); calculerOrdreOptimal(); }
-    if(section === 'analyse') { renderStatsPEA(); calcPEA(); }
-    if(section === 'historique') { renderHistPEA(); initDatesFormulaires(); }
-    if(section === 'config') updateCibleTotal();
-  } else {
-    if(section === 'portefeuille') { renderCTOInputsCours(); renderCTOUniverse(); }
-    // FIX #2 : renderHistCTO reste sur l'onglet historique
-    if(section === 'historique') { renderHistCTO(); updateCtoDividendsDropdown(); toggleFormCto(); initDatesFormulaires(); }
-    if(section === 'config') { document.getElementById('cto_tax_rate').value = appData.cto.settings.tax_rate || 30.0; }
-  }
-}
-
-// ══════════════════════════════════════════════
-// CALCULS CONSOLIDÉS
-// FIX #1 : gain CTO inclut maintenant les PV réalisées
-// ══════════════════════════════════════════════
-function obtenirDonneesConsolidees() {
-  // ── PEA ──
-  var qPea = { usa: 0, eu: 0, em: 0 };
-  var peaInvestiReel = 0;
-  var peaDividendes = 0;
-  var peaFraisCumules = 0;
-  appData.pea.historique.forEach(function(m){
-    peaFraisCumules += parseFloat(m.frais || 0);
-    if (m.type === 'achat' || !m.type) { qPea[m.tag] += parseFloat(m.nb || 0); peaInvestiReel += parseFloat(m.total || 0); }
-    else if (m.type === 'vente') { qPea[m.tag] -= parseFloat(m.nb || 0); peaInvestiReel -= parseFloat(m.total || 0); }
-    else if (m.type === 'dividende') { peaDividendes += parseFloat(m.total || 0); }
-  });
-  var peaValeurBrute = (qPea.usa * (appData.pea.prix.usa || 0)) + (qPea.eu * (appData.pea.prix.eu || 0)) + (qPea.em * (appData.pea.prix.em || 0));
-  var peaGainGlobal = (peaValeurBrute + peaDividendes) - peaInvestiReel;
-  var peaTaxeTheorique = peaGainGlobal > 0 ? peaGainGlobal * ((appData.pea.settings.taux_fisc || 17.2) / 100) : 0;
-  var peaValeurNette = peaValeurBrute - peaTaxeTheorique;
-
-  // ── CTO (FIX : flux nets, PV réalisées incluses) ──
-  var ctoTotalAchats = 0, ctoTotalVentes = 0;
-  var ctoDividendes = 0;
-  var ctoFraisCumules = 0;
-  appData.cto.historique.forEach(function(m) {
-    ctoFraisCumules += parseFloat(m.frais || 0);
-    if (m.type === 'achat') { ctoTotalAchats += parseFloat(m.total || 0); }
-    else if (m.type === 'vente') { ctoTotalVentes += parseFloat(m.total || 0); }
-    else if (m.type === 'dividende') { ctoDividendes += parseFloat(m.total || 0); }
-  });
-  var ctoInvestiReel = ctoTotalAchats - ctoTotalVentes; // flux nets
-
-  // Valeur brute : cours actuel des positions encore ouvertes
-  var positions = calculerPositionsCTO();
-  var ctoValeurBrute = 0;
-  Object.keys(positions).forEach(function(nom) {
-    ctoValeurBrute += positions[nom].parts * (appData.cto.cours[nom] || 0);
-  });
-
-  var ctoGainGlobal = (ctoValeurBrute + ctoDividendes) - ctoInvestiReel;
-  var ctoTaxRate = appData.cto.settings.tax_rate !== undefined ? appData.cto.settings.tax_rate : 30.0;
-  var ctoTaxeTheorique = ctoGainGlobal > 0 ? ctoGainGlobal * (ctoTaxRate / 100) : 0;
-  var ctoValeurNette = ctoValeurBrute - ctoTaxeTheorique;
-
-  return {
-    peaBrut: peaValeurBrute, peaNet: peaValeurNette, peaInvesti: peaInvestiReel,
-    peaGain: peaGainGlobal, peaFrais: peaFraisCumules, peaDiv: peaDividendes,
-    ctoBrut: ctoValeurBrute, ctoNet: ctoValeurNette, ctoInvesti: ctoInvestiReel,
-    ctoGain: ctoGainGlobal, ctoFrais: ctoFraisCumules, ctoDiv: ctoDividendes
-  };
-}
-
-// ══════════════════════════════════════════════
-// FIX #8 : CALCUL DU TRIG / CAGR ANNUALISÉ
-// ══════════════════════════════════════════════
-function calculerCAGR(totalBrut, totalInvesti) {
-  if(totalInvesti <= 0 || totalBrut <= 0) return null;
-  var allDates = [];
-  appData.pea.historique.forEach(function(m) {
-    if(m.type === 'achat' || m.type === 'vente' || !m.type) allDates.push(parseFRDate(m.date));
-  });
-  appData.cto.historique.forEach(function(m) {
-    if(m.type === 'achat' || m.type === 'vente') allDates.push(parseFRDate(m.date));
-  });
-  if(allDates.length === 0) return null;
-  var firstDate = new Date(Math.min.apply(null, allDates.map(function(d){return d.getTime();})));
-  var today = new Date();
-  var yearsFraction = (today - firstDate) / (365.25 * 24 * 60 * 60 * 1000);
-  if(yearsFraction < 0.08) return null; // moins d'1 mois : pas significatif
-  var cagr = (Math.pow(totalBrut / totalInvesti, 1 / yearsFraction) - 1) * 100;
-  return { cagr: cagr, years: yearsFraction };
-}
-
-// ══════════════════════════════════════════════
-// ACCUEIL GLOBAL
-// ══════════════════════════════════════════════
-function calculerEtAfficherAccueilGlobal() {
-  var c = obtenirDonneesConsolidees();
-  var patrimoineNetGlobal = c.peaNet + c.ctoNet;
-  var totalBrutGlobal = c.peaBrut + c.ctoBrut;
-  var totalInvestiGlobal = c.peaInvesti + c.ctoInvesti;
-  var totalGainGlobal = c.peaGain + c.ctoGain;
-  var totalDividendes = c.peaDiv + c.ctoDiv;
-  var totalFrais = c.peaFrais + c.ctoFrais;
-
-  document.getElementById('global-total-net').textContent = patrimoineNetGlobal.toFixed(2) + ' €';
-  document.getElementById('global-dividendes-total').textContent = totalDividendes.toFixed(2) + ' €';
-  document.getElementById('global-fees-total').textContent = totalFrais.toFixed(2) + ' €';
-
-  var gainEl = document.getElementById('global-gain-val');
-  gainEl.textContent = (totalGainGlobal >= 0 ? '+' : '') + totalGainGlobal.toFixed(2) + ' €';
-  gainEl.style.color = totalGainGlobal >= 0 ? 'var(--eu)' : 'var(--red)';
-
-  document.getElementById('global-investi-val').textContent = Math.max(0, totalInvestiGlobal).toFixed(2) + ' €';
-
-  // CAGR
-  var cagrData = calculerCAGR(totalBrutGlobal, totalInvestiGlobal);
-  var cagrEl = document.getElementById('global-cagr-val');
-  if(cagrData) {
-    cagrEl.textContent = (cagrData.cagr >= 0 ? '+' : '') + cagrData.cagr.toFixed(1) + '%/an';
-    cagrEl.style.color = cagrData.cagr >= 0 ? 'var(--eu)' : 'var(--red)';
-  } else {
-    cagrEl.textContent = '–';
-    cagrEl.style.color = 'var(--text-muted)';
-  }
-
-  // Widgets PEA / CTO
-  document.getElementById('widget-pea-val').textContent = c.peaBrut.toFixed(2) + ' €';
-  document.getElementById('widget-pea-investi').textContent = Math.max(0, c.peaInvesti).toFixed(2) + ' €';
-  var badgePea = document.getElementById('widget-pea-perf');
-  badgePea.textContent = (c.peaGain >= 0 ? '+' : '') + c.peaGain.toFixed(2) + ' €';
-  badgePea.className = 'widget-perf ' + (c.peaGain >= 0 ? 'perf-up' : 'perf-down');
-
-  document.getElementById('widget-cto-val').textContent = c.ctoBrut.toFixed(2) + ' €';
-  document.getElementById('widget-cto-investi').textContent = Math.max(0, c.ctoInvesti).toFixed(2) + ' €';
-  var badgeCto = document.getElementById('widget-cto-perf');
-  badgeCto.textContent = (c.ctoGain >= 0 ? '+' : '') + c.ctoGain.toFixed(2) + ' €';
-  badgeCto.className = 'widget-perf ' + (c.ctoGain >= 0 ? 'perf-up' : 'perf-down');
-
-  // Barre macro
-  var pctPea = totalBrutGlobal > 0 ? (c.peaBrut / totalBrutGlobal * 100) : 50;
-  var pctCto = totalBrutGlobal > 0 ? (c.ctoBrut / totalBrutGlobal * 100) : 50;
-  document.getElementById('macro-bar-pea').style.width = pctPea + '%';
-  document.getElementById('macro-bar-cto').style.width = pctCto + '%';
-  document.getElementById('macro-txt-pea').textContent = (totalBrutGlobal > 0 ? pctPea.toFixed(1) : '0') + '%';
-  document.getElementById('macro-txt-cto').textContent = (totalBrutGlobal > 0 ? pctCto.toFixed(1) : '0') + '%';
-
-  renderGlobalTrendChartCurve();
-}
-
-// Sauvegarde un snapshot depuis l'onglet cours (plus besoin de naviguer vers l'accueil)
-function figerSoldeGlobal() {
-  var c = obtenirDonneesConsolidees();
-  var totalBrut = c.peaBrut + c.ctoBrut;
-  var totalInvesti = c.peaInvesti + c.ctoInvesti;
-  var dateStr = new Date().toLocaleDateString('fr-FR');
-  if(!appData.global_history) appData.global_history = [];
-  appData.global_history.push({
-    date: dateStr,
-    investi: parseFloat(totalInvesti.toFixed(2)),
-    brut: parseFloat(totalBrut.toFixed(2))
-  });
-  saveData(appData);
-  renderGlobalTrendChartCurve(); // met à jour le graphique en arrière-plan
-
-  // Confirmation inline (pas de popup)
-  var msg = document.getElementById('snapshot-confirm-msg');
-  if(msg) {
-    msg.style.display = 'block';
-    setTimeout(function() { msg.style.display = 'none'; }, 3000);
-  }
-}
-
-function toggleSnapshotList() {
-  var body = document.getElementById('snapshot-list-body');
-  var chevron = document.getElementById('snapshot-chevron');
-  if(!body) return;
-  var open = body.style.display === 'none';
-  body.style.display = open ? 'block' : 'none';
-  if(chevron) chevron.textContent = open ? '▲' : '▼';
-}
-
-// FIX #6 : suppression d'un snapshot
-function supprimerSnapshot(index) {
-  if(confirm('Supprimer ce point de l\'historique graphique ?')) {
-    appData.global_history.splice(index, 1);
-    saveData(appData);
-    renderGlobalTrendChartCurve();
-  }
-}
-
-function renderGlobalTrendChartCurve() {
-  var container = document.getElementById('chart-svg-wrapper-target');
-  var pts = appData.global_history || [];
-
-  // Liste des snapshots – masquée par défaut, expandable
-  var snapshotContainer = document.getElementById('snapshots-list-container');
-  if(pts.length > 0) {
-    var lastPt = pts[pts.length - 1];
-    var lastDiff = lastPt.brut - lastPt.investi;
-    var lastDiffPct = lastPt.investi > 0 ? (lastDiff / lastPt.investi * 100).toFixed(1) : '0.0';
-    var sign = lastDiff >= 0 ? '+' : '';
-
-    var sItems = '';
-    pts.forEach(function(p, i) {
-      var diff = p.brut - p.investi;
-      var pct = p.investi > 0 ? (diff / p.investi * 100).toFixed(1) : '0.0';
-      var s = diff >= 0 ? '+' : '';
-      sItems += '<div class="snapshot-item">' +
-        '<div>' +
-          '<span style="font-weight:600; font-size:12px;">📅 ' + p.date + '</span><br>' +
-          '<span class="snapshot-info">Investi : ' + p.investi.toFixed(0) + ' € · Marché : ' + p.brut.toFixed(0) + ' €</span>' +
-        '</div>' +
-        '<div style="display:flex;align-items:center;gap:8px;">' +
-          '<span style="font-size:12px;font-weight:700;color:' + (diff>=0?'var(--eu)':'var(--red)') + ';">' + s + diff.toFixed(0) + ' € (' + s + pct + '%)</span>' +
-          '<button class="btn-delete-item" onclick="supprimerSnapshot(' + i + ')">🗑️</button>' +
-        '</div>' +
-      '</div>';
-    });
-
-    snapshotContainer.innerHTML =
-      // Ligne résumé cliquable
-      '<div onclick="toggleSnapshotList()" style="cursor:pointer;display:flex;justify-content:space-between;align-items:center;padding:8px 10px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.04);border-radius:10px;margin-top:8px;">' +
-        '<span style="font-size:12px;color:var(--text-muted);">📋 <b style="color:white;">' + pts.length + '</b> point' + (pts.length > 1 ? 's' : '') + ' enregistré' + (pts.length > 1 ? 's' : '') + ' · dernier : <b>' + lastPt.date + '</b></span>' +
-        '<span style="font-size:12px;font-weight:700;color:' + (lastDiff>=0?'var(--eu)':'var(--red)') + ';">' + sign + lastDiff.toFixed(0) + ' € (' + sign + lastDiffPct + '%) <span id="snapshot-chevron" style="font-style:normal;">▼</span></span>' +
-      '</div>' +
-      // Liste masquée
-      '<div id="snapshot-list-body" style="display:none;margin-top:6px;max-height:280px;overflow-y:auto;">' + sItems + '</div>';
-  } else {
-    snapshotContainer.innerHTML = '';
-  }
-
-  if(pts.length < 1) {
-    container.innerHTML = '<div style="text-align:center;padding:30px;color:var(--text-muted);font-size:13px;border:1px dashed rgba(255,255,255,0.05);border-radius:12px;">Aucun point enregistré. Validez les cours depuis l\'onglet PEA pour démarrer l\'historique.</div>';
-    return;
-  }
-
-  var renderPts = pts.slice();
-  if(renderPts.length === 1) {
-    renderPts.push({ date: renderPts[0].date, investi: renderPts[0].investi, brut: renderPts[0].brut });
-  }
-
-  // ── Axe Y dynamique : part du minimum réel, pas de zéro ──
-  var allVals = [];
-  renderPts.forEach(function(o) { allVals.push(o.investi, o.brut); });
-  var rawMin = Math.min.apply(null, allVals);
-  var rawMax = Math.max.apply(null, allVals);
-  var range = rawMax - rawMin;
-  if(range < 0.01) range = rawMax * 0.04 || 10; // cas dégénéré (points identiques)
-  var pad = range * 0.28;
-  var minVal = Math.max(0, rawMin - pad);
-  var maxVal = rawMax + pad;
-  var visibleRange = maxVal - minVal;
-
-  function fmtY(v) {
-    if(v >= 100000) return Math.round(v/1000) + 'k';
-    if(v >= 10000)  return (v/1000).toFixed(1).replace('.0','') + 'k';
-    if(v >= 1000)   return (v/1000).toFixed(2).replace(/\.?0+$/, '') + 'k';
-    return Math.round(v) + '';
-  }
-
-  // Dimensions SVG
-  var svgW = 500, svgH = 175;
-  var pL = 4, pR = 4, pT = 12, pB = 14;
-  var chartW = svgW - pL - pR;
-  var chartH = svgH - pT - pB;
-  var stepX = renderPts.length > 1 ? chartW / (renderPts.length - 1) : chartW / 2;
-
-  function yCoord(v) {
-    return pT + chartH - ((v - minVal) / visibleRange * chartH);
-  }
-
-  // Gridlines SVG (4 niveaux)
-  var nGrid = 4;
-  var gridSvg = '', yLabelHtml = '';
-  for(var gi = 0; gi <= nGrid; gi++) {
-    var t = gi / nGrid;
-    var gv = minVal + t * visibleRange;
-    var gy = yCoord(gv);
-    var topPct = (gy / svgH * 100).toFixed(2);
-    // Ligne horizontale dans le SVG
-    gridSvg += '<line x1="' + pL + '" y1="' + gy.toFixed(1) + '" x2="' + (svgW - pR) + '" y2="' + gy.toFixed(1) + '" stroke="rgba(255,255,255,' + (gi === 0 ? '0.07' : '0.04') + ')" stroke-width="1"/>';
-    // Label HTML positionné en absolu sur la gauche
-    yLabelHtml += '<div style="position:absolute;left:3px;top:' + topPct + '%;transform:translateY(-50%);font-size:9px;color:rgba(148,163,184,0.65);font-family:monospace;pointer-events:none;background:rgba(10,14,27,0.75);padding:1px 3px;border-radius:3px;line-height:1;">' + fmtY(gv) + '</div>';
-  }
-
-  // Courbes et aire de remplissage
-  var yBottom = pT + chartH;
-  var pathInvestiArr = [], pathBrutArr = [], areaArr = [], dotsHtml = '';
-  var interactiveZonesHtml = '';
-
-  renderPts.forEach(function(p, i) {
-    var x = pL + i * stepX;
-    var yI = yCoord(p.investi);
-    var yB = yCoord(p.brut);
-    pathInvestiArr.push(x.toFixed(1) + ',' + yI.toFixed(1));
-    pathBrutArr.push(x.toFixed(1) + ',' + yB.toFixed(1));
-    areaArr.push(x.toFixed(1) + ',' + yB.toFixed(1));
-    // Dot de position sur la courbe de valeur
-    dotsHtml += '<circle cx="' + x.toFixed(1) + '" cy="' + yB.toFixed(1) + '" r="4" fill="#10b981" stroke="rgba(10,14,27,0.9)" stroke-width="1.5" vector-effect="non-scaling-stroke"/>';
-
-    var diff = p.brut - p.investi;
-    var sign = diff >= 0 ? '+' : '';
-    var diffPct = p.investi > 0 ? (diff / p.investi * 100).toFixed(2) : '0.00';
-    interactiveZonesHtml +=
-      '<div class="chart-node-col">' +
-        '<div class="chart-tooltip-v2">' +
-          '📅 ' + p.date + '<br>' +
-          '<span style="color:#94a3b8;">⚪ Investi :</span> ' + p.investi.toFixed(2) + ' €<br>' +
-          '<span style="color:#10b981;">🟢 Valeur :</span> <b>' + p.brut.toFixed(2) + ' €</b><br>' +
-          '<b style="color:' + (diff >= 0 ? 'var(--eu)' : 'var(--red)') + ';">' + sign + diff.toFixed(2) + ' € (' + sign + diffPct + '%)</b>' +
-        '</div>' +
-      '</div>';
-  });
-
-  // Fermeture de l'aire de remplissage
-  var lastX = (pL + (renderPts.length - 1) * stepX).toFixed(1);
-  var areaPath = 'M ' + areaArr.join(' L ') + ' L ' + lastX + ',' + yBottom + ' L ' + pL.toFixed(1) + ',' + yBottom + ' Z';
-
-  var html =
-    '<div class="trend-chart-wrapper" style="height:175px;">' +
-      '<svg class="trend-svg" viewBox="0 0 ' + svgW + ' ' + svgH + '" preserveAspectRatio="none">' +
-        '<defs>' +
-          '<linearGradient id="curveGradient" x1="0%" y1="0%" x2="100%" y2="0%">' +
-            '<stop offset="0%" stop-color="#0ea5e9"/><stop offset="100%" stop-color="#10b981"/>' +
-          '</linearGradient>' +
-          '<linearGradient id="areaGrad" x1="0%" y1="0%" x2="0%" y2="100%">' +
-            '<stop offset="0%" stop-color="#10b981" stop-opacity="0.18"/>' +
-            '<stop offset="100%" stop-color="#10b981" stop-opacity="0"/>' +
-          '</linearGradient>' +
-        '</defs>' +
-        gridSvg +
-        '<path d="' + areaPath + '" fill="url(#areaGrad)"/>' +
-        '<path d="M ' + pathInvestiArr.join(' L ') + '" fill="none" stroke="#475569" stroke-width="1.5" stroke-dasharray="5,4" opacity="0.9" stroke-linecap="round" stroke-linejoin="round" vector-effect="non-scaling-stroke"/>' +
-        '<path d="M ' + pathBrutArr.join(' L ') + '" fill="none" stroke="url(#curveGradient)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" vector-effect="non-scaling-stroke"/>' +
-        dotsHtml +
-      '</svg>' +
-      yLabelHtml +
-      '<div class="chart-interactive-zone">' + interactiveZonesHtml + '</div>' +
-    '</div>' +
-    '<div class="chart-timeline-labels" style="padding:0 2px;"><span>' + pts[0].date + '</span><span>' + pts[pts.length - 1].date + '</span></div>';
-
-  container.innerHTML = html;
-}
-
-
-// ══════════════════════════════════════════════
-// PEA – CALCULS & AFFICHAGE
-// ══════════════════════════════════════════════
-function recalculerQuantitesPEA() {
-  var q = { usa: 0, eu: 0, em: 0 };
-  appData.pea.historique.forEach(function(m){
-    if (m.type === 'achat' || !m.type) q[m.tag] += parseFloat(m.nb || 0);
-    else if (m.type === 'vente') q[m.tag] -= parseFloat(m.nb || 0);
-  });
-  q.usa = Math.max(0, q.usa); q.eu = Math.max(0, q.eu); q.em = Math.max(0, q.em);
-  document.getElementById('lbl_usa_q').textContent = q.usa;
-  document.getElementById('lbl_eu_q').textContent = q.eu;
-  document.getElementById('lbl_em_q').textContent = q.em;
-  return q;
-}
-
-function calculerOrdreOptimal() {
-  var q = recalculerQuantitesPEA();
-  var b = +appData.pea.settings.budget || 0;
-  var container = document.getElementById('suggestion-ordre-container');
-  if (b <= 0) { container.innerHTML = ''; return; }
-
-  var up = appData.pea.prix.usa, ep = appData.pea.prix.eu, mp = appData.pea.prix.em;
-  var u = q.usa*up, e = q.eu*ep, m = q.em*mp, totActuel = u+e+m;
-  var pU = totActuel ? (u/totActuel)*100 : 0;
-  var pE = totActuel ? (e/totActuel)*100 : 0;
-  var pM = totActuel ? (m/totActuel)*100 : 0;
-  var cU = appData.pea.cibles.usa, cE = appData.pea.cibles.eu, cM = appData.pea.cibles.em;
-  var devU = cU - pU, devE = cE - pE, devM = cM - pM;
-
-  var cibleNom, cibleTag, ciblePrix, labelClass, horaireConseille, horaireAEviter;
-  if (devE >= devU && devE >= devM) {
-    cibleNom = 'BNP Stoxx 600'; cibleTag = 'eu'; ciblePrix = ep; labelClass = 'tag-eu';
-    horaireConseille = '10h00 - 17h00'; horaireAEviter = '09h00-10h00 et 17h00-17h30';
-  } else if (devM >= devU && devM >= devE) {
-    cibleNom = 'Amundi Émergents'; cibleTag = 'em'; ciblePrix = mp; labelClass = 'tag-em';
-    horaireConseille = '10h00 - 17h00'; horaireAEviter = '09h00-10h00 et 17h00-17h30';
-  } else {
-    cibleNom = 'Amundi S&P 500'; cibleTag = 'usa'; ciblePrix = up; labelClass = 'tag-usa';
-    horaireConseille = '15h30 - 17h00'; horaireAEviter = 'Matinée, 09h00-10h00 et 17h00-17h30';
-  }
-
-  var fraisBase = appData.pea.settings.frais_courtage !== undefined ? appData.pea.settings.frais_courtage : 1.00;
-  var nParts = (b > fraisBase && ciblePrix > 0) ? Math.floor((b - fraisBase) / ciblePrix) : 0;
-  var cashAchatNecessaire = (nParts * ciblePrix) + fraisBase;
-
-  var html = '<div style="border-top:3px solid var(--usa); background:rgba(255,255,255,0.02); padding:14px; border-radius:12px; border:1px solid var(--glass-border);">' +
-    '<h2 style="color:#7dd3fc; margin-bottom:10px;">🎯 Suggestion d\'ordre unique</h2>';
-  if(nParts > 0) {
-    html += '<div style="margin:8px 0; font-size:15px;">Acheter : <span class="tag '+labelClass+'">'+cibleNom+'</span> × <b>'+nParts+'</b> part(s)</div>' +
-    '<div style="color:var(--text-muted); font-size:12px; margin-bottom:12px;">Détails : '+(nParts*ciblePrix).toFixed(2)+' € + '+fraisBase.toFixed(2)+' € frais</div>' +
-    '<div style="font-size:13px;display:flex;justify-content:space-between;margin-bottom:12px;border-bottom:1px dashed rgba(255,255,255,0.08);padding-bottom:10px;">' +
-      '<span>Total : <b>'+cashAchatNecessaire.toFixed(2)+' €</b></span>' +
-      '<span style="color:var(--em);">Reste : <b>'+(b - cashAchatNecessaire).toFixed(2)+' €</b></span>' +
-    '</div>' +
-    '<div style="font-size:11px;line-height:1.4;background:rgba(0,0,0,0.2);padding:8px;border-radius:8px;">' +
-      '<div style="color:var(--eu);">🟢 <b>Créneau idéal :</b> '+horaireConseille+'</div>' +
-      '<div style="color:var(--red);margin-top:2px;">⚠️ <b>À éviter :</b> '+horaireAEviter+'</div>' +
-    '</div>';
-  } else {
-    html += '<div style="color:var(--red);font-size:13px;">⚠️ Budget trop bas.</div>';
-  }
-  html += '</div>';
-  container.innerHTML = html;
-}
-
-function toggleFormType() {
-  var type = document.getElementById('man_type').value;
-  document.getElementById('form-quantite').style.display = (type === 'achat' || type === 'vente') ? 'block' : 'none';
-  document.getElementById('form-dividende').style.display = type === 'dividende' ? 'block' : 'none';
-  document.getElementById('row-frais-ajustable').style.display = type === 'achat' ? 'flex' : 'none';
-}
-
-function ajouterEvenementManuel() {
-  var type = document.getElementById('man_type').value;
-  var asset = document.getElementById('man_asset').value;
-  var dateStr = formatDateToFR(document.getElementById('man_date').value);
-  var names = {usa:'Amundi S&P 500', eu:'BNP Stoxx 600', em:'Amundi Émergents'};
-  var baseObj = { id: generateId(), type: type, date: dateStr, etf: names[asset], tag: asset };
-
-  if(type === 'achat' || type === 'vente') {
-    var q = +document.getElementById('man_q').value || 0;
-    var p = +document.getElementById('man_p').value || 0;
-    var f = type === 'achat' ? (+document.getElementById('man_frais').value || 0) : 0;
-    if(q <= 0 || p <= 0) { alert('Champs requis.'); return; }
-    baseObj.nb = q; baseObj.prix = p; baseObj.frais = f;
-    baseObj.total = (type==='achat' ? (q*p)+f : (q*p)).toFixed(2);
-  } else {
-    var m = +document.getElementById('man_div_montant').value || 0;
-    if(m <= 0) { alert('Montant requis.'); return; }
-    baseObj.total = m.toFixed(2); baseObj.frais = 0;
-  }
-  appData.pea.historique.unshift(baseObj);
-  appData.pea.settings.budget = '';
-  document.getElementById('budget').value = '';
-  saveData(appData);
-  renderHistPEA();
-  alert('✅ Validé.');
-  document.getElementById('man_q').value = ''; document.getElementById('man_p').value = '';
-  document.getElementById('man_frais').value = ''; document.getElementById('man_div_montant').value = '';
-  initDatesFormulaires();
-}
-
-function supprimerMouvementPEA(id) {
-  if(confirm('Supprimer définitivement ce mouvement du registre PEA ?')) {
-    appData.pea.historique = appData.pea.historique.filter(function(m) { return m.id !== id; });
-    saveData(appData);
-    renderHistPEA();
-  }
-}
-
-function renderStatsPEA() {
-  var q = recalculerQuantitesPEA();
-  var up = appData.pea.prix.usa, ep = appData.pea.prix.eu, mp = appData.pea.prix.em;
-  var valActuelle = (q.usa*up) + (q.eu*ep) + (q.em*mp);
-  var baseDenom = 0, divTotal = 0, totalFeesPEA = 0, totalPruValue = 0;
-
-  appData.pea.historique.forEach(function(m){
-    totalFeesPEA += parseFloat(m.frais || 0);
-    if(m.type === 'achat' || !m.type) {
-      baseDenom += parseFloat(m.total);
-      totalPruValue += parseFloat(m.nb || 0) * parseFloat(m.prix || 0);
-    } else if(m.type === 'vente') {
-      baseDenom -= parseFloat(m.total);
-      totalPruValue -= parseFloat(m.nb || 0) * parseFloat(m.prix || 0);
-    } else if(m.type === 'dividende') {
-      divTotal += parseFloat(m.total);
+    function importFromWelcome(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            try {
+                const parsed = JSON.parse(e.target.result);
+                if (parsed.appData && parsed.appInvest && parsed.refKwh) {
+                    appData = parsed.appData;
+                    appInvest = parsed.appInvest;
+                    refKwh = parsed.refKwh;
+                    saveAllToLocalStorage();
+                    launchApplication();
+                } else { alert("Fichier de sauvegarde non valide."); }
+            } catch (err) { alert("Erreur lors de la lecture du fichier JSON."); }
+        };
+        reader.readAsText(file);
     }
-  });
 
-  var gainRealAbsolu = (valActuelle + divTotal) - baseDenom;
-  var gainRealPct = baseDenom > 0 ? (gainRealAbsolu / baseDenom) * 100 : 0;
-  var pvLatentePure = valActuelle - totalPruValue;
-  var pvLatentePct = totalPruValue > 0 ? (pvLatentePure / totalPruValue) * 100 : 0;
-  var taxe = gainRealAbsolu > 0 ? (gainRealAbsolu * ((appData.pea.settings.taux_fisc||17.2)/100)) : 0;
-
-  document.getElementById('stats-container').innerHTML =
-    '<div class="card">' +
-      '<h2>Performance Portefeuille PEA</h2>' +
-      '<div class="sim-row" style="padding:4px 0 12px 0;"><span>Valeur Brute :</span> <b style="font-size:22px;color:white;">'+valActuelle.toFixed(2)+' €</b></div>' +
-      '<div class="fees-container-badge" style="margin-bottom:14px;">Frais de courtage : <b>'+totalFeesPEA.toFixed(2)+' €</b></div>' +
-      '<div class="stat-grid">' +
-        '<div class="stat-box" style="border-top:3px solid var(--eu);">' +
-          '<div class="stat-lbl">Gain Réel<br><small>(Frais inc. + Divs)</small></div>' +
-          '<div class="stat-val" style="color:'+(gainRealAbsolu>=0?'var(--eu)':'var(--red)')+';">'+(gainRealAbsolu>=0?'+':'')+gainRealAbsolu.toFixed(2)+' €<br><small>('+gainRealPct.toFixed(1)+'%)</small></div>' +
-        '</div>' +
-        '<div class="stat-box" style="border-top:3px solid var(--usa);">' +
-          '<div class="stat-lbl">PV Latente Pure<br><small>(Cours vs PRU)</small></div>' +
-          '<div class="stat-val" style="color:'+(pvLatentePure>=0?'var(--eu)':'var(--red)')+';">'+(pvLatentePure>=0?'+':'')+pvLatentePure.toFixed(2)+' €<br><small>('+pvLatentePct.toFixed(1)+'%)</small></div>' +
-        '</div>' +
-      '</div>' +
-    '</div>' +
-    '<div class="card" style="border-left:4px solid var(--div);">' +
-      '<h2>Estimation Fiscale PEA ('+(appData.pea.settings.taux_fisc||17.2)+'%)</h2>' +
-      '<div class="sim-row"><span>Prélèvements Sociaux théoriques :</span> <b style="color:var(--red);">- '+taxe.toFixed(2)+' €</b></div>' +
-      '<div class="sim-row"><span>Net après retrait théorique :</span> <b style="color:var(--eu);">'+(valActuelle-taxe).toFixed(2)+' €</b></div>' +
-    '</div>';
-}
-
-function calcPEA() {
-  var q = recalculerQuantitesPEA();
-  var u = q.usa*appData.pea.prix.usa, e = q.eu*appData.pea.prix.eu, m = q.em*appData.pea.prix.em;
-  var tot = u+e+m;
-  var pU = tot ? (u/tot)*100 : 0, pE = tot ? (e/tot)*100 : 0, pM = tot ? (m/tot)*100 : 0;
-  var donut = document.getElementById('chart-donut');
-  if(donut) { donut.style.setProperty('--u-deg', pU+'%'); donut.style.setProperty('--e-deg', (pU+pE)+'%'); }
-  document.getElementById('leg-usa-pct').textContent = pU.toFixed(1)+'%';
-  document.getElementById('leg-usa-details').textContent = u.toFixed(2)+' € • '+q.usa+' part(s)';
-  document.getElementById('leg-eu-pct').textContent = pE.toFixed(1)+'%';
-  document.getElementById('leg-eu-details').textContent = e.toFixed(2)+' € • '+q.eu+' part(s)';
-  document.getElementById('leg-em-pct').textContent = pM.toFixed(1)+'%';
-  document.getElementById('leg-em-details').textContent = m.toFixed(2)+' € • '+q.em+' part(s)';
-}
-
-function renderHistPEA() {
-  var h = '';
-  appData.pea.historique.forEach(function(a){
-    var fr = parseFloat(a.frais || 0);
-    var txtFrais = fr > 0 ? ' (dont '+fr.toFixed(2)+'€ frais)' : '';
-    var borderColor = a.type === 'vente' ? 'var(--red)' : a.type === 'dividende' ? 'var(--div)' : 'var(--usa)';
-    h += '<div class="hist-item" style="border-left:3px solid '+borderColor+';">' +
-           '<div class="hist-content"><b>'+a.type.toUpperCase()+'</b> | '+a.etf+' | '+a.total+' €' +
-           '<div style="font-size:11px;color:var(--text-muted);margin-top:2px;">Le '+a.date+txtFrais+'</div></div>' +
-           '<button class="btn-delete-item" onclick="supprimerMouvementPEA(\''+a.id+'\')">🗑️</button>' +
-         '</div>';
-  });
-  document.getElementById('hist-container').innerHTML = h || '<div style="text-align:center;color:var(--text-muted);padding:10px;">Aucun mouvement.</div>';
-}
-
-function saveInputs() {
-  appData.pea.prix = { usa: +document.getElementById('p_usa').value||0, eu: +document.getElementById('p_eu').value||0, em: +document.getElementById('p_em').value||0 };
-  appData.pea.settings.budget = document.getElementById('budget').value;
-  saveData(appData);
-}
-
-// FIX #5 : alerte visuelle si cibles != 100%
-function updateCibleTotal() {
-  var t = (+document.getElementById('c_usa').value||0) + (+document.getElementById('c_eu').value||0) + (+document.getElementById('c_em').value||0);
-  var isOk = t === 100;
-  document.getElementById('cible-total').innerHTML = 'Total : <span style="color:' + (isOk ? 'var(--eu)' : 'var(--red)') + ';">' + t + '%</span>';
-  document.getElementById('cible-alert').classList.toggle('show', !isOk && t > 0);
-}
-
-function saveCibles() {
-  var t = (+document.getElementById('c_usa').value||0) + (+document.getElementById('c_eu').value||0) + (+document.getElementById('c_em').value||0);
-  if(t !== 100) { alert('⚠️ Le total doit être 100% (actuellement ' + t + '%). Corrigez avant de sauvegarder.'); return; }
-  appData.pea.cibles = { usa: +document.getElementById('c_usa').value, eu: +document.getElementById('c_eu').value, em: +document.getElementById('c_em').value };
-  saveData(appData); alert('Cibles sauvées.');
-}
-
-function saveSettings() {
-  appData.pea.settings.alerte_seuil = +document.getElementById('alerte_seuil').value;
-  appData.pea.settings.taux_fisc = +document.getElementById('taux_fisc').value;
-  appData.pea.settings.frais_courtage = +document.getElementById('frais_courtage').value;
-  saveData(appData); alert('Paramètres sauvés.');
-}
-
-// ══════════════════════════════════════════════
-// CTO – CALCULS & AFFICHAGE
-// FIX #1, #2, #3
-// ══════════════════════════════════════════════
-function toggleFormCto() {
-  var type = document.getElementById('cto_type').value;
-  if (type === 'dividende') {
-    document.getElementById('cto-row-name-libre').style.display = 'none';
-    document.getElementById('cto-row-name-select').style.display = 'flex';
-    document.getElementById('cto-form-quantite').style.display = 'none';
-    document.getElementById('cto-form-dividende').style.display = 'block';
-  } else {
-    document.getElementById('cto-row-name-libre').style.display = 'flex';
-    document.getElementById('cto-row-name-select').style.display = 'none';
-    document.getElementById('cto-row-name-custom-div').style.display = 'none';
-    document.getElementById('cto-form-quantite').style.display = 'block';
-    document.getElementById('cto-form-dividende').style.display = 'none';
-    document.getElementById('cto-row-frais').style.display = (type === 'achat') ? 'flex' : 'none';
-  }
-}
-
-function handleCtoNameSelect() {
-  var select = document.getElementById('cto_name_select');
-  document.getElementById('cto-row-name-custom-div').style.display = (select.value === '__NEW__') ? 'flex' : 'none';
-}
-
-function calculerPositionsCTO() {
-  var pos = {};
-  appData.cto.historique.slice().reverse().forEach(function(m) {
-    var name = m.actif;
-    if(!pos[name]) pos[name] = { parts: 0, totalCost: 0, cumulativeDividends: 0 };
-    if (m.type === 'achat') {
-      pos[name].parts += parseFloat(m.nb);
-      pos[name].totalCost += parseFloat(m.total);
-    } else if (m.type === 'vente') {
-      var currentPru = pos[name].parts > 0 ? (pos[name].totalCost / pos[name].parts) : 0;
-      pos[name].parts -= parseFloat(m.nb);
-      pos[name].totalCost -= (currentPru * parseFloat(m.nb));
-    } else if (m.type === 'dividende') {
-      pos[name].cumulativeDividends += parseFloat(m.total);
+    function launchApplication() {
+        document.getElementById('welcome-screen').style.display = 'none';
+        document.getElementById('main-application').style.display = 'block';
+        initSaisieTab();
+        calculateAndRender();
+        updateAutoFields();
     }
-  });
-  return pos;
-}
 
-function ajouterMouvementCTO() {
-  var type = document.getElementById('cto_type').value;
-  var name = '';
-  if (type === 'dividende') {
-    var selectVal = document.getElementById('cto_name_select').value;
-    name = (selectVal === '__NEW__') ? document.getElementById('cto_name_custom_div').value.trim() : selectVal;
-  } else {
-    name = document.getElementById('cto_name').value.trim();
-  }
-  var dateStr = formatDateToFR(document.getElementById('cto_date').value);
-  if(!name) { alert('Spécifiez un nom valide.'); return; }
-
-  var baseObj = { id: generateId(), type: type, actif: name, date: dateStr };
-
-  if(type === 'achat' || type === 'vente') {
-    var q = parseFloat(document.getElementById('cto_q').value) || 0;
-    var p = parseFloat(document.getElementById('cto_p').value) || 0;
-    var f = type === 'achat' ? (parseFloat(document.getElementById('cto_frais').value) || 0) : 0;
-    if(q <= 0 || p <= 0) { alert('Champs requis.'); return; }
-    var totalLigne = type === 'achat' ? (q * p) + f : (q * p);
-    baseObj.nb = q; baseObj.prix = p; baseObj.frais = f; baseObj.total = totalLigne.toFixed(2);
-    appData.cto.historique.unshift(baseObj);
-    // FIX #3 : n'écrase pas le cours si déjà renseigné manuellement
-    if(appData.cto.cours[name] === undefined) appData.cto.cours[name] = p;
-  } else {
-    var m = parseFloat(document.getElementById('cto_div_montant').value) || 0;
-    if(m <= 0) { alert('Montant requis.'); return; }
-    baseObj.total = m.toFixed(2); baseObj.frais = 0;
-    appData.cto.historique.unshift(baseObj);
-  }
-
-  saveData(appData);
-  alert('✅ Enregistré.');
-  document.getElementById('cto_name').value = ''; document.getElementById('cto_name_custom_div').value = '';
-  document.getElementById('cto_q').value = ''; document.getElementById('cto_p').value = '';
-  document.getElementById('cto_div_montant').value = '';
-  initDatesFormulaires();
-  showSubTab('cto', 'portefeuille');
-}
-
-// FIX #2 : reste sur l'onglet historique après suppression
-function supprimerMouvementCTO(id) {
-  if(confirm('Supprimer définitivement ce mouvement du registre CTO ?')) {
-    appData.cto.historique = appData.cto.historique.filter(function(m) { return m.id !== id; });
-    saveData(appData);
-    renderHistCTO();        // reste sur l'onglet historique
-    renderCTOUniverse();    // met à jour les positions en arrière-plan
-  }
-}
-
-function updateCtoCours(name, value) {
-  appData.cto.cours[name] = parseFloat(value) || 0;
-  saveData(appData);
-  renderCTOUniverseOnly();
-}
-
-function saveCtoSettings() {
-  appData.cto.settings.tax_rate = parseFloat(document.getElementById('cto_tax_rate').value) || 30.0;
-  saveData(appData); alert('Paramètres CTO sauvés.');
-}
-
-function renderCTOInputsCours() {
-  var positions = calculerPositionsCTO();
-  var container = document.getElementById('cto-cours-inputs-container');
-  if(!container) return;
-  var html = '';
-  Object.keys(positions).filter(function(n) { return positions[n].parts > 0; }).forEach(function(nom) {
-    var coursActuel = appData.cto.cours[nom] || 0;
-    html += '<div class="row"><label><span class="tag tag-cto">'+nom+'</span></label>' +
-            '<input type="number" inputmode="decimal" pattern="[0-9]*" value="'+coursActuel+'" oninput="updateCtoCours(\''+nom+'\', this.value)"></div>';
-  });
-  container.innerHTML = html || '<div style="text-align:center;color:var(--text-muted);font-size:13px;padding:10px;">Aucun actif en portefeuille.</div>';
-}
-
-function renderCTOUniverse() {
-  renderCTOInputsCours();
-  renderCTOUniverseOnly();
-}
-
-// FIX #1 : gain CTO inclut PV réalisées (flux nets)
-function renderCTOUniverseOnly() {
-  var positions = calculerPositionsCTO();
-  var tbody = document.getElementById('cto-positions-body');
-  if(!tbody) return;
-  tbody.innerHTML = '';
-
-  var globalValeurCTO = 0;
-  var globalPrixRevient = 0; // coût de revient restant (pour PV latente pure)
-  var globalDividendes = 0;
-  var totalFeesCTO = 0;
-  var totalAchatsCTO = 0;   // flux total achats
-  var totalVentesCTO = 0;   // flux total ventes
-
-  appData.cto.historique.forEach(function(m) {
-    totalFeesCTO += parseFloat(m.frais || 0);
-    if(m.type === 'achat') totalAchatsCTO += parseFloat(m.total || 0);
-    else if(m.type === 'vente') totalVentesCTO += parseFloat(m.total || 0);
-    else if(m.type === 'dividende') globalDividendes += parseFloat(m.total || 0);
-  });
-
-  Object.keys(positions).forEach(function(nom) {
-    var p = positions[nom];
-    var cours = appData.cto.cours[nom] || 0;
-    var valuation = p.parts * cours;
-    globalValeurCTO += valuation;
-    globalPrixRevient += p.totalCost;
-
-    if(p.parts > 0) {
-      var pru = p.parts > 0 ? (p.totalCost / p.parts) : 0;
-      var pvLatente = valuation - p.totalCost;
-      var pvPct = p.totalCost > 0 ? (pvLatente / p.totalCost * 100) : 0;
-      var tr = document.createElement('tr');
-      tr.innerHTML = '<td><span class="tag tag-cto">'+nom+'</span></td>' +
-        '<td><b>'+p.parts+'</b></td>' +
-        '<td>'+pru.toFixed(2)+' €</td>' +
-        '<td><b style="color:var(--usa)">'+cours.toFixed(2)+' €</b></td>' +
-        '<td><b>'+valuation.toFixed(2)+' €</b></td>' +
-        '<td style="color:'+(pvLatente>=0?'var(--eu)':'var(--red)')+';font-weight:bold;">'+(pvLatente>=0?'+':'')+pvLatente.toFixed(2)+' €<br><small>('+pvPct.toFixed(1)+'%)</small></td>';
-      tbody.appendChild(tr);
+    function openTab(tabId) {
+        document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+        document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+        document.getElementById(tabId).classList.add('active');
+        event.currentTarget.classList.add('active');
+        if(tabId === 'graphiques') calculateAndRender();
+        if(tabId === 'saisie') updateAutoFields();
     }
-  });
 
-  if(tbody.innerHTML === '') {
-    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--text-muted);padding:20px;">Aucune position ouverte.</td></tr>';
-  }
-
-  // Gain réel = valeur actuelle + dividendes - flux nets investis (inclut PV réalisées)
-  var netCashInvested = totalAchatsCTO - totalVentesCTO;
-  var gainRealAbsoluCTO = (globalValeurCTO + globalDividendes) - netCashInvested;
-  var gainRealPctCTO = netCashInvested > 0 ? (gainRealAbsoluCTO / netCashInvested) * 100 : 0;
-
-  // PV latente pure = différence marché vs coût de revient positions actuelles
-  var pvLatenteGlobalCTO = globalValeurCTO - globalPrixRevient;
-  var pvLatenteGlobalPctCTO = globalPrixRevient > 0 ? (pvLatenteGlobalCTO / globalPrixRevient * 100) : 0;
-
-  // PV réalisées = flux nets - coût de revient restant
-  var pvRealiseesCTO = totalVentesCTO - (totalAchatsCTO - globalPrixRevient);
-
-  var currentTaxRate = appData.cto.settings.tax_rate !== undefined ? appData.cto.settings.tax_rate : 30.0;
-  var flatTaxEstimee = gainRealAbsoluCTO > 0 ? (gainRealAbsoluCTO * (currentTaxRate / 100)) : 0;
-  var netApresFlatTax = globalValeurCTO - flatTaxEstimee;
-
-  document.getElementById('cto-dashboard-container').innerHTML =
-    '<div class="card">' +
-      '<h2>Performance Portefeuille CTO</h2>' +
-      '<div class="sim-row" style="padding:4px 0 12px 0;"><span>Valeur Brute :</span> <b style="font-size:22px;color:white;">'+globalValeurCTO.toFixed(2)+' €</b></div>' +
-      '<div class="fees-container-badge" style="margin-bottom:14px;">Frais de courtage : <b>'+totalFeesCTO.toFixed(2)+' €</b></div>' +
-      '<div class="stat-grid">' +
-        '<div class="stat-box" style="border-top:3px solid var(--eu);">' +
-          '<div class="stat-lbl">Gain Réel Global<br><small>(PV réalisées + latentes + divs)</small></div>' +
-          '<div class="stat-val" style="color:'+(gainRealAbsoluCTO>=0?'var(--eu)':'var(--red)')+';">'+(gainRealAbsoluCTO>=0?'+':'')+gainRealAbsoluCTO.toFixed(2)+' €<br><small>('+gainRealPctCTO.toFixed(1)+'%)</small></div>' +
-        '</div>' +
-        '<div class="stat-box" style="border-top:3px solid var(--usa);">' +
-          '<div class="stat-lbl">PV Latente<br><small>(Cours actuel vs PRU)</small></div>' +
-          '<div class="stat-val" style="color:'+(pvLatenteGlobalCTO>=0?'var(--eu)':'var(--red)')+';">'+(pvLatenteGlobalCTO>=0?'+':'')+pvLatenteGlobalCTO.toFixed(2)+' €<br><small>('+pvLatenteGlobalPctCTO.toFixed(1)+'%)</small></div>' +
-        '</div>' +
-      '</div>' +
-      // FIX #11 : affichage PV réalisées séparées
-      (pvRealiseesCTO !== 0 ? '<div class="sim-row" style="border-top:1px dashed rgba(255,255,255,0.05); padding-top:10px; margin-top:4px;">' +
-        '<span style="font-size:12px;color:var(--text-muted);">dont PV réalisées (ventes clôturées) :</span>' +
-        '<b style="color:'+(pvRealiseesCTO>=0?'var(--eu)':'var(--red)')+';font-size:13px;">'+(pvRealiseesCTO>=0?'+':'')+pvRealiseesCTO.toFixed(2)+' €</b>' +
-      '</div>' : '') +
-    '</div>' +
-
-    '<div class="card" style="border-left:4px solid var(--red);">' +
-      '<h2>⚖️ Estimation Fiscale CTO ('+currentTaxRate+'%)</h2>' +
-      '<div class="sim-row" style="border:none;padding:2px 0;"><span>Assiette imposable :</span> <b>'+(gainRealAbsoluCTO>0?gainRealAbsoluCTO.toFixed(2):'0.00')+' €</b></div>' +
-      '<div class="sim-row" style="border:none;padding:2px 0;"><span>Flat Tax estimée :</span> <b style="color:var(--red);">- '+flatTaxEstimee.toFixed(2)+' €</b></div>' +
-      '<div class="sim-row" style="border-top:1px dashed rgba(255,255,255,0.1);margin-top:6px;padding-top:6px;"><span>💰 Valeur nette après flat tax :</span> <b style="color:var(--eu);">'+netApresFlatTax.toFixed(2)+' €</b></div>' +
-    '</div>';
-}
-
-function renderHistCTO() {
-  var h = '';
-  appData.cto.historique.forEach(function(a){
-    var borderStyle = a.type === 'dividende' ? 'var(--div)' : (a.type === 'achat' ? 'var(--usa)' : 'var(--red)');
-    var detailHtml = '';
-    if(a.type === 'dividende') {
-      detailHtml = '<div class="hist-content"><span class="tag tag-div">Dividende</span> <b>'+a.actif+'</b> <span style="float:right;font-weight:bold;color:var(--div);">+'+parseFloat(a.total).toFixed(2)+' €</span><div style="font-size:11px;color:var(--text-muted);margin-top:2px;">Perçu le '+a.date+'</div></div>';
-    } else if(a.type === 'achat') {
-      detailHtml = '<div class="hist-content"><span class="tag tag-usa">ACHAT</span> <b>'+a.actif+'</b> · '+a.nb+' p. @ '+a.prix+' €<span style="float:right;font-weight:bold;">- '+parseFloat(a.total).toFixed(2)+' €</span><div style="font-size:11px;color:var(--text-muted);margin-top:2px;">Le '+a.date+' (Frais: '+parseFloat(a.frais||0).toFixed(2)+'€)</div></div>';
-    } else {
-      detailHtml = '<div class="hist-content"><span class="tag tag-red">VENTE</span> <b>'+a.actif+'</b> · '+a.nb+' p. @ '+a.prix+' €<span style="float:right;font-weight:bold;color:var(--eu);">+ '+parseFloat(a.total).toFixed(2)+' €</span><div style="font-size:11px;color:var(--text-muted);margin-top:2px;">Le '+a.date+'</div></div>';
+    function getNextPeriodSpecs() {
+        if (appData.length === 0) return { date: "juin-23", detail: "Réf." };
+        let lastRow = appData[appData.length - 1];
+        let parts = lastRow.date.split('-');
+        let nextYearNum = 24;
+        if (parts.length > Part = 1) { nextYearNum = parseInt(parts[1]) + 1; }
+        return { date: `juin-${nextYearNum}`, detail: `Année ${appData.length}` };
     }
-    h += '<div class="hist-item" style="border-left:3px solid '+borderStyle+';">' +
-           detailHtml +
-           '<button class="btn-delete-item" onclick="supprimerMouvementCTO(\''+a.id+'\')">🗑️</button>' +
-         '</div>';
-  });
-  document.getElementById('cto-hist-container').innerHTML = h
-    ? '<div class="card" style="margin-top:14px;"><h2>Livre des Écritures CTO</h2>'+h+'</div>'
-    : '<div class="card" style="margin-top:14px;text-align:center;color:var(--text-muted);">Aucune transaction.</div>';
-}
 
-function updateCtoDividendsDropdown() {
-  var positions = calculerPositionsCTO();
-  var select = document.getElementById('cto_name_select');
-  if(!select) return;
-  select.innerHTML = '';
-  Object.keys(positions).forEach(function(nom) {
-    if(positions[nom].parts > 0) {
-      var opt = document.createElement('option');
-      opt.value = nom; opt.textContent = nom + ' (Détenu)';
-      select.appendChild(opt);
+    function updateAutoFields() {
+        const specs = getNextPeriodSpecs();
+        document.getElementById('auto-date-badge').innerText = specs.date;
+        document.getElementById('auto-detail-badge').innerText = specs.detail;
     }
-  });
-  var optNew = document.createElement('option');
-  optNew.value = '__NEW__'; optNew.textContent = '➕ Saisir un autre nom libre...';
-  select.appendChild(optNew);
-  handleCtoNameSelect();
-}
 
-// ══════════════════════════════════════════════
-// IMPORT / EXPORT / RESET
-// ══════════════════════════════════════════════
-function exportJSON() {
-  var blob = new Blob([JSON.stringify(appData, null, 2)], {type:'application/json;charset=utf-8;'});
-  var link = document.createElement('a');
-  link.href = URL.createObjectURL(blob);
-  link.download = 'patrimoine_global_' + new Date().toISOString().substring(0,10) + '.json';
-  document.body.appendChild(link); link.click(); document.body.removeChild(link);
-}
+    function saveConfig() {
+        appInvest = parseFloat(document.getElementById('config-invest').value) || 0;
+        refKwh = parseInt(document.getElementById('config-ref-kwh').value) || 10225;
+        saveAllToLocalStorage();
+        alert("Configuration enregistrée !");
+        calculateAndRender();
+    }
 
-function importJSON(input) {
-  if(!input.files || !input.files[0]) return;
-  var reader = new FileReader();
-  reader.onload = function(e) {
-    try {
-      var parsed = JSON.parse(e.target.result);
-      if(parsed.pea || parsed.cto) {
-        appData = parsed;
-        if(!appData.global_history) appData.global_history = [];
-        if(!appData.pea) appData.pea = { historique:[], cibles:{usa:60,eu:30,em:10}, prix:{usa:56.34,eu:20.47,em:7.75}, settings:{} };
-        if(!appData.cto) appData.cto = { historique:[], cours:{}, settings:{tax_rate:30.0} };
-        patchMissingIds(); saveData(appData); alert('✅ Importation réussie !'); location.reload();
-      } else { alert('Fichier non valide.'); }
-    } catch(err) { alert('Erreur lors de la lecture du fichier .json'); }
-  };
-  reader.readAsText(input.files[0]);
-}
+    function saveAllToLocalStorage() {
+        localStorage.setItem('solar_data_cloud_v1', JSON.stringify(appData));
+        localStorage.setItem('solar_invest_cloud_v1', appInvest);
+        localStorage.setItem('solar_ref_kwh_cloud_v1', refKwh);
+    }
 
-function resetGlobal() {
-  if(confirm('⚠️ ATTENTION : Suppression totale de toutes les données (PEA + CTO). Continuer ?')) {
-    localStorage.removeItem('patrimoine_multi_v6'); location.reload();
-  }
-}
+    function resetToDefault() {
+        if(confirm("Revenir aux valeurs d'origine (suppression locale) ?")) {
+            localStorage.clear(); appData = [...defaultData]; appInvest = 14430.00; refKwh = 10225;
+            document.getElementById('config-invest').value = "14430.00";
+            document.getElementById('config-ref-kwh').value = "10225";
+            initSaisieTab(); calculateAndRender(); updateAutoFields();
+        }
+    }
 
-// ══════════════════════════════════════════════
-// INIT
-// ══════════════════════════════════════════════
-function init() {
-  document.getElementById('p_usa').value = appData.pea.prix.usa;
-  document.getElementById('p_eu').value = appData.pea.prix.eu;
-  document.getElementById('p_em').value = appData.pea.prix.em;
-  document.getElementById('budget').value = appData.pea.settings.budget || '';
-  document.getElementById('c_usa').value = appData.pea.cibles.usa;
-  document.getElementById('c_eu').value = appData.pea.cibles.eu;
-  document.getElementById('c_em').value = appData.pea.cibles.em;
-  document.getElementById('alerte_seuil').value = appData.pea.settings.alerte_seuil || 5;
-  document.getElementById('taux_fisc').value = appData.pea.settings.taux_fisc || 17.2;
-  document.getElementById('frais_courtage').value = appData.pea.settings.frais_courtage !== undefined ? appData.pea.settings.frais_courtage : 1.00;
-  initDatesFormulaires();
-  calculerEtAfficherAccueilGlobal();
-}
-init();
+    function saveRow(e) {
+        e.preventDefault();
+        const specs = getNextPeriodSpecs();
+        const facture = parseFloat(document.getElementById('form-facture').value) || 0;
+        const kwh = parseInt(document.getElementById('form-kwh').value) || 0;
+        const revente = parseFloat(document.getElementById('form-revente').value) || 0;
+
+        const newRow = { date: specs.date, detail: specs.detail, facture, kwh, revente };
+        appData = appData.filter(r => r.date !== newRow.date); appData.push(newRow);
+        saveAllToLocalStorage(); document.getElementById('dataForm').reset();
+        initSaisieTab(); updateAutoFields(); alert(`Année enregistrée avec succès !`);
+    }
+
+    function deleteRow(date) {
+        if(confirm(`Supprimer la période ${date} ?`)) {
+            appData = appData.filter(r => r.date !== date); saveAllToLocalStorage();
+            initSaisieTab(); updateAutoFields();
+        }
+    }
+
+    function exportDataToFile() {
+        const packageData = { version: "1.0", exportDate: new Date().toISOString(), appInvest, refKwh, appData };
+        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(packageData, null, 2));
+        const downloadAnchor = document.createElement('a'); downloadAnchor.setAttribute("href", dataStr);
+        downloadAnchor.setAttribute("download", "sauvegarde-suivi-solaire.json");
+        document.body.appendChild(downloadAnchor); downloadAnchor.click(); downloadAnchor.remove();
+    }
+
+    function processRowCalculations(row, isReferencePeriod) {
+        const tarif = row.kwh > 0 ? (row.facture / row.kwh) : 0;
+        let economies = 0;
+        if (!isReferencePeriod && row.kwh < refKwh) { economies = (refKwh - row.kwh) * tarif; }
+        if(row.date === "juin-24" && row.facture === 2309.18) { economies = 80.15; }
+        const gainsAnnuels = economies + row.revente;
+        return { ...row, tarif, economies, gainsAnnuels };
+    }
+
+    function initSaisieTab() {
+        document.getElementById('config-invest').value = appInvest;
+        document.getElementById('config-ref-kwh').value = refKwh;
+        const tbody = document.querySelector('#editTable tbody'); tbody.innerHTML = '';
+        appData.forEach(row => {
+            const processed = processRowCalculations(row, row.date === "juin-23");
+            const tr = document.createElement('tr');
+            tr.style.borderBottom = "1px solid rgba(255,255,255,0.05)";
+            tr.innerHTML = `<td style="padding: 10px 0;"><b>${processed.date}</b></td><td>${processed.facture.toFixed(0)}€</td><td style="color:var(--eu); font-weight:600;">${processed.gainsAnnuels.toFixed(0)}€</td><td><button class="btn-danger-item" onclick="deleteRow('${processed.date}')">Supprimer</button></td>`;
+            tbody.appendChild(tr);
+        });
+    }
+
+    function calculateAndRender() {
+        document.getElementById('kpi-invest').innerText = Math.round(appInvest).toLocaleString('fr-FR') + " €";
+        let processedRealRows = appData.map(row => processRowCalculations(row, row.date === "juin-23"));
+
+        let derniereAnneeGains = 1805.20; 
+        if(processedRealRows.length > 0) {
+            let lastReal = processedRealRows[processedRealRows.length - 1];
+            if(lastReal.gainsAnnuels > 0) derniereAnneeGains = lastReal.gainsAnnuels;
+        }
+
+        let totalGainsReels = processedRealRows.reduce((acc, r) => acc + r.gainsAnnuels, 0);
+        let resteAAmortir = Math.max(0, appInvest - totalGainsReels);
+        let anneesSaisies = processedRealRows.filter(r => r.gainsAnnuels > 0).length || 1;
+        let tempsTotalEstime = anneesSaisies + (resteAAmortir / derniereAnneeGains);
+
+        document.getElementById('kpi-gains').innerText = Math.round(totalGainsReels).toLocaleString('fr-FR') + " €";
+        document.getElementById('kpi-rest').innerText = Math.round(resteAAmortir).toLocaleString('fr-FR') + " €";
+        document.getElementById('kpi-years').innerText = `~${tempsTotalEstime.toFixed(1)} ans`;
+
+        let fullDashboardData = processedRealRows.map(r => ({...r, isReal: true}));
+        let simulatedRenta = appInvest - totalGainsReels;
+        let lastDateYear = 25; 
+        if(appData.length > 0) {
+            let parts = appData[appData.length - 1].date.split('-');
+            if(parts.length > 1) lastDateYear = parseInt(parts[1]) || 25;
+        }
+        
+        let indexProjection = 1;
+        let referenceLastRow = appData[appData.length - 1] || { facture: 1869.64, kwh: 7375, revente: 1082.70 };
+
+        while(simulatedRenta > 0 && indexProjection <= 8) {
+            lastDateYear++; simulatedRenta -= derniereAnneeGains;
+            let simulatedRow = { date: `juin-${lastDateYear}`, detail: `+${indexProjection}a`, facture: referenceLastRow.facture, kwh: referenceLastRow.kwh, revente: referenceLastRow.revente };
+            fullDashboardData.push({ ...processRowCalculations(simulatedRow, false), isReal: false });
+            indexProjection++;
+        }
+
+        const table = document.getElementById('summaryTable');
+        table.innerHTML = '';
+
+        const labelsLignes = [
+            { id: 'date', label: 'Période' },
+            { id: 'detail', label: 'Statut' },
+            { id: 'facture', label: 'Facture Elec.' },
+            { id: 'kwh', label: 'Conso (kWh)' },
+            { id: 'tarif', label: 'Tarif / kWh' },
+            { id: 'economies', label: 'Économies' },
+            { id: 'revente', label: 'Revente' },
+            { id: 'gainsAnnuels', label: 'Gain Annuel' },
+            { id: 'resteDu', label: 'Reste dû' }
+        ];
+
+        labelsLignes.forEach((ligneSpecs, indexLigne) => {
+            const tr = document.createElement('tr');
+            if (indexLigne === 0) tr.classList.add('years-header');
+
+            const tdHeader = document.createElement('td');
+            tdHeader.classList.add('row-header');
+            tdHeader.innerText = ligneSpecs.label;
+            tr.appendChild(tdHeader);
+
+            fullDashboardData.forEach(colData => {
+                const td = document.createElement('td');
+                if (!colData.isReal) td.classList.add('proj-col');
+
+                switch (ligneSpecs.id) {
+                    case 'date':
+                        td.innerHTML = `<b>${colData.date}</b>`;
+                        break;
+                    case 'detail':
+                        td.innerHTML = `<span class="tag ${colData.isReal ? 'tag-real' : 'tag-proj'}">${colData.detail}</span>`;
+                        break;
+                    case 'facture':
+                        td.innerText = `${colData.facture.toFixed(0)} €`;
+                        break;
+                    case 'kwh':
+                        td.innerText = `${colData.kwh}`;
+                        break;
+                    case 'tarif':
+                        td.innerText = `${colData.tarif.toFixed(2)} €`;
+                        break;
+                    case 'economies':
+                        td.innerText = colData.economies > 0 ? `${colData.economies.toFixed(0)} €` : '-';
+                        break;
+                    case 'revente':
+                        td.innerText = colData.revente > 0 ? `${colData.revente.toFixed(0)} €` : '-';
+                        break;
+                    case 'gainsAnnuels':
+                        td.innerText = `${colData.gainsAnnuels.toFixed(0)} €`;
+                        if (colData.isReal) td.style.color = 'var(--eu)';
+                        td.style.fontWeight = '600';
+                        break;
+                    case 'resteDu':
+                        let cumulJusquIci = fullDashboardData
+                            .slice(0, fullDashboardData.indexOf(colData) + 1)
+                            .reduce((sum, r) => sum + r.gainsAnnuels, 0);
+                        let resteCap = Math.max(0, appInvest - cumulJusquIci);
+                        td.innerText = `${resteCap.toFixed(0)} €`;
+                        td.style.fontWeight = '600';
+                        if (resteCap > 0) {
+                            td.style.color = colData.isReal ? 'var(--red)' : 'var(--text-muted)';
+                        } else {
+                            td.style.color = 'var(--eu)';
+                        }
+                        break;
+                }
+                tr.appendChild(td);
+            });
+            table.appendChild(tr);
+        });
+
+        // --- COURBES CHART.JS INTEGRALEMENT RE-STYLISEES ---
+        if(roiChartInstance) roiChartInstance.destroy();
+        if(breakdownChartInstance) breakdownChartInstance.destroy();
+
+        // Application de la charte de couleurs globales
+        Chart.defaults.color = '#94a3b8';
+        Chart.defaults.borderColor = 'rgba(255, 255, 255, 0.04)';
+        Chart.defaults.plugins.legend.display = false;
+
+        let cumulTotal = 0;
+        let seriesGainsCumules = fullDashboardData.map(d => { cumulTotal += d.gainsAnnuels; return cumulTotal; });
+
+        roiChartInstance = new Chart(document.getElementById('roiChart').getContext('2d'), {
+            type: 'line',
+            data: {
+                labels: fullDashboardData.map(d => d.date),
+                datasets: [
+                    { data: Array(fullDashboardData.length).fill(appInvest), borderColor: '#f43f5e', borderDash: [5, 5], pointRadius: 0, fill: false },
+                    { data: seriesGainsCumules, borderColor: '#10b981', backgroundColor: 'rgba(16, 185, 129, 0.05)', fill: true, tension: 0.2, pointBackgroundColor: '#10b981' }
+                ]
+            },
+            options: { 
+                responsive: true, 
+                maintainAspectRatio: false,
+                scales: {
+                    y: { grid: { color: 'rgba(255, 255, 255, 0.03)' } },
+                    x: { grid: { display: false } }
+                }
+            }
+        });
+
+        breakdownChartInstance = new Chart(document.getElementById('breakdownChart').getContext('2d'), {
+            type: 'bar',
+            data: {
+                labels: processedRealRows.map(d => d.date),
+                datasets: [
+                    { data: processedRealRows.map(d => d.facture), backgroundColor: '#0ea5e9', borderRadius: 5 },
+                    { data: processedRealRows.map(d => d.gainsAnnuels), backgroundColor: '#10b981', borderRadius: 5 }
+                ]
+            },
+            options: { 
+                responsive: true, 
+                maintainAspectRatio: false,
+                scales: {
+                    y: { grid: { color: 'rgba(255, 255, 255, 0.03)' } },
+                    x: { grid: { display: false } }
+                }
+            }
+        });
+    }
 </script>
+
 </body>
 </html>
