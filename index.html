@@ -241,12 +241,12 @@
         .badge.proj { background: rgba(255, 255, 255, 0.08); color: #e2e8f0; border: 1px solid rgba(255, 255, 255, 0.05); }
         .proj-col { color: var(--text-muted) !important; font-style: italic; }
 
-        /* --- TABLEAU SYNTHÈSE HORIZONTAL SUR IPHONE --- */
+        /* --- TABLEAU SYNTHÈSE HORIZONTAL --- */
         .table-container { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; border-radius: 12px; }
         table.transposed-table { width: max-content; min-width: 100%; border-collapse: collapse; font-size: 13px; }
         
         table.transposed-table td.row-header { 
-            background-color: #0d121f !important; /* Totalement opaque pour masquer le défilement */
+            background-color: #0d121f !important; /* Masque le défilement arrière */
             color: var(--text-muted); 
             font-weight: 600; 
             position: sticky; 
@@ -417,7 +417,6 @@
 </div>
 
 <script>
-    // Wrappers de sécurité contre le bridage LocalStorage local sur iPhone
     function safeGetItem(key) { try { return localStorage.getItem(key); } catch(e) { return null; } }
     function safeSetItem(key, value) { try { localStorage.setItem(key, value); } catch(e) {} }
     function safeClear() { try { localStorage.clear(); } catch(e) {} }
@@ -551,7 +550,6 @@
         }
     }
 
-    // Exportation robuste JSON compatible iOS
     function exportDataToFile() {
         const packageData = { version: "1.0", exportDate: new Date().toISOString(), appInvest, refKwh, appData };
         const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(packageData, null, 2));
@@ -705,7 +703,7 @@
             table.appendChild(tr);
         });
 
-        // --- CONFLICT SECURITY WRAPPER CHART.JS (ÉVITE LE BLOCAGE RETINA / SAFARI) ---
+        // --- CONFLICT SECURITY WRAPPER CHART.JS ---
         if (typeof Chart !== 'undefined') {
             try {
                 if(roiChartInstance) roiChartInstance.destroy();
@@ -719,7 +717,6 @@
                 if(ctxRoi) {
                     const ctxRoi2d = ctxRoi.getContext('2d');
                     
-                    // Création du dégradé néon boursier haut de gamme (Turquoise vers Vert émeraude)
                     const lineGradient = ctxRoi2d.createLinearGradient(0, 0, 400, 0);
                     lineGradient.addColorStop(0, '#38bdf8');
                     lineGradient.addColorStop(1, '#4ade80');
@@ -773,15 +770,43 @@
                     });
                 }
 
+                // --- TRANSFORMATION PREMIUM DU GRAPHIQUE EN BÂTONS ---
                 const ctxBreakdown = document.getElementById('breakdownChart');
                 if(ctxBreakdown) {
-                    breakdownChartInstance = new Chart(ctxBreakdown.getContext('2d'), {
+                    const ctxBreakdown2d = ctxBreakdown.getContext('2d');
+
+                    // Dégradé vertical pour les Factures (Évanouissement vers le bas)
+                    const barGradFacture = ctxBreakdown2d.createLinearGradient(0, 0, 0, 200);
+                    barGradFacture.addColorStop(0, 'rgba(56, 189, 248, 0.65)');
+                    barGradFacture.addColorStop(1, 'rgba(56, 189, 248, 0.05)');
+
+                    // Dégradé vertical pour les Gains Économisés
+                    const barGradGains = ctxBreakdown2d.createLinearGradient(0, 0, 0, 200);
+                    barGradGains.addColorStop(0, 'rgba(74, 222, 128, 0.65)');
+                    barGradGains.addColorStop(1, 'rgba(74, 222, 128, 0.05)');
+
+                    breakdownChartInstance = new Chart(ctxBreakdown2d, {
                         type: 'bar',
                         data: {
                             labels: processedRealRows.map(d => d.date),
                             datasets: [
-                                { data: processedRealRows.map(d => d.facture), backgroundColor: '#38bdf8', borderRadius: 4 },
-                                { data: processedRealRows.map(d => d.gainsAnnuels), backgroundColor: '#4ade80', borderRadius: 4 }
+                                { 
+                                    label: 'Facture Elec.',
+                                    data: processedRealRows.map(d => d.facture), 
+                                    backgroundColor: barGradFacture, 
+                                    borderColor: '#38bdf8',
+                                    borderWidth: 1.5,
+                                    borderRadius: 6
+                                },
+                                { 
+                                    label: 'Gains Réels',
+                                    data: processedRealRows.map(d => d.gainsAnnuels), 
+                                    backgroundColor: barGradGains, 
+                                    borderColor: '#47ade80', /* Lueur verte néon */
+                                    borderColor: '#4ade80',
+                                    borderWidth: 1.5,
+                                    borderRadius: 6
+                                }
                             ]
                         },
                         options: { 
