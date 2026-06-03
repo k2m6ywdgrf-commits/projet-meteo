@@ -3,671 +3,291 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Suivi Solaire - Liquid Glass Edition</title>
+    <title>Graphique Évolution Investissements</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root {
-          --bg: #000000;
-          --glass: rgba(22, 28, 45, 0.65);
-          --glass-border: rgba(255, 255, 255, 0.08);
-          --input: rgba(30, 41, 59, 0.7);
-          --text: #f3f4f6;
-          --text-muted: #94a3b8;
-          --usa: #0ea5e9;
-          --eu: #10b981;
-          --em: #f59e0b;
-          --div: #a855f7;
-          --red: #f43f5e;
-          --gold: #fbbf24;
+            --bg-color: #0b0f19;
+            --card-bg: rgba(20, 26, 42, 0.6);
+            --card-border: rgba(255, 255, 255, 0.08);
+            --text-main: #ffffff;
+            --text-muted: #64748b;
+            --green-glow: #4ade80;
+            --blue-glow: #38bdf8;
         }
 
-        *{box-sizing:border-box;-webkit-tap-highlight-color:transparent; margin: 0; padding: 0;}
-        
-        body{
-          font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
-          background: var(--bg);
-          color: var(--text);
-          padding: 16px;
-          font-size: 15px;
-          background-image: radial-gradient(circle at 50% -20%, #1e1b4b 0%, #000000 70%);
-          background-attachment: fixed;
-          line-height: 1.5;
-        }
-
-        .container { max-width: 600px; margin: 0 auto; }
-        
-        header { margin-bottom: 20px; padding-bottom: 4px; text-align: center; }
-        h1 { font-size: 22px; font-weight: 700; color: var(--text); letter-spacing: -0.5px; }
-        .subtitle { color: var(--text-muted); font-size: 13px; margin-top: 4px; }
-
-        /* --- ACCUEIL --- */
-        #welcome-screen {
+        body {
+            background-color: var(--bg-color);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             display: flex;
-            flex-direction: column;
             justify-content: center;
             align-items: center;
-            min-height: 80vh;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
         }
-        .welcome-card {
+
+        /* Conteneur principal (Style Liquid Glass sur fond noir) */
+        .chart-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--card-border);
+            border-radius: 24px;
+            padding: 24px;
             width: 100%;
-            text-align: center;
-            padding: 32px 24px;
+            max-width: 500px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
         }
-        .welcome-card h2 {
-            margin-bottom: 12px;
-            color: var(--text);
-            text-transform: none;
-            font-size: 18px;
-            letter-spacing: 0;
+
+        .chart-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 20px;
         }
-        .welcome-card p {
-            color: var(--text-muted);
+
+        .chart-title {
+            color: var(--text-main);
             font-size: 14px;
-            margin-bottom: 24px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            margin: 0;
         }
-        .secondary-option {
-            margin-top: 30px;
-            text-align: center;
+
+        .chart-container {
+            position: relative;
+            width: 100%;
+            height: 260px;
         }
-        .btn-link {
-            background: none;
-            border: none;
+
+        /* Légende personnalisée */
+        .chart-legend {
+            display: flex;
+            justify-content: center;
+            gap: 24px;
+            margin-top: 16px;
+            font-size: 13px;
+            color: #cbd5e1;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .line-dashed {
+            border-bottom: 2px dashed var(--text-muted);
+            width: 20px;
+            height: 0;
+        }
+
+        .line-solid {
+            background: linear-gradient(90deg, var(--blue-glow), var(--green-glow));
+            width: 20px;
+            height: 3px;
+            border-radius: 2px;
+        }
+
+        /* Badge du bas (Récapitulatif) */
+        .chart-footer-badge {
+            background: rgba(13, 18, 30, 0.7);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 16px;
+            padding: 12px 16px;
+            margin-top: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .badge-left {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .badge-info {
             color: var(--text-muted);
             font-size: 13px;
-            text-decoration: underline;
-            cursor: pointer;
-            padding: 8px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
         }
 
-        /* --- BLOCS GLASSMORPHISM --- */
-        .card{
-          background: var(--glass);
-          backdrop-filter: blur(20px);
-          -webkit-backdrop-filter: blur(20px);
-          padding: 18px;
-          border-radius: 16px;
-          margin-bottom: 14px;
-          border: 1px solid var(--glass-border);
-          box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+        .badge-info strong {
+            color: var(--text-main);
         }
 
-        h2{margin:0 0 14px;font-size:13px;color:var(--text-muted);font-weight:700;text-transform:uppercase;letter-spacing:1px;}
-
-        input, select{
-          padding:12px;border-radius:10px;border:1px solid rgba(255,255,255,0.05);
-          background:var(--input);color:white;font-size:15px;width:100%;transition:all 0.2s;
-        }
-        input:focus, select:focus{background:rgba(30,41,59,0.9);outline:none;border-color:var(--usa);}
-
-        .row{display:flex;gap:10px;margin-bottom:12px;align-items:center;flex-direction:row;text-align:left;}
-        .row label{width:120px;min-width:120px;font-size:13px;color:var(--text-muted);font-weight:500;}
-        .row input, .row select{flex:1;}
-
-        button{
-          width:100%;padding:14px;border:none;border-radius:12px;font-weight:600;font-size:15px;cursor:pointer;
-          transition:transform 0.1s, opacity 0.2s;
-        }
-        button:active{transform:scale(0.97);opacity:0.9;}
-        
-        .btn-blue{background: linear-gradient(135deg, #0ea5e9, #0284c7); color:white;}
-        .btn-red{background: linear-gradient(135deg, #f43f5e, #e11d48); color:white;}
-        .btn-gray{background: rgba(255,255,255,0.08); color:var(--text); font-size:13px; padding:10px;}
-
-        /* Onglets */
-        .tabs{ display:flex;gap:4px;margin-bottom:18px;background:rgba(255,255,255,0.04); padding:4px;border-radius:12px;border:1px solid rgba(255,255,255,0.02); }
-        .tab-btn{ flex:1;padding:10px 2px;border:none;border-radius:8px;background:transparent; color:var(--text-muted);font-size:13px;cursor:pointer;font-weight:500;transition:all 0.2s; }
-        .tab-btn.active{background:rgba(255,255,255,0.12);color:white;font-weight:600;backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px);}
-        
-        #main-application { display: none; }
-        .tab-content { display: none; }
-        .tab-content.active { display: block; }
-
-        /* KPI Grid */
-        .stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;}
-        .stat-box{background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.02);border-radius:12px;padding:14px;text-align:center;}
-        .stat-val{font-size:18px;font-weight:700;margin-top:4px;letter-spacing:-0.5px;}
-        .stat-lbl{font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px;line-height:1.3;}
-
-        .sim-row{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.05);font-size:13px;}
-        .sim-row span { color: var(--text-muted); }
-        .sim-row strong { color: var(--text); font-weight: 600; }
-        .divider{border:none;border-top:1px solid rgba(255,255,255,0.08);margin:14px 0;}
-
-        /* Badges */
-        .tag{display:inline-block;padding:4px 8px;border-radius:6px;font-size:11px;font-weight:700;text-transform: uppercase;}
-        .tag-real{background:rgba(16,185,129,0.15);color:var(--eu);}
-        .tag-proj{background:rgba(255,255,255,0.08);color:#e2e8f0;border:1px solid rgba(255,255,255,0.05);}
-        .proj-col { color: var(--text-muted) !important; font-style: italic; }
-
-        /* Tableau Transposé */
-        .table-container { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; border-radius: 12px; }
-        table.transposed-table { width: max-content; min-width: 100%; border-collapse: collapse; font-size: 13px; }
-        
-        table.transposed-table td.row-header { 
-            background-color: #0d121f !important;
-            color: var(--text-muted); 
-            font-weight: 600; 
-            position: sticky; 
-            left: 0; 
-            z-index: 10; 
-            width: 125px;
-            min-width: 125px;
-            border-right: 2px solid rgba(255,255,255,0.1); 
-            text-align: left;
-            padding-left: 8px;
+        .badge-date {
+            color: var(--text-main);
+            font-size: 14px;
+            font-weight: 700;
         }
 
-        table.transposed-table td, table.transposed-table th { padding: 10px 12px; border-bottom: 1px solid rgba(255,255,255,0.05); border-right: 1px solid rgba(255,255,255,0.02); text-align: center; }
-        table.transposed-table tr.years-header th { background: rgba(0, 0, 0, 0.3); color: #fff; font-weight: 700; font-size: 13px; }
-        table.transposed-table tr.years-header td.row-header { background-color: #0d121f !important; color: #fff; }
+        .badge-right {
+            text-align: right;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
 
-        .btn-danger-item { background: transparent; color: var(--red); width: auto; padding: 6px 10px; font-size: 12px; border-radius: 6px; border: 1px solid rgba(244,63,94,0.2); font-weight: 500; }
+        .gain-val {
+            color: var(--green-glow);
+            font-size: 15px;
+            font-weight: 700;
+        }
+
+        .gain-pct {
+            color: var(--green-glow);
+            font-size: 14px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 4px;
+        }
     </style>
 </head>
 <body>
 
-<div class="container">
+    <div class="chart-card">
+        <div class="chart-header">
+            <span>📊</span>
+            <h2 class="chart-title">Courbe d'évolution : Investi vs Valeur Marché</h2>
+        </div>
 
-    <div id="welcome-screen">
-        <div class="card welcome-card">
-            <h2>Suivi Énergie Solaire</h2>
-            <p>Choisissez votre mode d'accès pour charger vos tableaux de bord.</p>
-            
-            <div class="row" style="margin-top: 10px; display: block;">
-                <input type="file" id="welcomeImportFile" accept=".json" onchange="importFromWelcome(event)" style="display: none;">
-                <button class="btn-blue" onclick="document.getElementById('welcomeImportFile').click()">
-                    📂 Charger une sauvegarde (iCloud Drive)
-                </button>
+        <div class="chart-container">
+            <canvas id="evolutionChart"></canvas>
+        </div>
+
+        <div class="chart-legend">
+            <div class="legend-item">
+                <div class="line-dashed"></div>
+                <span>Montant Investi</span>
+            </div>
+            <div class="legend-item">
+                <div class="line-solid"></div>
+                <span>Valeur Marché</span>
             </div>
         </div>
 
-        <div class="secondary-option">
-            <button class="btn-link" onclick="bypassToLocalData()">
-                Standard : Utiliser les données locales de l'iPhone ➔
-            </button>
-        </div>
-    </div>
-
-    <div id="main-application">
-        <header>
-            <h1>☀️ Tableau de Bord Solaire</h1>
-            <div class="subtitle">Glissez le tableau vers la gauche pour faire défiler les années</div>
-        </header>
-
-        <div class="tabs">
-            <button class="tab-btn active" onclick="openTab(event, 'graphiques')">📊 Rendement</button>
-            <button class="tab-btn" onclick="openTab(event, 'saisie')">✍️ Saisie</button>
-            <button class="tab-btn" onclick="openTab(event, 'config')">⚙️ iCloud</button>
-        </div>
-
-        <div id="graphiques" class="tab-content active">
-            <div class="stat-grid">
-                <div class="stat-box">
-                    <div class="stat-lbl">Investi</div>
-                    <div class="stat-val" id="kpi-invest" style="color: var(--em);">0 €</div>
-                </div>
-                <div class="stat-box">
-                    <div class="stat-lbl">Gains Réels</div>
-                    <div class="stat-val" id="kpi-gains" style="color: var(--eu);">0 €</div>
-                </div>
-                <div class="stat-box">
-                    <div class="stat-lbl">Reste dû</div>
-                    <div class="stat-val" id="kpi-rest" style="color: var(--red);">0 €</div>
-                </div>
-                <div class="stat-box">
-                    <div class="stat-lbl">Amorti</div>
-                    <div class="stat-val" id="kpi-years" style="color: var(--usa);">...</div>
-                </div>
+        <div class="chart-footer-badge">
+            <div class="badge-left">
+                <div class="badge-info">📋 <strong>2</strong> points enregistrés · dernier :</div>
+                <div class="badge-date">03/06/2026</div>
             </div>
-
-            <div class="card">
-                <h2>📉 Trajectoire du Point Mort</h2>
-                <div style="position: relative; height:180px;"><canvas id="roiChart"></canvas></div>
-            </div>
-            
-            <div class="card">
-                <h2>⚡ Facture vs Économies réelles</h2>
-                <div style="position: relative; height:180px;"><canvas id="breakdownChart"></canvas></div>
-            </div>
-
-            <div class="card">
-                <h2>📋 Synthèse Chronologique Horizontale</h2>
-                <div class="table-container">
-                    <table id="summaryTable" class="transposed-table"></table>
-                </div>
-            </div>
-        </div>
-
-        <div id="saisie" class="tab-content">
-            <div class="card">
-                <h2>➕ Ajouter la Période Suivante</h2>
-                <form id="dataForm" onsubmit="saveRow(event)">
-                    <div class="sim-row">
-                        <span>Prochaine Période (Auto)</span>
-                        <strong id="auto-date-badge">...</strong>
-                    </div>
-                    <div class="sim-row">
-                        <span>Désignation (Auto)</span>
-                        <strong id="auto-detail-badge">...</strong>
-                    </div>
-                    <hr class="divider">
-                    <div class="row">
-                        <label>Facture Élec. TTC (€)</label>
-                        <input type="number" step="0.01" id="form-facture" placeholder="ex: 1850.50" required>
-                    </div>
-                    <div class="row">
-                        <label>Conso (kWh)</label>
-                        <input type="number" id="form-kwh" placeholder="ex: 7200" required>
-                    </div>
-                    <div class="row">
-                        <label>Revente Surplus (€)</label>
-                        <input type="number" step="0.01" id="form-revente" placeholder="ex: 1100.00" required>
-                    </div>
-                    <button type="submit" class="btn-blue" style="margin-top: 8px;">Valider et Enregistrer l'Année</button>
-                </form>
-            </div>
-
-            <div class="card">
-                <h2>🗑️ Historique Réel Enregistré</h2>
-                <div class="table-container">
-                    <table id="editTable" style="width: 100%; text-align: left; font-size: 13px; border-collapse: collapse;">
-                        <thead>
-                            <tr style="color: var(--text-muted); font-size: 11px; text-transform: uppercase;">
-                                <th style="padding-bottom: 8px;">Période</th>
-                                <th style="padding-bottom: 8px;">Facture</th>
-                                <th style="padding-bottom: 8px;">Gains</th>
-                                <th style="padding-bottom: 8px;">Action</th>
-                            </tr>
-                        </thead>
-                        <tbody></tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-
-        <div id="config" class="tab-content">
-            <div class="card">
-                <h2>💾 Sauvegarde iPhone & iCloud</h2>
-                <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 14px;">
-                    Exportez votre fichier pour le placer en lieu sûr dans votre application <b>Fichiers</b> (iCloud Drive).
-                </p>
-                <button class="btn-blue" onclick="exportDataToFile()">
-                    💾 Télécharger la sauvegarde
-                </button>
-            </div>
-
-            <div class="card">
-                <h2>⚙️ Paramètres Initiaux</h2>
-                <div class="row">
-                    <label>Coût du système (€)</label>
-                    <input type="number" step="0.01" id="config-invest" value="14430.00">
-                </div>
-                <div class="row">
-                    <label>Conso base (kWh)</label>
-                    <input type="number" id="config-ref-kwh" value="10225">
-                </div>
-                <button class="btn-blue" onclick="saveConfig()" style="margin-top: 8px;">Appliquer les configurations</button>
-                <hr class="divider">
-                <button class="btn-gray" onclick="resetToDefault()">Réinitialiser d'origine</button>
+            <div class="badge-right">
+                <div class="gain-val">+133 €</div>
+                <div class="gain-pct">(+41.7%) ▼</div>
             </div>
         </div>
     </div>
-</div>
 
-<script>
-    // Wrappers d'immunité contre le blocage LocalStorage sur iOS (mode local file://)
-    function safeGetItem(key) {
-        try { return localStorage.getItem(key); } catch (e) { return null; }
-    }
-    function safeSetItem(key, value) {
-        try { localStorage.setItem(key, value); } catch (e) {}
-    }
-    function safeClear() {
-        try { localStorage.clear(); } catch (e) {}
-    }
+    <script>
+        const ctx = document.getElementById('evolutionChart').getContext('2d');
 
-    const defaultData = [
-        { date: "juin-23", detail: "Réf.", facture: 1893.05, kwh: 10225, revente: 0 },
-        { date: "juin-24", detail: "Année 1", facture: 2309.18, kwh: 9882, revente: 0 },
-        { date: "juin-25", detail: "Année 2", facture: 1869.64, kwh: 7375, revente: 1082.70 }
-    ];
+        // Création des gradients pour le rendu lumineux / néon
+        const lineGradient = ctx.createLinearGradient(0, 0, 400, 0);
+        lineGradient.addColorStop(0, '#38bdf8'); // Bleu/Turquoise de gauche
+        lineGradient.addColorStop(1, '#4ade80'); // Vert de droite
 
-    let appData = [...defaultData];
-    let appInvest = 14430.00;
-    let refKwh = 10225;
+        const fillGradient = ctx.createLinearGradient(0, 0, 0, 250);
+        fillGradient.addColorStop(0, 'rgba(74, 222, 128, 0.15)'); // Éclat vert transparent en haut
+        fillGradient.addColorStop(1, 'rgba(11, 15, 25, 0)');        // Fondu complet vers le bas
 
-    let roiChartInstance = null;
-    let breakdownChartInstance = null;
-
-    function bypassToLocalData() {
-        const storedData = safeGetItem('solar_data_cloud_v1');
-        if(storedData) {
-            try {
-                appData = JSON.parse(storedData);
-                appInvest = parseFloat(safeGetItem('solar_invest_cloud_v1')) || 14430.00;
-                refKwh = parseInt(safeGetItem('solar_ref_kwh_cloud_v1')) || 10225;
-            } catch(e) {}
-        }
-        launchApplication();
-    }
-
-    function importFromWelcome(evt) {
-        const eventTarget = evt || window.event;
-        const file = eventTarget.target.files[0];
-        if (!file) return;
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            try {
-                const parsed = JSON.parse(e.target.result);
-                if (parsed.appData && parsed.appInvest && parsed.refKwh) {
-                    appData = parsed.appData;
-                    appInvest = parsed.appInvest;
-                    refKwh = parsed.refKwh;
-                    saveAllToLocalStorage();
-                    launchApplication();
-                } else { alert("Fichier de sauvegarde non valide."); }
-            } catch (err) { alert("Erreur lors de la lecture du fichier JSON."); }
+        // Configuration de Chart.js
+        const data = {
+            labels: ['03/06', '03/06/2026'], // Reprise exacte des labels de ton image
+            datasets: [
+                {
+                    label: 'Valeur Marché',
+                    data: [325, 450], // Données indicatives basées sur l'échelle visuelle
+                    borderColor: lineGradient,
+                    borderWidth: 3,
+                    pointBackgroundColor: lineGradient,
+                    pointBorderColor: '#0b0f19',
+                    pointBorderWidth: 1,
+                    pointRadius: 5,
+                    pointHoverRadius: 7,
+                    fill: true,
+                    backgroundColor: fillGradient,
+                    tension: 0, // Ligne droite directe
+                    order: 1
+                },
+                {
+                    label: 'Montant Investi',
+                    data: [312, 312], // Ligne horizontale en pointillés
+                    borderColor: '#334155',
+                    borderWidth: 1.5,
+                    borderDash: [5, 5],
+                    pointRadius: 0, // Pas de points visibles sur cette ligne
+                    fill: false,
+                    tension: 0,
+                    order: 2
+                }
+            ]
         };
-        reader.readAsText(file);
-    }
 
-    function launchApplication() {
-        document.getElementById('welcome-screen').style.display = 'none';
-        document.getElementById('main-application').style.display = 'block';
-        initSaisieTab();
-        calculateAndRender();
-        updateAutoFields();
-    }
-
-    function openTab(evt, tabId) {
-        document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
-        document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
-        
-        const targetTab = document.getElementById(tabId);
-        if (targetTab) targetTab.classList.add('active');
-        
-        const eventTarget = evt || window.event;
-        if (eventTarget && eventTarget.currentTarget) {
-            eventTarget.currentTarget.classList.add('active');
-        }
-        
-        if(tabId === 'graphiques') calculateAndRender();
-        if(tabId === 'saisie') updateAutoFields();
-    }
-
-    function getNextPeriodSpecs() {
-        if (appData.length === 0) return { date: "juin-23", detail: "Réf." };
-        let lastRow = appData[appData.length - 1];
-        let parts = lastRow.date.split('-');
-        let nextYearNum = 24;
-        if (parts.length > 1) { nextYearNum = parseInt(parts[1]) + 1; }
-        return { date: `juin-${nextYearNum}`, detail: `Année ${appData.length}` };
-    }
-
-    function updateAutoFields() {
-        const specs = getNextPeriodSpecs();
-        document.getElementById('auto-date-badge').innerText = specs.date;
-        document.getElementById('auto-detail-badge').innerText = specs.detail;
-    }
-
-    function saveConfig() {
-        appInvest = parseFloat(document.getElementById('config-invest').value) || 0;
-        refKwh = parseInt(document.getElementById('config-ref-kwh').value) || 10225;
-        saveAllToLocalStorage();
-        alert("Configuration enregistrée !");
-        calculateAndRender();
-    }
-
-    function saveAllToLocalStorage() {
-        safeSetItem('solar_data_cloud_v1', JSON.stringify(appData));
-        safeSetItem('solar_invest_cloud_v1', appInvest);
-        safeSetItem('solar_ref_kwh_cloud_v1', refKwh);
-    }
-
-    function resetToDefault() {
-        if(confirm("Revenir aux valeurs d'origine (suppression locale) ?")) {
-            safeClear(); appData = [...defaultData]; appInvest = 14430.00; refKwh = 10225;
-            document.getElementById('config-invest').value = "14430.00";
-            document.getElementById('config-ref-kwh').value = "10225";
-            initSaisieTab(); calculateAndRender(); updateAutoFields();
-        }
-    }
-
-    function saveRow(evt) {
-        const eventTarget = evt || window.event;
-        if (eventTarget && eventTarget.preventDefault) eventTarget.preventDefault();
-        
-        const specs = getNextPeriodSpecs();
-        const facture = parseFloat(document.getElementById('form-facture').value) || 0;
-        const kwh = parseInt(document.getElementById('form-kwh').value) || 0;
-        const revente = parseFloat(document.getElementById('form-revente').value) || 0;
-
-        const newRow = { date: specs.date, detail: specs.detail, facture, kwh, revente };
-        appData = appData.filter(r => r.date !== newRow.date); appData.push(newRow);
-        saveAllToLocalStorage(); document.getElementById('dataForm').reset();
-        initSaisieTab(); updateAutoFields(); alert(`Année enregistrée avec succès !`);
-    }
-
-    function deleteRow(date) {
-        if(confirm(`Supprimer la période ${date} ?`)) {
-            appData = appData.filter(r => r.date !== date); saveAllToLocalStorage();
-            initSaisieTab(); updateAutoFields();
-        }
-    }
-
-    function exportDataToFile() {
-        const packageData = { version: "1.0", exportDate: new Date().toISOString(), appInvest, refKwh, appData };
-        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(packageData, null, 2));
-        const downloadAnchor = document.createElement('a'); downloadAnchor.setAttribute("href", dataStr);
-        downloadAnchor.setAttribute("download", "sauvegarde-suivi-solaire.json");
-        document.body.appendChild(downloadAnchor); downloadAnchor.click(); downloadAnchor.remove();
-    }
-
-    function processRowCalculations(row, isReferencePeriod) {
-        const tarif = row.kwh > 0 ? (row.facture / row.kwh) : 0;
-        let economies = 0;
-        if (!isReferencePeriod && row.kwh < refKwh) { economies = (refKwh - row.kwh) * tarif; }
-        if(row.date === "juin-24" && row.facture === 2309.18) { economies = 80.15; }
-        const gainsAnnuels = economies + row.revente;
-        return { ...row, tarif, economies, gainsAnnuels };
-    }
-
-    function initSaisieTab() {
-        const confInvest = document.getElementById('config-invest');
-        const confRef = document.getElementById('config-ref-kwh');
-        if(confInvest) confInvest.value = appInvest;
-        if(confRef) confRef.value = refKwh;
-        
-        const tbody = document.querySelector('#editTable tbody'); 
-        if(!tbody) return;
-        tbody.innerHTML = '';
-        appData.forEach(row => {
-            const processed = processRowCalculations(row, row.date === "juin-23");
-            const tr = document.createElement('tr');
-            tr.style.borderBottom = "1px solid rgba(255,255,255,0.05)";
-            tr.innerHTML = `<td style="padding: 10px 0;"><b>${processed.date}</b></td><td>${processed.facture.toFixed(0)}€</td><td style="color:var(--eu); font-weight:600;">${processed.gainsAnnuels.toFixed(0)}€</td><td><button class="btn-danger-item" onclick="deleteRow('${processed.date}')">Supprimer</button></td>`;
-            tbody.appendChild(tr);
-        });
-    }
-
-    function calculateAndRender() {
-        const kpiInvest = document.getElementById('kpi-invest');
-        if(kpiInvest) kpiInvest.innerText = Math.round(appInvest).toLocaleString('fr-FR') + " €";
-        
-        let processedRealRows = appData.map(row => processRowCalculations(row, row.date === "juin-23"));
-
-        let derniereAnneeGains = 1805.20; 
-        if(processedRealRows.length > 0) {
-            let lastReal = processedRealRows[processedRealRows.length - 1];
-            if(lastReal.gainsAnnuels > 0) derniereAnneeGains = lastReal.gainsAnnuels;
-        }
-
-        let totalGainsReels = processedRealRows.reduce((acc, r) => acc + r.gainsAnnuels, 0);
-        let resteAAmortir = Math.max(0, appInvest - totalGainsReels);
-        let anneesSaisies = processedRealRows.filter(r => r.gainsAnnuels > 0).length || 1;
-        let tempsTotalEstime = anneesSaisies + (resteAAmortir / derniereAnneeGains);
-
-        const kpiGains = document.getElementById('kpi-gains');
-        const kpiRest = document.getElementById('kpi-rest');
-        const kpiYears = document.getElementById('kpi-years');
-        
-        if(kpiGains) kpiGains.innerText = Math.round(totalGainsReels).toLocaleString('fr-FR') + " €";
-        if(kpiRest) kpiRest.innerText = Math.round(resteAAmortir).toLocaleString('fr-FR') + " €";
-        if(kpiYears) kpiYears.innerText = `~${tempsTotalEstime.toFixed(1)} ans`;
-
-        let fullDashboardData = processedRealRows.map(r => ({...r, isReal: true}));
-        let simulatedRenta = appInvest - totalGainsReels;
-        let lastDateYear = 25; 
-        if(appData.length > 0) {
-            let parts = appData[appData.length - 1].date.split('-');
-            if(parts.length > 1) lastDateYear = parseInt(parts[1]) || 25;
-        }
-        
-        let indexProjection = 1;
-        let referenceLastRow = appData[appData.length - 1] || { facture: 1869.64, kwh: 7375, revente: 1082.70 };
-
-        while(simulatedRenta > 0 && indexProjection <= 8) {
-            lastDateYear++; simulatedRenta -= derniereAnneeGains;
-            let simulatedRow = { date: `juin-${lastDateYear}`, detail: `+${indexProjection}a`, facture: referenceLastRow.facture, kwh: referenceLastRow.kwh, revente: referenceLastRow.revente };
-            fullDashboardData.push({ ...processRowCalculations(simulatedRow, false), isReal: false });
-            indexProjection++;
-        }
-
-        const table = document.getElementById('summaryTable');
-        if(!table) return;
-        table.innerHTML = '';
-
-        const labelsLignes = [
-            { id: 'date', label: 'Période' },
-            { id: 'detail', label: 'Statut' },
-            { id: 'facture', label: 'Facture Elec.' },
-            { id: 'kwh', label: 'Conso (kWh)' },
-            { id: 'tarif', label: 'Tarif / kWh' },
-            { id: 'economies', label: 'Économies' },
-            { id: 'revente', label: 'Revente' },
-            { id: 'gainsAnnuels', label: 'Gain Annuel' },
-            { id: 'resteDu', label: 'Reste dû' }
-        ];
-
-        labelsLignes.forEach((ligneSpecs, indexLigne) => {
-            const tr = document.createElement('tr');
-            if (indexLigne === 0) tr.classList.add('years-header');
-
-            const tdHeader = document.createElement('td');
-            tdHeader.classList.add('row-header');
-            tdHeader.innerText = ligneSpecs.label;
-            tr.appendChild(tdHeader);
-
-            fullDashboardData.forEach(colData => {
-                const td = document.createElement('td');
-                if (!colData.isReal) td.classList.add('proj-col');
-
-                switch (ligneSpecs.id) {
-                    case 'date':
-                        td.innerHTML = `<b>${colData.date}</b>`;
-                        break;
-                    case 'detail':
-                        td.innerHTML = `<span class="tag ${colData.isReal ? 'tag-real' : 'tag-proj'}">${colData.detail}</span>`;
-                        break;
-                    case 'facture':
-                        td.innerText = `${colData.facture.toFixed(0)} €`;
-                        break;
-                    case 'kwh':
-                        td.innerText = `${colData.kwh}`;
-                        break;
-                    case 'tarif':
-                        td.innerText = `${colData.tarif.toFixed(2)} €`;
-                        break;
-                    case 'economies':
-                        td.innerText = colData.economies > 0 ? `${colData.economies.toFixed(0)} €` : '-';
-                        break;
-                    case 'revente':
-                        td.innerText = colData.revente > 0 ? `${colData.revente.toFixed(0)} €` : '-';
-                        break;
-                    case 'gainsAnnuels':
-                        td.innerText = `${colData.gainsAnnuels.toFixed(0)} €`;
-                        if (colData.isReal) td.style.color = 'var(--eu)';
-                        td.style.fontWeight = '600';
-                        break;
-                    case 'resteDu':
-                        let cumulJusquIci = fullDashboardData
-                            .slice(0, fullDashboardData.indexOf(colData) + 1)
-                            .reduce((sum, r) => sum + r.gainsAnnuels, 0);
-                        let resteCap = Math.max(0, appInvest - cumulJusquIci);
-                        td.innerText = `${resteCap.toFixed(0)} €`;
-                        td.style.fontWeight = '600';
-                        if (resteCap > 0) {
-                            td.style.color = colData.isReal ? 'var(--red)' : 'var(--text-muted)';
-                        } else {
-                            td.style.color = 'var(--eu)';
-                        }
-                        break;
-                }
-                tr.appendChild(td);
-            });
-            table.appendChild(tr);
-        });
-
-        // --- COURBES SÉCURISÉES SI HORS LIGNE ---
-        if (typeof Chart !== 'undefined') {
-            try {
-                if(roiChartInstance) roiChartInstance.destroy();
-                if(breakdownChartInstance) breakdownChartInstance.destroy();
-
-                Chart.defaults.color = '#94a3b8';
-                Chart.defaults.borderColor = 'rgba(255, 255, 255, 0.04)';
-                Chart.defaults.plugins.legend.display = false;
-
-                let cumulTotal = 0;
-                let seriesGainsCumules = fullDashboardData.map(d => { cumulTotal += d.gainsAnnuels; return cumulTotal; });
-
-                const ctxRoi = document.getElementById('roiChart');
-                if(ctxRoi) {
-                    roiChartInstance = new Chart(ctxRoi.getContext('2d'), {
-                        type: 'line',
-                        data: {
-                            labels: fullDashboardData.map(d => d.date),
-                            datasets: [
-                                { data: Array(fullDashboardData.length).fill(appInvest), borderColor: '#f43f5e', borderDash: [5, 5], pointRadius: 0, fill: false },
-                                { data: seriesGainsCumules, borderColor: '#10b981', backgroundColor: 'rgba(16, 185, 129, 0.05)', fill: true, tension: 0.2, pointBackgroundColor: '#10b981' }
-                            ]
+        const config = {
+            type: 'line',
+            data: data,
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false // Désactivé car on utilise une légende HTML sur mesure en dessous
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(20, 26, 42, 0.9)',
+                        titleColor: '#fff',
+                        bodyColor: '#fff',
+                        borderColor: 'rgba(255, 255, 255, 0.1)',
+                        borderWidth: 1
+                    }
+                },
+                scales: {
+                    x: {
+                        grid: {
+                            display: false // Pas de lignes verticales de grille
                         },
-                        options: { 
-                            responsive: true, 
-                            maintainAspectRatio: false,
-                            scales: {
-                                y: { grid: { color: 'rgba(255, 255, 255, 0.03)' } },
-                                x: { grid: { display: false } }
-                            }
-                        }
-                    });
-                }
-
-                const ctxBreakdown = document.getElementById('breakdownChart');
-                if(ctxBreakdown) {
-                    breakdownChartInstance = new Chart(ctxBreakdown.getContext('2d'), {
-                        type: 'bar',
-                        data: {
-                            labels: processedRealRows.map(d => d.date),
-                            datasets: [
-                                { data: processedRealRows.map(d => d.facture), backgroundColor: '#0ea5e9', borderRadius: 5 },
-                                { data: processedRealRows.map(d => d.gainsAnnuels), backgroundColor: '#10b981', borderRadius: 5 }
-                            ]
+                        ticks: {
+                            color: '#64748b',
+                            font: {
+                                size: 12
+                            },
+                            padding: 10
                         },
-                        options: { 
-                            responsive: true, 
-                            maintainAspectRatio: false,
-                            scales: {
-                                y: { grid: { color: 'rgba(255, 255, 255, 0.03)' } },
-                                x: { grid: { display: false } }
-                            }
+                        border: {
+                            display: false
                         }
-                    });
+                    },
+                    y: {
+                        min: 260,
+                        max: 510,
+                        grid: {
+                            color: 'rgba(51, 65, 85, 0.25)', // Lignes horizontales très discrètes
+                        },
+                        ticks: {
+                            color: '#64748b',
+                            stepSize: 52, // Pour espacer les graduations proprement comme sur le modèle
+                            font: {
+                                size: 11
+                            },
+                            padding: 8
+                        },
+                        border: {
+                            display: false
+                        }
+                    }
                 }
-            } catch(e) {}
-        }
-    }
-</script>
+            }
+        };
 
+        new Chart(ctx, config);
+    </script>
 </body>
 </html>
