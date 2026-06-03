@@ -196,9 +196,9 @@
         </header>
 
         <div class="tabs">
-            <button class="tab-btn active" onclick="openTab('graphiques')">📊 Rendement</button>
-            <button class="tab-btn" onclick="openTab('saisie')">✍️ Saisie</button>
-            <button class="tab-btn" onclick="openTab('config')">⚙️ iCloud</button>
+            <button class="tab-btn active" onclick="openTab(event, 'graphiques')">📊 Rendement</button>
+            <button class="tab-btn" onclick="openTab(event, 'saisie')">✍️ Saisie</button>
+            <button class="tab-btn" onclick="openTab(event, 'config')">⚙️ iCloud</button>
         </div>
 
         <div id="graphiques" class="tab-content active">
@@ -365,11 +365,13 @@
         updateAutoFields();
     }
 
-    function openTab(tabId) {
+    function openTab(evt, tabId) {
         document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
         document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
         document.getElementById(tabId).classList.add('active');
-        event.currentTarget.classList.add('active');
+        if (evt && evt.currentTarget) {
+            evt.currentTarget.classList.add('active');
+        }
         if(tabId === 'graphiques') calculateAndRender();
         if(tabId === 'saisie') updateAutoFields();
     }
@@ -379,7 +381,7 @@
         let lastRow = appData[appData.length - 1];
         let parts = lastRow.date.split('-');
         let nextYearNum = 24;
-        if (parts.length > Part = 1) { nextYearNum = parseInt(parts[1]) + 1; }
+        if (parts.length > 1) { nextYearNum = parseInt(parts[1]) + 1; }
         return { date: `juin-${nextYearNum}`, detail: `Année ${appData.length}` };
     }
 
@@ -573,11 +575,10 @@
             table.appendChild(tr);
         });
 
-        // --- COURBES CHART.JS INTEGRALEMENT RE-STYLISEES ---
+        // --- COURBES CHART.JS RE-STYLISEES ---
         if(roiChartInstance) roiChartInstance.destroy();
         if(breakdownChartInstance) breakdownChartInstance.destroy();
 
-        // Application de la charte de couleurs globales
         Chart.defaults.color = '#94a3b8';
         Chart.defaults.borderColor = 'rgba(255, 255, 255, 0.04)';
         Chart.defaults.plugins.legend.display = false;
