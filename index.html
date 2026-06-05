@@ -347,13 +347,12 @@
             document.getElementById("sync-time").innerText = `Mis à jour : ${new Date().toLocaleTimeString('fr-FR')}`;
         }
 
-        // Formatage requis par l'API Ecowitt (YYYY-MM-DD HH:mm:ss)
         function formatDateEcowitt(date) {
             const pad = (n) => String(n).padStart(2, '0');
             return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`;
         }
 
-        /* --- GESTION DE L'HISTORIQUE ET DES GRAPHES NÉON --- */
+        /* --- GESTION DE L'HISTORIQUE --- */
         async function loadHistoryData() {
             const appKey = localStorage.getItem("ecowitt_app_key");
             const apiKey = localStorage.getItem("ecowitt_api_key");
@@ -362,21 +361,21 @@
             
             const now = new Date();
             let startTime = new Date(now.getTime() - (24 * 3600 * 1000));
-            let cycle = "1800"; // 30 min
+            let cycle = "1800"; 
 
             if (currentRange === '7j') {
                 startTime = new Date(now.getTime() - (7 * 24 * 3600 * 1000));
-                cycle = "14400"; // 4 heures
+                cycle = "14400"; 
             } else if (currentRange === '30j') {
                 startTime = new Date(now.getTime() - (30 * 24 * 3600 * 1000));
-                cycle = "86400"; // 1 jour
+                cycle = "86400"; 
             }
 
             const startDateStr = formatDateEcowitt(startTime);
             const endDateStr = formatDateEcowitt(now);
 
-            // Correction ici : Utilisation de rainfall.rain_rate pour l'historique
-            const url = `https://api.ecowitt.net/api/v3/device/history?application_key=${appKey}&api_key=${apiKey}&mac=${mac}&start_date=${encodeURIComponent(startDateStr)}&end_date=${encodeURIComponent(endDateStr)}&cycle=${cycle}&call_back=outdoor.temperature,rainfall.rain_rate,wind.wind_speed,wind.gust&temp_unitid=1&wind_speed_unitid=7&rainfall_unitid=12`;
+            // CORRECTION ICI : wind.wind_gust au lieu de wind.gust
+            const url = `https://api.ecowitt.net/api/v3/device/history?application_key=${appKey}&api_key=${apiKey}&mac=${mac}&start_date=${encodeURIComponent(startDateStr)}&end_date=${encodeURIComponent(endDateStr)}&cycle=${cycle}&call_back=outdoor.temperature,rainfall.rain_rate,wind.wind_speed,wind.wind_gust&temp_unitid=1&wind_speed_unitid=7&rainfall_unitid=12`;
             
             try {
                 debugLog.innerText = "Chargement des graphiques...";
@@ -407,11 +406,10 @@
 
         function buildCharts(data) {
             const tempObj = data.outdoor?.temperature?.list || {};
-            const rainObj = data.rainfall?.rain_rate?.list || {}; // Lecture ajustée ici aussi
+            const rainObj = data.rainfall?.rain_rate?.list || {}; 
             const windObj = data.wind?.wind_speed?.list || {};
-            const gustObj = data.wind?.gust?.list || {};
+            const gustObj = data.wind?.wind_gust?.list || {}; // Lecture ajustée ici aussi
 
-            // Alignement des points temporels
             const allTimestamps = new Set([
                 ...Object.keys(tempObj),
                 ...Object.keys(rainObj),
@@ -442,7 +440,7 @@
                 }
             };
 
-            // 1. Graphe Température (Ligne Néon Bleu -> Vert)
+            // 1. Graphe Température
             initChart('tempChart', 'line', labels, [{
                 data: tempData,
                 borderWidth: 3,
@@ -468,7 +466,7 @@
                 tension: 0.3
             }], chartOptions);
 
-            // 2. Graphe Pluie (Histogramme Translucide Vert Néon)
+            // 2. Graphe Pluie
             initChart('rainChart', 'bar', labels, [{
                 data: rainData,
                 borderRadius: 6,
@@ -485,7 +483,7 @@
                 }
             }], chartOptions);
 
-            // 3. Graphe Vent (Double courbe Orange/Jaune)
+            // 3. Graphe Vent
             initChart('windChart', 'line', labels, [
                 {
                     data: windData,
