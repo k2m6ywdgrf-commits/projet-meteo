@@ -3,178 +3,369 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Ma Station Météo</title>
+    <title>Ecowitt Dashboard</title>
     
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="Météo Perso">
+    <meta name="apple-mobile-web-app-title" content="Météo Glass">
     
     <style>
         :root {
-            --bg-color: #1c1c1e;
-            --card-bg: #2c2c2e;
-            --text-color: #ffffff;
-            --text-secondary: #aeaeb2;
-            --accent-color: #0a84ff;
+            --bg-color: #000000;
+            --glass-bg: rgba(22, 28, 45, 0.65);
+            --glass-border: 1px solid rgba(255, 255, 255, 0.08);
+            --input-bg: rgba(30, 41, 59, 0.7);
+            
+            --text-main: #f3f4f6;
+            --text-muted: #94a3b8;
+            
+            --neon-blue: #38bdf8;
+            --neon-green: #4ade80;
+            --neon-red: #f43f5e;
         }
         
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            margin: 0;
-            padding: 40px 20px 20px 20px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-
-        .container {
-            width: 100%;
-            max-width: 400px;
-        }
-
-        h1 {
-            font-size: 26px;
-            font-weight: 700;
-            text-align: center;
-            margin-bottom: 5px;
-        }
-
-        .update-time {
-            font-size: 12px;
-            color: var(--text-secondary);
-            text-align: center;
-            margin-bottom: 25px;
-        }
-
-        .grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 15px;
-            margin-bottom: 25px;
-        }
-
-        .card {
-            background-color: var(--card-bg);
-            border-radius: 14px;
-            padding: 15px;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-        }
-
-        .card-full {
-            grid-column: span 2;
-        }
-
-        .card-title {
-            font-size: 13px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            color: var(--text-secondary);
-            margin-bottom: 8px;
-        }
-
-        .card-value {
-            font-size: 28px;
-            font-weight: 600;
-        }
-
-        .btn-refresh {
-            background-color: var(--accent-color);
-            color: white;
-            border: none;
-            padding: 14px;
-            border-radius: 12px;
-            width: 100%;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
+        * {
+            box-sizing: border-box;
             -webkit-tap-highlight-color: transparent;
         }
 
-        .btn-refresh:active {
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: var(--bg-color);
+            background: radial-gradient(circle at 50% -20%, #1e1b4b 0%, #000000 70%) fixed;
+            color: var(--text-main);
+            margin: 0;
+            padding: 50px 20px 30px 20px;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+        }
+
+        .app-container {
+            width: 100%;
+            max-width: 420px;
+        }
+
+        /* --- ÉCRANS --- */
+        .screen {
+            display: none;
+        }
+        .screen.active {
+            display: block;
+        }
+
+        /* --- STYLE LIQUID GLASS (CARTES) --- */
+        .glass-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: var(--glass-border);
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            margin-bottom: 20px;
+        }
+
+        /* --- TYPOGRAPHIE --- */
+        h1 {
+            font-size: 22px;
+            font-weight: 700;
+            text-align: center;
+            letter-spacing: 0.5px;
+            margin: 0 0 8px 0;
+        }
+
+        .subtitle {
+            font-size: 13px;
+            color: var(--text-muted);
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .section-title {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 700;
+            color: var(--text-muted);
+            margin-bottom: 12px;
+        }
+
+        /* --- COMPOSANTS UI / INPUTS --- */
+        .form-group {
+            margin-bottom: 18px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-bottom: 6px;
+            font-weight: 500;
+        }
+
+        input {
+            width: 100%;
+            background: var(--input-bg);
+            border: 1px solid transparent;
+            border-radius: 10px;
+            padding: 12px 14px;
+            color: var(--text-main);
+            font-size: 15px;
+            transition: all 0.3s ease;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: var(--neon-blue);
+            box-shadow: 0 0 10px rgba(56, 189, 248, 0.25);
+        }
+
+        .btn {
+            width: 100%;
+            background: linear-gradient(135deg, #0ea5e9 0%, #38bdf8 100%);
+            border: none;
+            border-radius: 12px;
+            padding: 14px;
+            color: white;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 10px;
+            transition: opacity 0.2s;
+        }
+
+        .btn:active {
             opacity: 0.8;
+        }
+
+        .btn-secondary {
+            background: transparent;
+            border: var(--glass-border);
+            color: var(--text-muted);
+            font-size: 13px;
+            padding: 8px;
+            margin-top: 20px;
+            border-radius: 8px;
+        }
+
+        /* --- GRILLE DE KPI METEO --- */
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+        }
+
+        .kpi-box {
+            background: rgba(30, 41, 59, 0.4);
+            border: var(--glass-border);
+            border-radius: 12px;
+            padding: 16px;
+        }
+
+        .kpi-box.full-width {
+            grid-column: span 2;
+        }
+
+        .kpi-val {
+            font-size: 28px;
+            font-weight: 700;
+            margin-top: 4px;
+        }
+
+        /* Couleurs thématiques KPI */
+        .color-temp { color: var(--neon-green); }
+        .color-humidity { color: var(--neon-blue); }
+        .color-wind { color: #fbbf24; }
+        .color-rain { color: #a78bfa; }
+
+        .error-msg {
+            color: var(--neon-red);
+            font-size: 13px;
+            text-align: center;
+            margin-top: 10px;
+            display: none;
         }
     </style>
 </head>
 <body>
 
-    <div class="container">
-        <h1 id="station-name">Ma Station</h1>
-        <div class="update-time" id="time">-</div>
+    <div class="app-container">
 
-        <div class="grid" id="weather-grid">
-            <p style="grid-column: span 2; text-align: center;">Chargement des données...</p>
+        <div id="login-screen" class="screen glass-card">
+            <h1>STATION MÉTÉO</h1>
+            <div class="subtitle">Connexion à votre passerelle Ecowitt</div>
+            
+            <div class="form-group">
+                <label for="app-key">APPLICATION KEY</label>
+                <input type="text" id="app-key" placeholder="Entrez votre Application Key">
+            </div>
+            
+            <div class="form-group">
+                <label for="api-key">API KEY</label>
+                <input type="password" id="api-key" placeholder="Entrez votre API Key">
+            </div>
+            
+            <div class="form-group">
+                <label for="mac-addr">ADRESSE MAC DE LA STATION</label>
+                <input type="text" id="mac-addr" placeholder="Ex: AA:BB:CC:DD:EE:FF">
+            </div>
+
+            <button class="btn" onclick="tryLogin()">Enregistrer & Se connecter</button>
+            <div id="login-error" class="error-msg">Identifiants incorrects ou erreur réseau.</div>
         </div>
 
-        <button class="btn-refresh" onclick="fetchMeteo()">Actualiser</button>
+        <div id="dashboard-screen" class="screen">
+            <div class="glass-card">
+                <h1 style="text-align: left; font-size: 24px;">Ma Station</h1>
+                <div id="sync-time" style="font-size: 12px; color: var(--text-muted); margin-bottom: 20px;">Actualisation...</div>
+                
+                <div class="section-title">Relevés en temps réel</div>
+                
+                <div class="kpi-grid" id="weather-data">
+                    </div>
+
+                <button class="btn" style="margin-top: 24px;" onclick="refreshData()">Actualiser les données</button>
+            </div>
+            
+            <button class="btn btn-secondary" onclick="logout()">Déconnexion (Effacer les codes)</button>
+        </div>
+
     </div>
 
     <script>
-        // CONFIGURATION - Remplissez avec vos propres informations Ecowitt
-        const APP_KEY = "VOTRE_APPLICATION_KEY"; 
-        const API_KEY = "VOTRE_API_KEY";         
-        const MAC = "VOTRE_ADRESSE_MAC";             
+        // Vérification automatique au chargement de la page
+        document.addEventListener("DOMContentLoaded", () => {
+            const savedAppKey = localStorage.getItem("ecowitt_app_key");
+            const savedApiKey = localStorage.getItem("ecowitt_api_key");
+            const savedMac = localStorage.getItem("ecowitt_mac");
 
-        async function fetchMeteo() {
-            // L'URL force le système métrique (temp_unitid=1 pour Celsius, wind_speed_unitid=7 pour km/h)
-            const url = `https://api.ecowitt.net/api/v3/device/real_time?application_key=${APP_KEY}&api_key=${API_KEY}&mac=${MAC}&call_back=all&temp_unitid=1&wind_speed_unitid=7&rainfall_unitid=12&pressure_unitid=3`;
+            if (savedAppKey && savedApiKey && savedMac) {
+                // Si les codes existent, on passe directement au Dashboard
+                showScreen("dashboard-screen");
+                refreshData();
+            } else {
+                // Sinon, écran de login
+                showScreen("login-screen");
+            }
+        });
+
+        function showScreen(screenId) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(screenId).classList.add('active');
+        }
+
+        // Tentative de connexion / validation des clés
+        async function tryLogin() {
+            const appKey = document.getElementById("app-key").value.trim();
+            const apiKey = document.getElementById("api-key").value.trim();
+            const mac = document.getElementById("mac-addr").value.trim();
+            const errorDiv = document.getElementById("login-error");
+
+            if (!appKey || !apiKey || !mac) {
+                errorDiv.innerText = "Veuillez remplir tous les champs.";
+                errorDiv.style.display = "block";
+                return;
+            }
+
+            errorDiv.style.display = "none";
+
+            // Test de l'API Ecowitt avec les codes fournis
+            const success = await fetchEcowittData(appKey, apiKey, mac);
+
+            if (success) {
+                // Sauvegarde définitive dans le localStorage de l'iPhone
+                localStorage.setItem("ecowitt_app_key", appKey);
+                localStorage.setItem("ecowitt_api_key", apiKey);
+                localStorage.setItem("ecowitt_mac", mac);
+                
+                showScreen("dashboard-screen");
+            } else {
+                errorDiv.innerText = "Clés invalides ou station introuvable.";
+                errorDiv.style.display = "block";
+            }
+        }
+
+        // Appel API global
+        async function fetchEcowittData(appKey, apiKey, mac) {
+            const url = `https://api.ecowitt.net/api/v3/device/real_time?application_key=${appKey}&api_key=${apiKey}&mac=${mac}&call_back=all&temp_unitid=1&wind_speed_unitid=7&rainfall_unitid=12&pressure_unitid=3`;
             
             try {
                 const response = await fetch(url);
                 const json = await response.json();
                 
                 if (json.code === 0 && json.data) {
-                    displayData(json.data);
-                } else {
-                    document.getElementById('weather-grid').innerHTML = `<p style="grid-column: span 2; color:#ff453a; text-align:center;">Erreur Ecowitt : ${json.msg}</p>`;
+                    renderDashboard(json.data);
+                    return true;
                 }
-            } catch (error) {
-                document.getElementById('weather-grid').innerHTML = `<p style="grid-column: span 2; color:#ff453a; text-align:center;">Erreur de connexion internet</p>`;
+                return false;
+            } catch (e) {
+                return false;
             }
         }
 
-        function displayData(data) {
-            let gridHtml = "";
+        // Rafraîchissement depuis le Dashboard
+        function refreshData() {
+            const appKey = localStorage.getItem("ecowitt_app_key");
+            const apiKey = localStorage.getItem("ecowitt_api_key");
+            const mac = localStorage.getItem("ecowitt_mac");
             
-            // Extraction sécurisée des données selon la structure de l'API v3 Ecowitt
-            if (data.outdoor && data.outdoor.temperature) {
-                gridHtml += createCard("Temp. Extérieure", `${data.outdoor.temperature.value} °C`);
-            }
-            if (data.outdoor && data.outdoor.humidity) {
-                gridHtml += createCard("Humidité Ext.", `${data.outdoor.humidity.value} %`);
-            }
-            if (data.wind && data.wind.wind_speed) {
-                gridHtml += createCard("Vent", `${data.wind.wind_speed.value} km/h`);
-            }
-            if (data.rainfall && data.rainfall.hourly) {
-                gridHtml += createCard("Pluie (Heure)", `${data.rainfall.hourly.value} mm`);
-            }
-            if (data.pressure && data.pressure.relative) {
-                gridHtml += createCard("Pression", `${data.pressure.relative.value} hPa`, true);
-            }
-
-            document.getElementById('weather-grid').innerHTML = gridHtml;
-            
-            // Mise à jour de l'heure de relevé
-            const date = new Date();
-            document.getElementById('time').innerText = `Dernière mise à jour : ${date.toLocaleTimeString('fr-FR')}`;
+            fetchEcowittData(appKey, apiKey, mac);
         }
 
-        function createCard(title, value, isFullWidth = false) {
-            return `
-                <div class="card ${isFullWidth ? 'card-full' : ''}">
-                    <div class="card-title">${title}</div>
-                    <div class="card-value">${value}</div>
-                </div>
-            `;
+        // Injection des données récoltées dans la charte graphique KPI
+        function renderDashboard(data) {
+            const grid = document.getElementById("weather-data");
+            let html = "";
+
+            if (data.outdoor?.temperature) {
+                html += `
+                    <div class="kpi-box">
+                        <div class="section-title">Température</div>
+                        <div class="kpi-val color-temp">${data.outdoor.temperature.value} °C</div>
+                    </div>`;
+            }
+            if (data.outdoor?.humidity) {
+                html += `
+                    <div class="kpi-box">
+                        <div class="section-title">Humidité</div>
+                        <div class="kpi-val color-humidity">${data.outdoor.humidity.value} %</div>
+                    </div>`;
+            }
+            if (data.wind?.wind_speed) {
+                html += `
+                    <div class="kpi-box">
+                        <div class="section-title">Vent</div>
+                        <div class="kpi-val color-wind">${data.wind.wind_speed.value} <span style="font-size:14px">km/h</span></div>
+                    </div>`;
+            }
+            if (data.rainfall?.hourly) {
+                html += `
+                    <div class="kpi-box">
+                        <div class="section-title">Pluie / H</div>
+                        <div class="kpi-val color-rain">${data.rainfall.hourly.value} <span style="font-size:14px">mm</span></div>
+                    </div>`;
+            }
+            if (data.pressure?.relative) {
+                html += `
+                    <div class="kpi-box full-width">
+                        <div class="section-title">Pression Relative</div>
+                        <div class="kpi-val" style="color: var(--text-main);">${data.pressure.relative.value} hPa</div>
+                    </div>`;
+            }
+
+            grid.innerHTML = html;
+            document.getElementById("sync-time").innerText = `Mis à jour à : ${new Date().toLocaleTimeString('fr-FR')}`;
         }
 
-        // Chargement automatique à l'ouverture
-        fetchMeteo();
+        // Déconnexion complète
+        function logout() {
+            localStorage.clear();
+            document.getElementById("app-key").value = "";
+            document.getElementById("api-key").value = "";
+            document.getElementById("mac-addr").value = "";
+            showScreen("login-screen");
+        }
     </script>
 </body>
 </html>
