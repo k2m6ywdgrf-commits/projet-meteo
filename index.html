@@ -255,7 +255,7 @@
                     <div class="section-title">Évolution Température (°C)</div>
                     <div class="chart-container"><canvas id="tempChart"></canvas></div>
 
-                    <div class="section-title">Précipitations (mm)</div>
+                    <div class="section-title">Précipitations cumulées (mm)</div>
                     <div class="chart-container"><canvas id="rainChart"></canvas></div>
 
                     <div class="section-title">Vents & Rafales (km/h)</div>
@@ -347,6 +347,12 @@
             document.getElementById("sync-time").innerText = `Mis à jour : ${new Date().toLocaleTimeString('fr-FR')}`;
         }
 
+        // Formatage requis par l'API Ecowitt (YYYY-MM-DD HH:mm:ss)
+        function formatDateEcowitt(date) {
+            const pad = (n) => String(n).padStart(2, '0');
+            return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`;
+        }
+
         /* --- GESTION DE L'HISTORIQUE ET DES GRAPHES NÉON --- */
         async function loadHistoryData() {
             const appKey = localStorage.getItem("ecowitt_app_key");
@@ -354,19 +360,22 @@
             const mac = localStorage.getItem("ecowitt_mac");
             const debugLog = document.getElementById("api-debug-log");
             
-            const now = Math.floor(Date.now() / 1000);
-            let startTime = now - (24 * 3600);
+            const now = new Date();
+            let startTime = new Date(now.getTime() - (24 * 3600 * 1000));
             let cycle = "1800"; // 30 min
 
             if (currentRange === '7j') {
-                startTime = now - (7 * 24 * 3600);
+                startTime = new Date(now.getTime() - (7 * 24 * 3600 * 1000));
                 cycle = "14400"; // 4 heures
             } else if (currentRange === '30j') {
-                startTime = now - (30 * 24 * 3600);
+                startTime = new Date(now.getTime() - (30 * 24 * 3600 * 1000));
                 cycle = "86400"; // 1 jour
             }
 
-            const url = `https://api.ecowitt.net/api/v3/device/history?application_key=${appKey}&api_key=${apiKey}&mac=${mac}&start_time=${startTime}&end_time=${now}&cycle=${cycle}&call_back=outdoor.temperature,rainfall.rain_rate,wind.wind_speed,wind.gust&temp_unitid=1&wind_speed_unitid=7&rainfall_unitid=12`;
+            const startDateStr = formatDateEcowitt(startTime);
+            const endDateStr = formatDateEcowitt(now);
+
+            const url = `https://api.ecowitt.net/api/v3/device/history?application_key=${appKey}&api_key=${apiKey}&mac=${mac}&start_date=${encodeURIComponent(startDateStr)}&end_date=${encodeURIComponent(endDateStr)}&cycle=${cycle}&call_back=outdoor.temperature,rainfall.hourly,wind.wind_speed,wind.gust&temp_unitid=1&wind_speed_unitid=7&rainfall_unitid=12`;
             
             try {
                 debugLog.innerText = "Chargement des graphiques...";
@@ -397,11 +406,11 @@
 
         function buildCharts(data) {
             const tempObj = data.outdoor?.temperature?.list || {};
-            const rainObj = data.rainfall?.rain_rate?.list || {};
+            const rainObj = data.rainfall?.hourly?.list || {};
             const windObj = data.wind?.wind_speed?.list || {};
             const gustObj = data.wind?.gust?.list || {};
 
-            // Fusion unique et triée de tous les timestamps pour éviter les décalages entre capteurs
+            // Alignement des points temporels
             const allTimestamps = new Set([
                 ...Object.keys(tempObj),
                 ...Object.keys(rainObj),
@@ -417,7 +426,6 @@
                 return currentRange === '24h' ? `${d.getHours()}:00` : `${d.getDate()}/${d.getMonth()+1}`;
             });
 
-            // Mapping propre : renvoie null si le point est manquant (Chart.js le gère proprement en sautant le point)
             const tempData = timestamps.map(ts => tempObj[ts] !== undefined ? parseFloat(tempObj[ts]) : null);
             const rainData = timestamps.map(ts => rainObj[ts] !== undefined ? parseFloat(rainObj[ts]) : 0);
             const windData = timestamps.map(ts => windObj[ts] !== undefined ? parseFloat(windObj[ts]) : null);
@@ -440,7 +448,7 @@
                 borderColor: function(context) {
                     const chart = context.chart;
                     const {ctx, chartArea} = chart;
-                    if (!chartArea) return '#38bdf8'; // Couleur unie temporaire au premier frame
+                    if (!chartArea) return '#38bdf8';
                     const gradient = ctx.createLinearGradient(chartArea.left, 0, chartArea.right, 0);
                     gradient.addColorStop(0, '#38bdf8');
                     gradient.addColorStop(1, '#4ade80');
