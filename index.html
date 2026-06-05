@@ -255,7 +255,7 @@
                     <div class="section-title">Évolution Température (°C)</div>
                     <div class="chart-container"><canvas id="tempChart"></canvas></div>
 
-                    <div class="section-title">Précipitations cumulées (mm)</div>
+                    <div class="section-title">Précipitations (mm)</div>
                     <div class="chart-container"><canvas id="rainChart"></canvas></div>
 
                     <div class="section-title">Vents & Rafales (km/h)</div>
@@ -375,7 +375,8 @@
             const startDateStr = formatDateEcowitt(startTime);
             const endDateStr = formatDateEcowitt(now);
 
-            const url = `https://api.ecowitt.net/api/v3/device/history?application_key=${appKey}&api_key=${apiKey}&mac=${mac}&start_date=${encodeURIComponent(startDateStr)}&end_date=${encodeURIComponent(endDateStr)}&cycle=${cycle}&call_back=outdoor.temperature,rainfall.hourly,wind.wind_speed,wind.gust&temp_unitid=1&wind_speed_unitid=7&rainfall_unitid=12`;
+            // Correction ici : Utilisation de rainfall.rain_rate pour l'historique
+            const url = `https://api.ecowitt.net/api/v3/device/history?application_key=${appKey}&api_key=${apiKey}&mac=${mac}&start_date=${encodeURIComponent(startDateStr)}&end_date=${encodeURIComponent(endDateStr)}&cycle=${cycle}&call_back=outdoor.temperature,rainfall.rain_rate,wind.wind_speed,wind.gust&temp_unitid=1&wind_speed_unitid=7&rainfall_unitid=12`;
             
             try {
                 debugLog.innerText = "Chargement des graphiques...";
@@ -406,7 +407,7 @@
 
         function buildCharts(data) {
             const tempObj = data.outdoor?.temperature?.list || {};
-            const rainObj = data.rainfall?.hourly?.list || {};
+            const rainObj = data.rainfall?.rain_rate?.list || {}; // Lecture ajustée ici aussi
             const windObj = data.wind?.wind_speed?.list || {};
             const gustObj = data.wind?.gust?.list || {};
 
