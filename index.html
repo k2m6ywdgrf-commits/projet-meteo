@@ -65,20 +65,21 @@ input:focus{outline:none;border-color:var(--neon-blue);box-shadow:0 0 10px rgba(
 .forecast-toggle-btn.active{background:rgba(255,255,255,.12);color:var(--text-main)}
 .hourly-scroll{display:flex;gap:8px;overflow-x:auto;padding-bottom:6px;-webkit-overflow-scrolling:touch;scrollbar-width:none}
 .hourly-scroll::-webkit-scrollbar{display:none}
-.hourly-card{flex-shrink:0;width:60px;background:rgba(30,41,59,.3);border:var(--glass-border);
+.hourly-card{flex-shrink:0;width:66px;background:rgba(30,41,59,.3);border:var(--glass-border);
   border-radius:12px;padding:10px 6px;display:flex;flex-direction:column;align-items:center;gap:4px}
 .hourly-card.now{background:rgba(56,189,248,.1);border-color:rgba(56,189,248,.35);box-shadow:0 0 10px rgba(56,189,248,.15)}
 .hourly-time{font-size:10px;color:var(--text-muted);font-weight:600}
 .hourly-icon{font-size:20px;line-height:1}
 .hourly-temp{font-size:14px;font-weight:700;color:var(--text-main)}
-.hourly-rain{font-size:10px}
-.hourly-wind{font-size:9px;color:var(--text-muted)}
+/* ── MODIF 1 : rain label + wind unit ── */
+.hourly-rain{font-size:10px;display:flex;align-items:center;gap:2px}
+.hourly-wind{font-size:10px;color:var(--text-muted);display:flex;align-items:center;gap:2px}
 .daily-list{display:flex;flex-direction:column;gap:8px}
 .daily-row{display:flex;align-items:center;gap:10px;padding:10px 12px;
   background:rgba(30,41,59,.3);border:var(--glass-border);border-radius:10px}
 .daily-icon{font-size:22px;width:28px;text-align:center;flex-shrink:0}
 
-/* MOON — sans labels */
+/* MOON */
 .moon-layout{display:flex;gap:16px;align-items:center;margin-bottom:14px}
 .moon-details{flex:1;display:flex;flex-direction:column;gap:8px}
 .moon-phase-name{font-size:15px;font-weight:700;color:#f0d070;text-align:left}
@@ -112,22 +113,15 @@ input:focus{outline:none;border-color:var(--neon-blue);box-shadow:0 0 10px rgba(
 .wind-trend-dir{font-size:11px;font-weight:600;color:var(--neon-blue)}
 .mini-compass-canvas{width:52px;height:52px;display:block}
 
-/* RAIN */
-.rain-top{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px}
-.rain-top-item{display:flex;flex-direction:column;align-items:center;gap:3px;text-align:center}
-.rain-top-label{font-size:10px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px}
-.rain-top-val{font-size:24px;font-weight:700;color:var(--neon-purple);line-height:1.2}
-.rain-top-unit{font-size:11px;font-weight:400;color:var(--text-muted)}
-.rain-divider{height:1px;background:rgba(255,255,255,.06);margin-bottom:12px}
-/* HORIZONTAL ROW — une seule ligne */
-.rain-cumul-row{display:flex;align-items:stretch}
-.rain-cumul-cell{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;
-  gap:3px;padding:8px 4px;text-align:center;
-  border-right:1px solid rgba(255,255,255,.06)}
-.rain-cumul-cell:last-child{border-right:none}
-.rain-cumul-label{font-size:9px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.3px}
-.rain-cumul-val{font-size:15px;font-weight:700;color:var(--neon-purple);line-height:1.2}
-.rain-cumul-unit{font-size:9px;font-weight:400;color:var(--text-muted)}
+/* ── MODIF 2 : RAIN liste verticale (remplace l'ancienne grille horizontale) ── */
+.rain-list{display:flex;flex-direction:column;gap:8px}
+.rain-list-row{display:flex;align-items:center;gap:12px;padding:10px 12px;
+  background:rgba(30,41,59,.3);border:var(--glass-border);border-radius:10px}
+.rain-list-icon{font-size:20px;width:26px;text-align:center;flex-shrink:0;line-height:1}
+.rain-list-label{flex:1;font-size:13px;color:var(--text-main);font-weight:500}
+.rain-list-right{display:flex;flex-direction:column;align-items:flex-end;gap:2px;text-align:right}
+.rain-list-val{font-size:15px;font-weight:700;color:var(--neon-purple);line-height:1.2}
+.rain-list-unit{font-size:10px;font-weight:400;color:var(--text-muted)}
 .rain-delta{font-size:9px;line-height:1.3}
 
 /* PRESSURE */
@@ -411,7 +405,7 @@ function computeNM1(data,now){
 function deltaHtml(cur,ly){
   if(ly==null||cur==null)return'';
   const d=Math.round((parseFloat(cur)-ly)*10)/10,color=d>=0?'var(--neon-green)':'var(--neon-red)';
-  return`<div class="rain-delta" style="color:${color}">${d>=0?'▲':'▼'} ${d>=0?'+':''}${d}mm<br><span style="color:var(--text-muted)">vs N−1</span></div>`;
+  return`<div class="rain-delta" style="color:${color}">${d>=0?'▲':'▼'} ${d>=0?'+':''}${d}mm vs N−1</div>`;
 }
 const D16=['N','NNE','NE','ENE','E','ESE','SE','SSE','S','SSO','SO','OSO','O','ONO','NO','NNO'];
 const toCard=deg=>D16[Math.round(deg/22.5)%16];
@@ -475,10 +469,11 @@ function buildForecastHtml(fc){
     const code=fc.hourly.weathercode[si+i],temp=Math.round(fc.hourly.temperature_2m[si+i]);
     const rain=fc.hourly.precipitation_probability[si+i]??0,wind=Math.round(fc.hourly.windspeed_10m[si+i]);
     const{i:ico}=wmo(code);
+    /* ── MODIF 1 : libellés explicites ── */
     return`<div class="hourly-card${isNow?' now':''}"><span class="hourly-time">${isNow?'Maint.':`${hr}h`}</span>
       <span class="hourly-icon">${ico}</span><span class="hourly-temp">${temp}°</span>
-      <span class="hourly-rain" style="color:${rain>50?'var(--neon-purple)':'var(--text-muted)'}">${rain}%</span>
-      <span class="hourly-wind">💨${wind}</span></div>`;
+      <span class="hourly-rain" style="color:${rain>50?'var(--neon-purple)':'var(--text-muted)'}">🌧 ${rain}%</span>
+      <span class="hourly-wind">💨 ${wind}<span style="font-size:8px;opacity:.7"> km/h</span></span></div>`;
   }).join('');
   const JOURS=['Dim','Lun','Mar','Mer','Jeu','Ven','Sam'];
   const daily=fc.daily.time.slice(1,6).map((t,i)=>{
@@ -573,7 +568,7 @@ function renderLiveGrid(data,trend,nm1,fc){
     </div>`;
   }
 
-  // TEMPÉRATURE — centré, min/max + heure + ressenti
+  // TEMPÉRATURE
   if(!isNaN(temp)){
     h+=`<div class="kpi-box">
       <div class="section-title">Température</div>
@@ -586,7 +581,7 @@ function renderLiveGrid(data,trend,nm1,fc){
     </div>`;
   }
 
-  // HUMIDITÉ — centré + pt rosée
+  // HUMIDITÉ
   if(!isNaN(humid)){
     h+=`<div class="kpi-box">
       <div class="section-title">Humidité</div>
@@ -598,7 +593,7 @@ function renderLiveGrid(data,trend,nm1,fc){
   // PRÉVISIONS
   h+=buildForecastHtml(fc);
 
-  // PHASE LUNAIRE — emojis sans labels, active en surbrillance
+  // PHASE LUNAIRE
   h+=`<div class="kpi-box full">
     <div class="section-title" style="text-align:left">Phase Lunaire</div>
     <div class="moon-layout">
@@ -648,29 +643,39 @@ function renderLiveGrid(data,trend,nm1,fc){
     </div>`;
   }
 
-  // PRÉCIPITATIONS — ligne horizontale unique
+  /* ── MODIF 2 : PRÉCIPITATIONS — liste verticale ── */
   if(rf){
     const hv=rf.hourly?.value,ev=rf.event?.value;
     const dv=rf.daily?.value,wv=rf.weekly?.value,mv=rf.monthly?.value,yv=rf.yearly?.value;
-    const cumuls=[dv,wv,mv,yv].some(v=>v!==undefined);
-    h+=`<div class="kpi-box full"><div class="section-title" style="text-align:left">Précipitations</div>`;
-    if(hv!==undefined||ev!==undefined)h+=`<div class="rain-top">
-      ${hv!==undefined?`<div class="rain-top-item"><span class="rain-top-label">Taux horaire</span><span class="rain-top-val">${hv}<span class="rain-top-unit"> mm/h</span></span></div>`:''}
-      ${ev!==undefined?`<div class="rain-top-item"><span class="rain-top-label">Événement</span><span class="rain-top-val">${ev}<span class="rain-top-unit"> mm</span></span></div>`:''}
-    </div>`;
-    if(cumuls){
-      if(hv!==undefined||ev!==undefined)h+=`<div class="rain-divider"></div>`;
-      h+=`<div class="rain-cumul-row">
-        ${dv!==undefined?`<div class="rain-cumul-cell"><span class="rain-cumul-label">Quotidien</span><span class="rain-cumul-val">${dv}<span class="rain-cumul-unit"> mm</span></span>${deltaHtml(dv,nm1?.daily)}</div>`:''}
-        ${wv!==undefined?`<div class="rain-cumul-cell"><span class="rain-cumul-label">Hebdo</span><span class="rain-cumul-val">${wv}<span class="rain-cumul-unit"> mm</span></span>${deltaHtml(wv,nm1?.weekly)}</div>`:''}
-        ${mv!==undefined?`<div class="rain-cumul-cell"><span class="rain-cumul-label">Mensuel</span><span class="rain-cumul-val">${mv}<span class="rain-cumul-unit"> mm</span></span>${deltaHtml(mv,nm1?.monthly)}</div>`:''}
-        ${yv!==undefined?`<div class="rain-cumul-cell"><span class="rain-cumul-label">Annuel</span><span class="rain-cumul-val">${yv}<span class="rain-cumul-unit"> mm</span></span>${deltaHtml(yv,nm1?.yearly)}</div>`:''}
+
+    // Définition des lignes dans l'ordre d'affichage
+    const rainRows=[
+      {cond:hv!==undefined, icon:'💧', label:'Taux horaire',  val:hv,  unit:'mm/h', delta:null},
+      {cond:ev!==undefined, icon:'🌧️', label:'Événement',     val:ev,  unit:'mm',   delta:null},
+      {cond:dv!==undefined, icon:'📅', label:'Cumul du jour', val:dv,  unit:'mm',   delta:deltaHtml(dv,nm1?.daily)},
+      {cond:wv!==undefined, icon:'📆', label:'Cette semaine', val:wv,  unit:'mm',   delta:deltaHtml(wv,nm1?.weekly)},
+      {cond:mv!==undefined, icon:'🗓️', label:'Ce mois',       val:mv,  unit:'mm',   delta:deltaHtml(mv,nm1?.monthly)},
+      {cond:yv!==undefined, icon:'📊', label:'Cette année',   val:yv,  unit:'mm',   delta:deltaHtml(yv,nm1?.yearly)},
+    ].filter(r=>r.cond);
+
+    if(rainRows.length){
+      h+=`<div class="kpi-box full">
+        <div class="section-title" style="text-align:left">Précipitations</div>
+        <div class="rain-list">
+          ${rainRows.map(r=>`<div class="rain-list-row">
+            <span class="rain-list-icon">${r.icon}</span>
+            <span class="rain-list-label">${r.label}</span>
+            <div class="rain-list-right">
+              <span class="rain-list-val">${r.val} <span class="rain-list-unit">${r.unit}</span></span>
+              ${r.delta||''}
+            </div>
+          </div>`).join('')}
+        </div>
       </div>`;
     }
-    h+=`</div>`;
   }
 
-  // PRESSION — centré
+  // PRESSION
   if(pressure!==undefined)h+=`<div class="kpi-box full">
     <div class="section-title" style="text-align:left">Pression Relative</div>
     <div class="pressure-center">
