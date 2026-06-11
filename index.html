@@ -167,6 +167,58 @@ input:focus{outline:none;border-color:var(--neon-blue);box-shadow:0 0 10px rgba(
   margin-top: 2px;
   font-style: italic;
 }
+
+/* --- NOUVEAUTÉS : ANIMATION DE VAGUE & RÉORGANISATION --- */
+@keyframes waveMove {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+.weather-row {
+  position: relative;
+  grid-column: span 2;
+  width: 100%;
+  margin-bottom: 12px;
+}
+.weather-row:last-child {
+  margin-bottom: 0;
+}
+
+.reorder-controls {
+  display: none;
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: rgba(15, 23, 42, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 8px;
+  padding: 3px;
+  z-index: 99;
+  gap: 6px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+}
+.reorder-active .reorder-controls {
+  display: flex;
+}
+.reorder-btn-action {
+  background: rgba(255,255,255,0.08);
+  border: none;
+  color: #fff;
+  padding: 6px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: bold;
+  transition: background 0.2s;
+}
+.reorder-btn-action:active {
+  background: rgba(255,255,255,0.25);
+}
+.reorder-active .weather-row {
+  outline: 1px dashed rgba(56, 189, 248, 0.45);
+  outline-offset: 4px;
+  border-radius: 14px;
+}
 </style>
 </head>
 <body>
@@ -194,7 +246,9 @@ input:focus{outline:none;border-color:var(--neon-blue);box-shadow:0 0 10px rgba(
       
       <div class="section-title" style="text-align:left">Indicateurs clés</div>
       <div class="kpi-grid" id="weather-live-grid"></div>
+      
       <button class="btn" style="margin-top:20px" onclick="refreshLive()">Actualiser</button>
+      <button class="btn-secondary" id="btn-reorder" style="margin-top:12px; border-color: rgba(255,255,255,0.12); color: var(--text-muted);" onclick="toggleReorderMode()">Réorganiser</button>
     </div>
   </div>
   
@@ -269,6 +323,15 @@ let currentRange='24h',charts={},historyCache={};
 let lyRainCache=null,forecastCache=null,forecastCacheTime=0,autoRefreshTimer=null;
 let aqCache=null,aqCacheTime=0;
 let detectedCity="";
+
+// États liés à l'agencement et la réorganisation
+let isReorderMode = false;
+let lastRenderedData = null;
+let rowOrder = ['sun', 'temphum', 'forecast', 'aq', 'moon', 'uv', 'wind', 'rain', 'pressure'];
+try {
+  const savedOrder = localStorage.getItem('weather_row_order');
+  if(savedOrder) rowOrder = JSON.parse(savedOrder);
+} catch(e) { console.error(e); }
 
 /* INIT */
 document.addEventListener('DOMContentLoaded',()=>{
@@ -646,9 +709,9 @@ function buildForecastHtml(fc){
   const citySuffix = detectedCity ? ` - ${detectedCity}` : "";
   if(!hasGPS())return`<div class="kpi-box full" style="text-align:center;padding:18px;font-size:12px;color:var(--text-muted)">📍 Ajoutez vos coordonnées ou utilisez <span style="color:var(--neon-blue);cursor:pointer;font-weight:600" onclick="switchSubTab('settings')">le GPS Auto</span> pour afficher les prévisions</div>`;
   if(fc && fc.error) {
-    return `<div class="kpi-box full"><div class="section-title" style="text-align:left">Prévisions Open météo</div><div style="text-align:center;padding:12px;font-size:12px;color:var(--neon-red)">❌ Échec du chargement : ${fc.reason}</div></div>`;
+    return `<div class="kpi-box full" style="margin-bottom:0;"><div class="section-title" style="text-align:left">Prévisions Open météo</div><div style="text-align:center;padding:12px;font-size:12px;color:var(--neon-red)">❌ Échec du chargement : ${fc.reason}</div></div>`;
   }
-  if(!fc?.hourly)return`<div class="kpi-box full"><div class="section-title" style="text-align:left">Prévisions Open météo<span id="forecast-city" style="text-transform:none;font-weight:400;color:var(--text-muted)">${citySuffix}</span></div><div style="text-align:center;padding:12px;font-size:12px;color:var(--text-muted)">⏳ Chargement Open-Meteo...</div></div>`;
+  if(!fc?.hourly)return`<div class="kpi-box full" style="margin-bottom:0;"><div class="section-title" style="text-align:left">Prévisions Open météo<span id="forecast-city" style="text-transform:none;font-weight:400;color:var(--text-muted)">${citySuffix}</span></div><div style="text-align:center;padding:12px;font-size:12px;color:var(--text-muted)">⏳ Chargement Open-Meteo...</div></div>`;
   
   const now=new Date(),p=n=>String(n).padStart(2,'0');
   const curStr=`${now.getFullYear()}-${p(now.getMonth()+1)}-${p(now.getDate())}T${p(now.getHours())}:00`;
@@ -671,7 +734,7 @@ function buildForecastHtml(fc){
       <div style="text-align:right"><div style="font-size:13px;font-weight:700"><span style="color:var(--neon-orange)">${Math.round(fc.daily.temperature_2m_max[idx])}°</span> / <span style="color:var(--neon-blue)">${Math.round(fc.daily.temperature_2m_min[idx])}°</span></div>
       <div style="font-size:10px;color:var(--neon-purple)">${fc.daily.precipitation_probability_max[idx]??0}% · ${(fc.daily.precipitation_sum[idx]||0).toFixed(1)}mm</div></div></div>`;
   }).join('');
-  return`<div class="kpi-box full"><div class="section-title" style="text-align:left">Prévisions Open météo<span id="forecast-city" style="text-transform:none;font-weight:400;color:var(--text-muted)">${citySuffix}</span></div>
+  return`<div class="kpi-box full" style="margin-bottom:0;"><div class="section-title" style="text-align:left">Prévisions Open météo<span id="forecast-city" style="text-transform:none;font-weight:400;color:var(--text-muted)">${citySuffix}</span></div>
     <div class="forecast-toggle"><button class="forecast-toggle-btn active" id="ftog-h" onclick="toggleFc('h')">Aujourd'hui</button><button class="forecast-toggle-btn" id="ftog-d" onclick="toggleFc('d')">5 Jours</button></div>
     <div id="fc-h"><div class="hourly-scroll">${hourly}</div></div><div id="fc-d" style="display:none"><div class="daily-list">${daily}</div></div>
   </div>`;
@@ -698,8 +761,59 @@ function drawCompass(canvas,degrees,size){
   if(!mini){ctx.fillStyle='#f3f4f6';ctx.font='700 19px -apple-system,sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(`${degrees}°`,cx,cy-8);ctx.fillStyle='#38bdf8';ctx.font='600 12px -apple-system,sans-serif';ctx.fillText(toCard(degrees),cx,cy+11);}
 }
 
+/* MÉTHODE DE WRAPPING POUR MODE ÉDITION / TRI */
+function wrapRow(id, htmlContent) {
+  return `
+    <div class="weather-row" data-id="${id}">
+      <div class="reorder-controls">
+        <button class="reorder-btn-action" onclick="moveRow('${id}', -1); event.stopPropagation();">▲</button>
+        <button class="reorder-btn-action" onclick="moveRow('${id}', 1); event.stopPropagation();">▼</button>
+      </div>
+      ${htmlContent}
+    </div>`;
+}
+
+function toggleReorderMode() {
+  isReorderMode = !isReorderMode;
+  const grid = el('weather-live-grid');
+  const btn = el('btn-reorder');
+  if (isReorderMode) {
+    grid.classList.add('reorder-active');
+    btn.innerText = '⚙️ Terminer la réorganisation';
+    btn.style.borderColor = 'var(--neon-green)';
+    btn.style.color = 'var(--neon-green)';
+  } else {
+    grid.classList.remove('reorder-active');
+    btn.innerText = 'Réorganiser';
+    btn.style.borderColor = 'rgba(255,255,255,0.12)';
+    btn.style.color = 'var(--text-muted)';
+  }
+}
+
+window.moveRow = function(id, direction) {
+  const index = rowOrder.indexOf(id);
+  if (index === -1) return;
+  const newIndex = index + direction;
+  if (newIndex < 0 || newIndex >= rowOrder.length) return;
+  
+  // Échange de place dans le tableau
+  const temp = rowOrder[index];
+  rowOrder[index] = rowOrder[newIndex];
+  rowOrder[newIndex] = temp;
+  
+  localStorage.setItem('weather_row_order', JSON.stringify(rowOrder));
+  
+  // Ré-injection immédiate via le cache local sans appel réseau requis
+  if (lastRenderedData) {
+    renderLiveGrid(lastRenderedData.data, lastRenderedData.trend, lastRenderedData.nm1, lastRenderedData.fc, lastRenderedData.aq);
+  }
+};
+
 /* INJECTION REAL TIME GRID */
 function renderLiveGrid(data,trend,nm1,fc,aq){
+  // Sauvegarde des structures de données reçues pour re-render instantané
+  lastRenderedData = { data, trend, nm1, fc, aq };
+  
   const grid=el('weather-live-grid'), th=getThresholds();
   const temp=parseFloat(data.outdoor?.temperature?.value), humid=parseFloat(data.outdoor?.humidity?.value);
   const windKmh=parseFloat(data.wind?.wind_speed?.value)||0, windGust=data.wind?.wind_gust?.value, windDeg=parseInt(data.wind?.wind_direction?.value);
@@ -708,7 +822,6 @@ function renderLiveGrid(data,trend,nm1,fc,aq){
   const solarRaw=data.solar_and_uvi?.solar_radiation?.value??data.solar?.solar_radiation?.value??null;
   const uviVal=uviRaw!==null?parseFloat(uviRaw):null, solarVal=solarRaw!==null?parseFloat(solarRaw):null;
   
-  // Récupération de l'état de la pluie en direct
   const rainRate = (rf && rf.hourly && rf.hourly.value) ? parseFloat(rf.hourly.value) : 0;
 
   let alertsHtml='';
@@ -743,7 +856,9 @@ function renderLiveGrid(data,trend,nm1,fc,aq){
   const tPts=Object.keys(wdList).sort((a,b)=>Number(a)-Number(b)).slice(-4).map(ts=>({t:new Date(ts*1000),deg:parseInt(wdList[ts])}));
   const MOONS=[{e:'🌑'},{e:'🌒'},{e:'🌓'},{e:'🌔'},{e:'🌕'},{e:'🌖'},{e:'🌗'},{e:'🌘'}];
 
-  let h='';
+  // Stockage des blocs HTML configurables
+  const blocks = {};
+
   if(sun?.sunrise){
     let lbl = pct === 0 ? "🌙 Nuit" : pct === 100 ? "🌙 Nuit" : "☀️ Ensoleillement";
     if (rainRate > 0) {
@@ -752,7 +867,7 @@ function renderLiveGrid(data,trend,nm1,fc,aq){
     const nextSunriseStr = pct === 100 ? `<div class="next-sunrise">Prochain lever à ${sun.sunrise}</div>` : '';
     const sunCardStyle = getSunCardStyle(sun, rainRate);
     
-    h+=`<div class="kpi-box full" style="${sunCardStyle}">
+    let sunContent = `<div class="kpi-box full" style="${sunCardStyle} margin-bottom:0;">
       <div class="section-title" style="text-align:left">Soleil & Ambiance</div>
       <div style="display: flex; flex-direction: column;">
         <div class="kpi-val" style="margin:0; text-align:left; font-size:22px;">${lbl}</div>
@@ -766,9 +881,12 @@ function renderLiveGrid(data,trend,nm1,fc,aq){
         <span>Coucher : <strong>${sun.sunset}</strong></span>
       </div>
     </div>`;
+    blocks.sun = wrapRow('sun', sunContent);
   }
+
+  // Blocs Température + Humidité fusionnés sur une même rangée ordonnable
+  let tempHtml = '';
   if(!isNaN(temp)){
-    // Logique inspirée de la qualité de l'air : transition fluide du blanc (0°C ou moins) vers le jaune-orange (25°C ou plus)
     let tempColor = "#4ade80";
     if (temp <= 0) {
       tempColor = "#ffffff";
@@ -778,29 +896,42 @@ function renderLiveGrid(data,trend,nm1,fc,aq){
       const pctTemp = Math.min(100, Math.max(0, (temp / 25) * 100));
       tempColor = `color-mix(in srgb, #fbbf24 ${pctTemp}%, #ffffff)`;
     }
-    
-    // Style de fond et bordure évolutifs (Liquid Glass) basés sur la couleur dynamique de la température
-    const tempStyle = `background: linear-gradient(135deg, color-mix(in srgb, ${tempColor} 14%, transparent) 0%, rgba(15, 23, 42, 0.75) 100%); border: 1px solid color-mix(in srgb, ${tempColor} 30%, transparent); box-shadow: 0 10px 25px rgba(0,0,0,.4); background-clip: padding-box;`;
-
-    h+=`<div class="kpi-box" style="${tempStyle}"><div class="section-title">Température</div><div class="kpi-val" style="color:${tempColor}">${temp} °C</div><div style="display:flex;flex-direction:column;align-items:center;gap:4px;margin-top:6px">${tMin!==null?`<div style="font-size:11px"><span style="color:var(--neon-blue)">↓ ${tMin}°</span> <span style="color:var(--text-muted)">${fmtHM(tMinTs)}</span></div>`:''}${tMax!==null?`<div style="font-size:11px"><span style="color:var(--neon-orange)">↑ ${tMax}°</span> <span style="color:var(--text-muted)">${fmtHM(tMaxTs)}</span></div>`:''}${fl!==null?`<div class="kpi-sub">Ressenti ${fl}°</div>`:''}</div></div>`;
+    const tempStyle = `background: linear-gradient(135deg, color-mix(in srgb, ${tempColor} 14%, transparent) 0%, rgba(15, 23, 42, 0.75) 100%); border: 1px solid color-mix(in srgb, ${tempColor} 30%, transparent); box-shadow: 0 10px 25px rgba(0,0,0,.4); background-clip: padding-box; width:100%;`;
+    tempHtml = `<div class="kpi-box" style="${tempStyle}"><div class="section-title">Température</div><div class="kpi-val" style="color:${tempColor}">${temp} °C</div><div style="display:flex;flex-direction:column;align-items:center;gap:4px;margin-top:6px">${tMin!==null?`<div style="font-size:11px"><span style="color:var(--neon-blue)">↓ ${tMin}°</span> <span style="color:var(--text-muted)">${fmtHM(tMinTs)}</span></div>`:''}${tMax!==null?`<div style="font-size:11px"><span style="color:var(--neon-orange)">↑ ${tMax}°</span> <span style="color:var(--text-muted)">${fmtHM(tMaxTs)}</span></div>`:''}${fl!==null?`<div class="kpi-sub">Ressenti ${fl}°</div>`:''}</div></div>`;
   }
+
+  let humidHtml = '';
   if(!isNaN(humid)){
-    // Remplissage vertical de bas en haut (0deg au lieu de 90deg)
-    const fillBg = `linear-gradient(0deg, color-mix(in srgb, var(--neon-blue) 12%, transparent) 0%, color-mix(in srgb, var(--neon-blue) 12%, transparent) ${humid}%, rgba(30, 41, 59, 0.3) ${humid}%, rgba(30, 41, 59, 0.3) 100%)`;
     const fillBorder = `1px solid color-mix(in srgb, var(--neon-blue) 30%, transparent)`;
-    h+=`<div class="kpi-box" style="background: ${fillBg}; border: ${fillBorder}; box-shadow: 0 10px 25px rgba(0,0,0,.4); background-clip: padding-box;"><div class="section-title">Humidité</div><div class="kpi-val color-humidity">${humid} %</div>${dp!==null?`<div class="kpi-sub" style="margin-top:6px">Pt de rosée <strong style="color:var(--neon-blue)">${dp}°C</strong></div>`:''}</div>`;
+    humidHtml = `
+      <div class="kpi-box" style="position: relative; overflow: hidden; background: rgba(30, 41, 59, 0.3); border: ${fillBorder}; box-shadow: 0 10px 25px rgba(0,0,0,.4); background-clip: padding-box; width:100%;">
+        <div class="wave-fill" style="position: absolute; left: 0; right: 0; bottom: 0; height: ${humid}%; background: color-mix(in srgb, var(--neon-blue) 12%, transparent); pointer-events: none; z-index: 1; transition: height 0.5s ease;">
+          <svg viewBox="0 0 100 15" preserveAspectRatio="none" style="position: absolute; top: -14px; left: 0; width: 200%; height: 15px; fill: color-mix(in srgb, var(--neon-blue) 12%, transparent); animation: waveMove 4s linear infinite;">
+            <path d="M0,7 Q25,12 50,7 T100,7 L100,15 L0,15 Z"></path>
+          </svg>
+        </div>
+        <div style="position: relative; z-index: 2; display: flex; flex-direction: column; align-items: center; width: 100%;">
+          <div class="section-title">Humidité</div>
+          <div class="kpi-val color-humidity">${humid} %</div>
+          ${dp!==null?`<div class="kpi-sub" style="margin-top:6px">Pt de rosée <strong style="color:var(--neon-blue)">${dp}°C</strong></div>`:''}
+        </div>
+      </div>`;
   }
 
-  h+=buildForecastHtml(fc);
+  if(tempHtml || humidHtml) {
+    blocks.temphum = wrapRow('temphum', `<div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; width:100%;">${tempHtml}${humidHtml}</div>`);
+  }
+
+  blocks.forecast = wrapRow('forecast', buildForecastHtml(fc));
 
   if(aq&&aq.european_aqi!==undefined){
     const inf=aqInfo(aq.european_aqi);
     const aqiPct = Math.min(100, Math.max(0, (aq.european_aqi / 100) * 100));
-    const aqStyle = `background: linear-gradient(135deg, color-mix(in srgb, ${inf.color} 14%, transparent) 0%, rgba(15, 23, 42, 0.75) 100%); border: 1px solid color-mix(in srgb, ${inf.color} 30%, transparent); box-shadow: 0 10px 25px rgba(0,0,0,.4); background-clip: padding-box;`;
+    const aqStyle = `background: linear-gradient(135deg, color-mix(in srgb, ${inf.color} 14%, transparent) 0%, rgba(15, 23, 42, 0.75) 100%); border: 1px solid color-mix(in srgb, ${inf.color} 30%, transparent); box-shadow: 0 10px 25px rgba(0,0,0,.4); background-clip: padding-box; margin-bottom:0;`;
     
-    h+=`<div class="kpi-box full" style="${aqStyle}">
+    let aqContent = `<div class="kpi-box full" style="${aqStyle}">
       <div class="section-title" style="text-align:left">🌿 Indice Qualité de l'Air (IQA)</div>
-      <div class="aq-container" style="margin-bottom:4px;">
+      <div class="aq-container" style="margin-bottom:4px; width:100%;">
         <div><div style="font-size:22px;font-weight:700;color:${inf.color}">${inf.label}</div><div style="font-size:10px;color:var(--text-muted);margin-top:2px">Indice européen : ${aq.european_aqi}</div></div>
         <div class="aq-details"><div>PM2.5<br><strong style="color:var(--text-main)">${aq.pm2_5} µg/m³</strong></div><div>PM10<br><strong style="color:var(--text-main)">${aq.pm10} µg/m³</strong></div></div>
       </div>
@@ -812,20 +943,26 @@ function renderLiveGrid(data,trend,nm1,fc,aq){
         <span>Très mauvais</span>
       </div>
     </div>`;
+    blocks.aq = wrapRow('aq', aqContent);
   }
 
-  h+=`<div class="kpi-box full"><div class="section-title" style="text-align:left">Phase Lunaire</div><div class="moon-layout"><canvas id="moon-canvas" width="110" height="110"></canvas><div class="moon-details"><div class="moon-phase-name">${moon.name}</div><div class="moon-stat"><span>Illumination</span><strong>${moon.illum}%</strong></div><div class="moon-stat"><span>Âge du cycle</span><strong>${Math.floor(moon.age)} / 29 jours</strong></div></div></div><div class="moon-phases-row">${MOONS.map((p,i)=>`<div class="moon-phase-cell${i===moon.idx?' active':''}"><span class="moon-phase-emoji">${p.e}</span></div>`).join('')}</div></div>`;
+  let moonContent = `<div class="kpi-box full" style="margin-bottom:0;"><div class="section-title" style="text-align:left">Phase Lunaire</div><div class="moon-layout"><canvas id="moon-canvas" width="110" height="110"></canvas><div class="moon-details"><div class="moon-phase-name">${moon.name}</div><div class="moon-stat"><span>Illumination</span><strong>${moon.illum}%</strong></div><div class="moon-stat"><span>Âge du cycle</span><strong>${Math.floor(moon.age)} / 29 jours</strong></div></div></div><div class="moon-phases-row">${MOONS.map((p,i)=>`<div class="moon-phase-cell${i===moon.idx?' active':''}"><span class="moon-phase-emoji">${p.e}</span></div>`).join('')}</div></div>`;
+  blocks.moon = wrapRow('moon', moonContent);
 
   if(uviVal!==null&&!isNaN(uviVal)){
     const{color,label}=uvInfo(uviVal),pctUV=Math.min(uviVal/11*100,100).toFixed(1);
-    const uvStyle = `background: linear-gradient(135deg, color-mix(in srgb, ${color} 14%, transparent) 0%, rgba(15, 23, 42, 0.75) 100%); border: 1px solid color-mix(in srgb, ${color} 30%, transparent); box-shadow: 0 10px 25px rgba(0,0,0,.4); background-clip: padding-box;`;
+    const uvStyle = `background: linear-gradient(135deg, color-mix(in srgb, ${color} 14%, transparent) 0%, rgba(15, 23, 42, 0.75) 100%); border: 1px solid color-mix(in srgb, ${color} 30%, transparent); box-shadow: 0 10px 25px rgba(0,0,0,.4); background-clip: padding-box; margin-bottom:0;`;
     
-    h+=`<div class="kpi-box full" style="${uvStyle}"><div class="section-title" style="text-align:left">UV & Rayonnement Solaire</div><div class="uv-row"><div style="text-align:center;min-width:64px"><div class="uv-big" style="color:${color}">${uviVal.toFixed(1)}</div><div style="font-size:11px;font-weight:600;color:${color};margin-top:3px">${label}</div></div><div class="uv-scale-wrap"><div style="font-size:10px;color:var(--text-muted);margin-bottom:6px">Index UV global</div><div class="uv-scale-bar"><div class="uv-marker" style="left:${pctUV}%"></div></div><div class="uv-scale-nums"><span>0</span><span>3</span><span>6</span><span>8</span><span>11+</span></div>${solarVal!==null?`<div style="margin-top:10px;font-size:12px;color:var(--text-muted)">☀️ Énergie solaire : <strong style="color:var(--neon-orange)">${solarVal} W/m²</strong></div>`:''}</div></div></div>`;
+    let uvContent = `<div class="kpi-box full" style="${uvStyle}"><div class="section-title" style="text-align:left">UV & Rayonnement Solaire</div><div class="uv-row" style="width:100%;"><div style="text-align:center;min-width:64px"><div class="uv-big" style="color:${color}">${uviVal.toFixed(1)}</div><div style="font-size:11px;font-weight:600;color:${color};margin-top:3px">${label}</div></div><div class="uv-scale-wrap"><div style="font-size:10px;color:var(--text-muted);margin-bottom:6px">Index UV global</div><div class="uv-scale-bar"><div class="uv-marker" style="left:${pctUV}%"></div></div><div class="uv-scale-nums"><span>0</span><span>3</span><span>6</span><span>8</span><span>11+</span></div>${solarVal!==null?`<div style="margin-top:10px;font-size:12px;color:var(--text-muted)">☀️ Énergie solaire : <strong style="color:var(--neon-orange)">${solarVal} W/m²</strong></div>`:''}</div></div></div>`;
+    blocks.uv = wrapRow('uv', uvContent);
   }
+  
   if(!isNaN(windDeg)){
-    const tBlock=tPts.length>=2?`<div class="wind-trend-row">${tPts.map(p=>`<div class="wind-trend-item"><canvas class="mini-compass-canvas" data-deg="${p.deg}"></canvas><span class="wind-trend-time">${String(p.t.getHours()).padStart(2,'0')}:${String(p.t.getMinutes()).padStart(2,'0')}</span><span class="wind-trend-dir">${toCard(p.deg)}</span></div>`).join('')}</div>`:'';
-    h+=`<div class="kpi-box full"><div class="section-title" style="text-align:left">Vitesse & Direction du Vent</div><div class="compass-wrap"><canvas id="compass-canvas"></canvas><div class="compass-meta"><div><span>Moyen</span><strong class="color-wind">${windKmh} <span style="font-size:11px;font-weight:400">km/h</span></strong></div><div class="meta-center"><span>Direction</span><strong style="color:var(--neon-blue)">${windDeg}° ${toCard(windDeg)}</strong></div><div><span>Rafale</span><strong class="color-wind">${windGust??'—'} <span style="font-size:11px;font-weight:400">km/h</span></strong></div></div></div>${tBlock}</div>`;
+    const tBlock=tPts.length>=2?`<div class="wind-trend-row" style="width:100%;">${tPts.map(p=>`<div class="wind-trend-item"><canvas class="mini-compass-canvas" data-deg="${p.deg}"></canvas><span class="wind-trend-time">${String(p.t.getHours()).padStart(2,'0')}:${String(p.t.getMinutes()).padStart(2,'0')}</span><span class="wind-trend-dir">${toCard(p.deg)}</span></div>`).join('')}</div>`:'';
+    let windContent = `<div class="kpi-box full" style="margin-bottom:0;"><div class="section-title" style="text-align:left">Vitesse & Direction du Vent</div><div class="compass-wrap" style="width:100%;"><canvas id="compass-canvas"></canvas><div class="compass-meta"><div><span>Moyen</span><strong class="color-wind">${windKmh} <span style="font-size:11px;font-weight:400">km/h</span></strong></div><div class="meta-center"><span>Direction</span><strong style="color:var(--neon-blue)">${windDeg}° ${toCard(windDeg)}</strong></div><div><span>Rafale</span><strong class="color-wind">${windGust??'—'} <span style="font-size:11px;font-weight:400">km/h</span></strong></div></div></div>${tBlock}</div>`;
+    blocks.wind = wrapRow('wind', windContent);
   }
+  
   if(rf){
     const hv=rf.hourly?.value, ev=rf.event?.value, dv=rf.daily?.value, wv=rf.weekly?.value, mv=rf.monthly?.value, yv=rf.yearly?.value;
     const rainRows=[
@@ -837,9 +974,11 @@ function renderLiveGrid(data,trend,nm1,fc,aq){
       {cond:yv!==undefined,icon:'☔️',label:'Année civile',val:yv,unit:'mm',delta:deltaHtml(yv,nm1?.yearly)}
     ].filter(r=>r.cond);
     if(rainRows.length){
-      h+=`<div class="kpi-box full"><div class="section-title" style="text-align:left">Précipitations & Comparatifs N−1</div><div class="rain-list">${rainRows.map(r=>`<div class="rain-list-row"><span class="rain-list-icon">${r.icon}</span><span class="rain-list-label">${r.label}</span><div class="rain-list-right"><span class="rain-list-val">${r.val} <span class="rain-list-unit">${r.unit}</span></span>${r.delta||''}</div></div>`).join('')}</div></div>`;
+      let rainContent = `<div class="kpi-box full" style="margin-bottom:0;"><div class="section-title" style="text-align:left">Précipitations & Comparatifs N−1</div><div class="rain-list" style="width:100%;">${rainRows.map(r=>`<div class="rain-list-row"><span class="rain-list-icon">${r.icon}</span><span class="rain-list-label">${r.label}</span><div class="rain-list-right"><span class="rain-list-val">${r.val} <span class="rain-list-unit">${r.unit}</span></span>${r.delta||''}</div></div>`).join('')}</div></div>`;
+      blocks.rain = wrapRow('rain', rainContent);
     }
   }
+  
   if(pressure!==undefined){
     const pVal = parseFloat(pressure);
     let baroPct = ((pVal - 970) / (1040 - 970)) * 100;
@@ -852,10 +991,9 @@ function renderLiveGrid(data,trend,nm1,fc,aq){
     else if (pVal < 1032) { baroText = "Beau temps"; baroIcon = "☀️"; baroColor = "#fbbf24"; }
     else { baroText = "Temps sec"; baroIcon = "🏜️"; baroColor = "#ea580c"; }
     
-    // Le cadre évolue intégralement (fond et bordure) en fonction de la couleur associée (baroColor)
-    const baroStyle = `background: linear-gradient(135deg, color-mix(in srgb, ${baroColor} 14%, transparent) 0%, rgba(15, 23, 42, 0.75) 100%); border: 1px solid color-mix(in srgb, ${baroColor} 30%, transparent); box-shadow: 0 10px 25px rgba(0,0,0,.4); background-clip: padding-box;`;
+    const baroStyle = `background: linear-gradient(135deg, color-mix(in srgb, ${baroColor} 14%, transparent) 0%, rgba(15, 23, 42, 0.75) 100%); border: 1px solid color-mix(in srgb, ${baroColor} 30%, transparent); box-shadow: 0 10px 25px rgba(0,0,0,.4); background-clip: padding-box; margin-bottom:0;`;
     
-    h+=`<div class="kpi-box full" style="${baroStyle}">
+    let baroContent = `<div class="kpi-box full" style="${baroStyle}">
       <div class="section-title" style="text-align:left">Baromètre</div>
       <div class="pressure-center" style="justify-content:space-between; width:100%; padding:0;">
         <div class="kpi-val" style="margin:0;">${pVal.toFixed(1)} <span style="font-size:14px;font-weight:400;color:var(--text-muted);">hPa</span></div>
@@ -868,9 +1006,26 @@ function renderLiveGrid(data,trend,nm1,fc,aq){
         <span>${baroIcon}</span> <span style="color: ${baroColor}; font-weight:600;">${baroText}</span>
       </div>
     </div>`;
+    blocks.pressure = wrapRow('pressure', baroContent);
   }
 
-  grid.innerHTML=h; el('sync-time').innerText=`Mise à jour : ${new Date().toLocaleTimeString('fr-FR')}`;
+  // Construction de la grille finale selon l'ordre défini
+  let finalHtml = '';
+  rowOrder.forEach(key => {
+    if (blocks[key]) finalHtml += blocks[key];
+  });
+  
+  // Sécurité pour parer à tout ajout futur non indexé
+  Object.keys(blocks).forEach(key => {
+    if (!rowOrder.includes(key)) finalHtml += blocks[key];
+  });
+
+  grid.innerHTML = finalHtml; 
+  el('sync-time').innerText=`Mise à jour : ${new Date().toLocaleTimeString('fr-FR')}`;
+  
+  // Maintien des activations de styles si rafraîchissement pendant mode réorganisation actif
+  if (isReorderMode) grid.classList.add('reorder-active');
+  
   const mc=el('moon-canvas'); if(mc) drawMoonPhase(mc,moon.age);
   if(!isNaN(windDeg)){const cc=el('compass-canvas'); if(cc) drawCompass(cc,windDeg,160);}
   document.querySelectorAll('.mini-compass-canvas').forEach(c=>drawCompass(c,parseInt(c.dataset.deg),52));
