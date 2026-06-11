@@ -634,6 +634,20 @@ function drawCompass(canvas,degrees,size){
   if(!mini){ctx.fillStyle='#f3f4f6';ctx.font='700 19px -apple-system,sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(`${degrees}°`,cx,cy-8);ctx.fillStyle='#38bdf8';ctx.font='600 12px -apple-system,sans-serif';ctx.fillText(toCard(degrees),cx,cy+11);}
 }
 
+/* HELPER COULEUR MÉTÉO */
+function getWeatherGradient(code) {
+  // Pluie / Orages (Bleu foncé / Violet)
+  if ([51, 53, 55, 61, 63, 65, 80, 81, 82, 95, 96, 99].includes(code)) {
+    return 'linear-gradient(135deg, rgba(30, 64, 175, 0.4), rgba(15, 23, 42, 0.7))';
+  }
+  // Soleil (Orange / Or)
+  if ([0, 1].includes(code)) {
+    return 'linear-gradient(135deg, rgba(217, 119, 6, 0.4), rgba(15, 23, 42, 0.7))';
+  }
+  // Nuageux / Brouillard (Gris / Neutre)
+  return 'rgba(30, 41, 59, 0.5)';
+}
+
 /* INJECTION REAL TIME GRID */
 function renderLiveGrid(data,trend,nm1,fc,aq){
   const grid=el('weather-live-grid'), th=getThresholds();
@@ -643,6 +657,15 @@ function renderLiveGrid(data,trend,nm1,fc,aq){
   const uviRaw=data.solar_and_uvi?.uvi?.value??data.uv?.uvi?.value??null;
   const solarRaw=data.solar_and_uvi?.solar_radiation?.value??data.solar?.solar_radiation?.value??null;
   const uviVal=uviRaw!==null?parseFloat(uviRaw):null, solarVal=solarRaw!==null?parseFloat(solarRaw):null;
+
+  // Calcul du code météo actuel pour le fond
+  let currentCode = 0;
+  if(fc && fc.hourly) {
+    const now=new Date(),p=n=>String(n).padStart(2,'0');
+    const curStr=`${now.getFullYear()}-${p(now.getMonth()+1)}-${p(now.getDate())}T${p(now.getHours())}:00`;
+    let si=fc.hourly.time.indexOf(curStr); if(si<0) si=0;
+    currentCode = fc.hourly.weathercode[si];
+  }
 
   let alertsHtml='';
   if(!isNaN(temp)){
@@ -679,7 +702,8 @@ function renderLiveGrid(data,trend,nm1,fc,aq){
   if(sun?.sunrise){
     const lbl = pct === 0 ? "Avant le lever" : pct === 100 ? "Après le coucher" : "Ensoleillement";
     const nextSunriseStr = pct === 100 ? `<div class="next-sunrise">Prochain lever à ${sun.sunrise}</div>` : '';
-    h+=`<div class="kpi-box full">
+    // Appliquer le dégradé dynamique ici
+    h+=`<div class="kpi-box full" style="background: ${getWeatherGradient(currentCode)};">
       <div class="section-title" style="text-align:left">Soleil</div>
       <div style="display: flex; flex-direction: column;">
         <div class="kpi-val" style="margin:0; text-align:left; font-size:22px;">${lbl}</div>
