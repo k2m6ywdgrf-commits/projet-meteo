@@ -768,11 +768,25 @@ function renderLiveGrid(data,trend,nm1,fc,aq){
     </div>`;
   }
   if(!isNaN(temp)){
-    h+=`<div class="kpi-box"><div class="section-title">Température</div><div class="kpi-val color-temp">${temp} °C</div><div style="display:flex;flex-direction:column;align-items:center;gap:4px;margin-top:6px">${tMin!==null?`<div style="font-size:11px"><span style="color:var(--neon-blue)">↓ ${tMin}°</span> <span style="color:var(--text-muted)">${fmtHM(tMinTs)}</span></div>`:''}${tMax!==null?`<div style="font-size:11px"><span style="color:var(--neon-orange)">↑ ${tMax}°</span> <span style="color:var(--text-muted)">${fmtHM(tMaxTs)}</span></div>`:''}${fl!==null?`<div class="kpi-sub">Ressenti ${fl}°</div>`:''}</div></div>`;
+    // Logique inspirée de la qualité de l'air : transition fluide du blanc (0°C ou moins) vers le jaune-orange (25°C ou plus)
+    let tempColor = "#4ade80";
+    if (temp <= 0) {
+      tempColor = "#ffffff";
+    } else if (temp >= 25) {
+      tempColor = "#fbbf24";
+    } else {
+      const pctTemp = Math.min(100, Math.max(0, (temp / 25) * 100));
+      tempColor = `color-mix(in srgb, #fbbf24 ${pctTemp}%, #ffffff)`;
+    }
+    
+    // Style de fond et bordure évolutifs (Liquid Glass) basés sur la couleur dynamique de la température
+    const tempStyle = `background: linear-gradient(135deg, color-mix(in srgb, ${tempColor} 14%, transparent) 0%, rgba(15, 23, 42, 0.75) 100%); border: 1px solid color-mix(in srgb, ${tempColor} 30%, transparent); box-shadow: 0 10px 25px rgba(0,0,0,.4); background-clip: padding-box;`;
+
+    h+=`<div class="kpi-box" style="${tempStyle}"><div class="section-title">Température</div><div class="kpi-val" style="color:${tempColor}">${temp} °C</div><div style="display:flex;flex-direction:column;align-items:center;gap:4px;margin-top:6px">${tMin!==null?`<div style="font-size:11px"><span style="color:var(--neon-blue)">↓ ${tMin}°</span> <span style="color:var(--text-muted)">${fmtHM(tMinTs)}</span></div>`:''}${tMax!==null?`<div style="font-size:11px"><span style="color:var(--neon-orange)">↑ ${tMax}°</span> <span style="color:var(--text-muted)">${fmtHM(tMaxTs)}</span></div>`:''}${fl!==null?`<div class="kpi-sub">Ressenti ${fl}°</div>`:''}</div></div>`;
   }
   if(!isNaN(humid)){
-    // Remplissage horizontal proportionnel à la valeur de l'humidité avec le bleu néon assombri (12% opacité de remplissage, 30% bordure)
-    const fillBg = `linear-gradient(90deg, color-mix(in srgb, var(--neon-blue) 12%, transparent) 0%, color-mix(in srgb, var(--neon-blue) 12%, transparent) ${humid}%, rgba(30, 41, 59, 0.3) ${humid}%, rgba(30, 41, 59, 0.3) 100%)`;
+    // Remplissage vertical de bas en haut (0deg au lieu de 90deg)
+    const fillBg = `linear-gradient(0deg, color-mix(in srgb, var(--neon-blue) 12%, transparent) 0%, color-mix(in srgb, var(--neon-blue) 12%, transparent) ${humid}%, rgba(30, 41, 59, 0.3) ${humid}%, rgba(30, 41, 59, 0.3) 100%)`;
     const fillBorder = `1px solid color-mix(in srgb, var(--neon-blue) 30%, transparent)`;
     h+=`<div class="kpi-box" style="background: ${fillBg}; border: ${fillBorder}; box-shadow: 0 10px 25px rgba(0,0,0,.4); background-clip: padding-box;"><div class="section-title">Humidité</div><div class="kpi-val color-humidity">${humid} %</div>${dp!==null?`<div class="kpi-sub" style="margin-top:6px">Pt de rosée <strong style="color:var(--neon-blue)">${dp}°C</strong></div>`:''}</div>`;
   }
@@ -782,7 +796,6 @@ function renderLiveGrid(data,trend,nm1,fc,aq){
   if(aq&&aq.european_aqi!==undefined){
     const inf=aqInfo(aq.european_aqi);
     const aqiPct = Math.min(100, Math.max(0, (aq.european_aqi / 100) * 100));
-    // Fond dynamique dégradé basé sur la couleur IQA (14% d'opacité en haut gauche à 75% du fond sombre) et bordure assortie (30%)
     const aqStyle = `background: linear-gradient(135deg, color-mix(in srgb, ${inf.color} 14%, transparent) 0%, rgba(15, 23, 42, 0.75) 100%); border: 1px solid color-mix(in srgb, ${inf.color} 30%, transparent); box-shadow: 0 10px 25px rgba(0,0,0,.4); background-clip: padding-box;`;
     
     h+=`<div class="kpi-box full" style="${aqStyle}">
@@ -805,7 +818,6 @@ function renderLiveGrid(data,trend,nm1,fc,aq){
 
   if(uviVal!==null&&!isNaN(uviVal)){
     const{color,label}=uvInfo(uviVal),pctUV=Math.min(uviVal/11*100,100).toFixed(1);
-    // Fond dynamique dégradé basé sur la couleur UV (14% d'opacité à 75% du fond sombre) et bordure assortie (30%)
     const uvStyle = `background: linear-gradient(135deg, color-mix(in srgb, ${color} 14%, transparent) 0%, rgba(15, 23, 42, 0.75) 100%); border: 1px solid color-mix(in srgb, ${color} 30%, transparent); box-shadow: 0 10px 25px rgba(0,0,0,.4); background-clip: padding-box;`;
     
     h+=`<div class="kpi-box full" style="${uvStyle}"><div class="section-title" style="text-align:left">UV & Rayonnement Solaire</div><div class="uv-row"><div style="text-align:center;min-width:64px"><div class="uv-big" style="color:${color}">${uviVal.toFixed(1)}</div><div style="font-size:11px;font-weight:600;color:${color};margin-top:3px">${label}</div></div><div class="uv-scale-wrap"><div style="font-size:10px;color:var(--text-muted);margin-bottom:6px">Index UV global</div><div class="uv-scale-bar"><div class="uv-marker" style="left:${pctUV}%"></div></div><div class="uv-scale-nums"><span>0</span><span>3</span><span>6</span><span>8</span><span>11+</span></div>${solarVal!==null?`<div style="margin-top:10px;font-size:12px;color:var(--text-muted)">☀️ Énergie solaire : <strong style="color:var(--neon-orange)">${solarVal} W/m²</strong></div>`:''}</div></div></div>`;
@@ -833,7 +845,6 @@ function renderLiveGrid(data,trend,nm1,fc,aq){
     let baroPct = ((pVal - 970) / (1040 - 970)) * 100;
     baroPct = Math.min(100, Math.max(0, baroPct));
     
-    // Détermination de la couleur et texte du baromètre selon la pression mesurée
     let baroColor = ""; let baroText = ""; let baroIcon = "";
     if (pVal < 990) { baroText = "Tempête"; baroIcon = "🌪️"; baroColor = "#2563eb"; }
     else if (pVal < 1009) { baroText = "Pluie ou Vent"; baroIcon = "🌧️"; baroColor = "#38bdf8"; }
@@ -841,7 +852,7 @@ function renderLiveGrid(data,trend,nm1,fc,aq){
     else if (pVal < 1032) { baroText = "Beau temps"; baroIcon = "☀️"; baroColor = "#fbbf24"; }
     else { baroText = "Temps sec"; baroIcon = "🏜️"; baroColor = "#ea580c"; }
     
-    // Application du style dynamic glass lié à la couleur du baromètre
+    // Le cadre évolue intégralement (fond et bordure) en fonction de la couleur associée (baroColor)
     const baroStyle = `background: linear-gradient(135deg, color-mix(in srgb, ${baroColor} 14%, transparent) 0%, rgba(15, 23, 42, 0.75) 100%); border: 1px solid color-mix(in srgb, ${baroColor} 30%, transparent); box-shadow: 0 10px 25px rgba(0,0,0,.4); background-clip: padding-box;`;
     
     h+=`<div class="kpi-box full" style="${baroStyle}">
