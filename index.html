@@ -475,7 +475,7 @@ async function fetchLiveData(appKey,apiKey,mac){
 }
 async function fetchRecentTrend(appKey,apiKey,mac){
   const now=new Date(),midnight=new Date(now);midnight.setHours(0,0,0,0);
-  const r=await fetchWTimeout(`https://api.ecowitt.net/api/v3/device/history?application_key=${appKey}&api_key=${apiKey}&mac=${mac}&start_date=${encodeURIComponent(fmtDate(midnight))}&end_date=${encodeURIComponent(fmtDate(now))}&cycle=1800&call_back=wind.wind_direction,pressure.relative,outdoor.temperature,outdoor.humidity&pressure_unitid=3&temp_unitid=1`);
+  const r=await fetchWTimeout(`https://api.ecowitt.net/api/v3/device/history?application_key=${appKey}&api_key=${apiKey}&mac=${mac}&start_date=${encodeURIComponent(fmtDate(midnight))}&end_date=${encodeURIComponent(fmtDate(now))}&cycle=1800&call_back=wind.wind_direction,wind.wind_speed,wind.wind_gust,solar_and_uvi.uvi,uv.uvi,pressure.relative,outdoor.temperature,outdoor.humidity&pressure_unitid=3&temp_unitid=1`);
   const j=await r.json();return(j.code===0&&j.data)?j.data:null;
 }
 async function fetchLastYearRain(appKey,apiKey,mac){
@@ -881,6 +881,21 @@ function renderLiveGrid(data,trend,nm1,fc,aq){
   if(tMin!==null)tMin=Math.round(tMin*10)/10;if(tMax!==null)tMax=Math.round(tMax*10)/10;
   const fmtHM=ts=>{if(!ts)return'';const d=new Date(ts*1000);return`${String(d.getHours()).padStart(2,'0')}h${String(d.getMinutes()).padStart(2,'0')}`;};
 
+  // --- ANALYSE MAX HISTORIQUE DE LA JOURNÉE EN COURS (VENT & UV) ---
+  const wSpeedList = trend?.wind?.wind_speed?.list || {};
+  const wGustList = trend?.wind?.wind_gust?.list || {};
+  let wMaxSpeed = null;
+  Object.values(wSpeedList).forEach(v => { const val = parseFloat(v); if(!isNaN(val) && (wMaxSpeed === null || val > wMaxSpeed)) wMaxSpeed = val; });
+  Object.values(wGustList).forEach(v => { const val = parseFloat(v); if(!isNaN(val) && (wMaxSpeed === null || val > wMaxSpeed)) wMaxSpeed = val; });
+  if(wMaxSpeed !== null) wMaxSpeed = Math.round(wMaxSpeed * mult * 10) / 10;
+
+  const uviList1 = trend?.solar_and_uvi?.uvi?.list || {};
+  const uviList2 = trend?.uv?.uvi?.list || {};
+  let uvMax = null;
+  Object.values(uviList1).forEach(v => { const val = parseFloat(v); if(!isNaN(val) && (uvMax === null || val > uvMax)) uvMax = val; });
+  Object.values(uviList2).forEach(v => { const val = parseFloat(v); if(!isNaN(val) && (uvMax === null || val > uvMax)) uvMax = val; });
+  if(uvMax !== null) uvMax = Math.round(uvMax * 10) / 10;
+
   const fl=(!isNaN(temp)&&!isNaN(humid))?getFeelsLike(temp,humid,windKmh):null;
   const dp=(!isNaN(temp)&&!isNaN(humid))?getDewPoint(temp,humid):null;
   
@@ -918,7 +933,7 @@ function renderLiveGrid(data,trend,nm1,fc,aq){
     blocks.sun = wrapRow('sun', sunContent);
   }
 
-  // Blocs Température + Humidité fusionnés sur une même rangée ordonnable
+  // Blocs Température + Humidité fusionnés
   let tempHtml = '';
   if(!isNaN(temp)){
     const tempColor = getRainbowTempColor(temp);
@@ -972,7 +987,7 @@ function renderLiveGrid(data,trend,nm1,fc,aq){
     blocks.aq = wrapRow('aq', aqContent);
   }
 
-  // --- CADRE MOON (Phase Lunaire) --- Style Air Quality & Fond Céleste Fixe
+  // --- CADRE MOON (Phase Lunaire) ---
   const moonColor = '#fbbf24';
   const moonStyle = `background: linear-gradient(135deg, color-mix(in srgb, ${moonColor} 12%, transparent) 0%, rgba(10, 16, 36, 0.88) 100%), radial-gradient(circle at 12% 18%, #ffffff 1px, transparent 1px), radial-gradient(circle at 35% 12%, #ffffff 1px, transparent 1px), radial-gradient(circle at 65% 28%, #ffffff 1.2px, transparent 1.2px), radial-gradient(circle at 85% 15%, #ffffff 1px, transparent 1px), radial-gradient(circle at 25% 75%, #ffffff 1px, transparent 1px), radial-gradient(circle at 78% 82%, #ffffff 1px, transparent 1px); border: 1px solid color-mix(in srgb, ${moonColor} 25%, transparent); box-shadow: 0 10px 25px rgba(0,0,0,.45); background-clip: padding-box; margin-bottom:0;`;
   
@@ -997,21 +1012,28 @@ function renderLiveGrid(data,trend,nm1,fc,aq){
   </div>`;
   blocks.moon = wrapRow('moon', moonContent);
 
+  // --- CADRE UV (Index & Max jour) ---
   if(uviVal!==null&&!isNaN(uviVal)){
     const{color,label}=uvInfo(uviVal),pctUV=Math.min(uviVal/11*100,100).toFixed(1);
     const uvStyle = `background: linear-gradient(135deg, color-mix(in srgb, ${color} 14%, transparent) 0%, rgba(15, 23, 42, 0.75) 100%); border: 1px solid color-mix(in srgb, ${color} 30%, transparent); box-shadow: 0 10px 25px rgba(0,0,0,.4); background-clip: padding-box; margin-bottom:0;`;
+    const maxUvDayHtml = uvMax !== null ? `<div style="font-size:11px; font-weight:600; color:var(--neon-orange); margin-top:5px;">↑ ${uvMax.toFixed(1)} max</div>` : '';
     
-    let uvContent = `<div class="kpi-box full" style="${uvStyle}"><div class="section-title" style="text-align:left">☀️ UV & Rayonnement Solaire</div><div class="uv-row" style="width:100%;"><div style="text-align:center;min-width:64px"><div class="uv-big" style="color:${color}">${uviVal.toFixed(1)}</div><div style="font-size:11px;font-weight:600;color:${color};margin-top:3px">${label}</div></div><div class="uv-scale-wrap"><div style="font-size:10px;color:var(--text-muted);margin-bottom:6px">Index UV global</div><div class="uv-scale-bar"><div class="uv-marker" style="left:${pctUV}%"></div></div><div class="uv-scale-nums"><span>0</span><span>3</span><span>6</span><span>8</span><span>11+</span></div>${solarVal!==null?`<div style="margin-top:10px;font-size:12px;color:var(--text-muted)">Énergie solaire : <strong style="color:var(--neon-orange)">${solarVal} W/m²</strong></div>`:''}</div></div></div>`;
+    let uvContent = `<div class="kpi-box full" style="${uvStyle}"><div class="section-title" style="text-align:left">☀️ UV & Rayonnement Solaire</div><div class="uv-row" style="width:100%;"><div style="text-align:center;min-width:64px"><div class="uv-big" style="color:${color}">${uviVal.toFixed(1)}</div><div style="font-size:11px;font-weight:600;color:${color};margin-top:3px">${label}</div>${maxUvDayHtml}</div><div class="uv-scale-wrap"><div style="font-size:10px;color:var(--text-muted);margin-bottom:6px">Index UV global</div><div class="uv-scale-bar"><div class="uv-marker" style="left:${pctUV}%"></div></div><div class="uv-scale-nums"><span>0</span><span>3</span><span>6</span><span>8</span><span>11+</span></div>${solarVal!==null?`<div style="margin-top:10px;font-size:12px;color:var(--text-muted)">Énergie solaire : <strong style="color:var(--neon-orange)">${solarVal} W/m²</strong></div>`:''}</div></div></div>`;
     blocks.uv = wrapRow('uv', uvContent);
   }
   
+  // --- CADRE VENT (Ajustement de la charte graphique & Max jour) ---
   if(!isNaN(windDeg)){
-    const tBlock=tPts.length>=2?`<div class="wind-trend-row" style="width:100%;">${tPts.map(p=>`<div class="wind-trend-item"><canvas class="mini-compass-canvas" data-deg="${p.deg}"></canvas><span class="wind-trend-time">${String(p.t.getHours()).padStart(2,'0')}:${String(p.t.getMinutes()).padStart(2,'0')}</span><span class="wind-trend-dir">${toCard(p.deg)}</span></div>`).join('')}</div>`:'';
-    let windContent = `<div class="kpi-box full" style="margin-bottom:0;"><div class="section-title" style="text-align:left">💨 Vitesse & Direction du Vent</div><div class="compass-wrap" style="width:100%;"><canvas id="compass-canvas"></canvas><div class="compass-meta"><div><span>Moyen</span><strong class="color-wind">${windKmh} <span style="font-size:11px;font-weight:400">km/h</span></strong></div><div class="meta-center"><span>Direction</span><strong style="color:var(--neon-blue)">${windDeg}° ${toCard(windDeg)}</strong></div><div><span>Rafale</span><strong class="color-wind">${windGust??'—'} <span style="font-size:11px;font-weight:400">km/h</span></strong></div></div></div>${tBlock}</div>`;
+    const windColor = 'var(--neon-orange)';
+    const windStyle = `background: linear-gradient(135deg, color-mix(in srgb, ${windColor} 14%, transparent) 0%, rgba(15, 23, 42, 0.75) 100%); border: 1px solid color-mix(in srgb, ${windColor} 30%, transparent); box-shadow: 0 10px 25px rgba(0,0,0,.4); background-clip: padding-box; margin-bottom:0;`;
+    const maxWindDayHtml = wMaxSpeed !== null ? `<div style="text-align:center; font-size:11px; color:var(--text-muted); margin-top:10px; padding:4px 0; border-top:1px dashed rgba(255,255,255,0.06);"><span style="color:var(--neon-orange); font-weight:600;">↑ Plus rapide aujourd'hui : ${wMaxSpeed} km/h</span></div>` : '';
+    const tBlock=tPts.length>=2?`<div class="wind-trend-row" style="width:100%; border-top:1px solid rgba(255,255,255,0.08);">${tPts.map(p=>`<div class="wind-trend-item"><canvas class="mini-compass-canvas" data-deg="${p.deg}"></canvas><span class="wind-trend-time">${String(p.t.getHours()).padStart(2,'0')}:${String(p.t.getMinutes()).padStart(2,'0')}</span><span class="wind-trend-dir">${toCard(p.deg)}</span></div>`).join('')}</div>`:'';
+    
+    let windContent = `<div class="kpi-box full" style="${windStyle}"><div class="section-title" style="text-align:left">💨 Vitesse & Direction du Vent</div><div class="compass-wrap" style="width:100%;"><canvas id="compass-canvas"></canvas><div class="compass-meta"><div><span>Moyen</span><strong class="color-wind">${windKmh} <span style="font-size:11px;font-weight:400">km/h</span></strong></div><div class="meta-center"><span>Direction</span><strong style="color:var(--neon-blue)">${windDeg}° ${toCard(windDeg)}</strong></div><div><span>Rafale</span><strong class="color-wind">${windGust??'—'} <span style="font-size:11px;font-weight:400">km/h</span></strong></div></div></div>${maxWindDayHtml}${tBlock}</div>`;
     blocks.wind = wrapRow('wind', windContent);
   }
   
-  // --- CADRE RAIN (Précipitations) --- Style Air Quality & Teinte Pluie Aqua-Blue
+  // --- CADRE RAIN (Précipitations) ---
   if(rf){
     const hv=rf.hourly?.value, ev=rf.event?.value, dv=rf.daily?.value, wv=rf.weekly?.value, mv=rf.monthly?.value, yv=rf.yearly?.value;
     const rainColor = 'var(--neon-blue)';
@@ -1087,7 +1109,6 @@ function renderLiveGrid(data,trend,nm1,fc,aq){
     if (blocks[key]) finalHtml += blocks[key];
   });
   
-  // Sécurité pour parer à tout ajout futur non indexé
   Object.keys(blocks).forEach(key => {
     if (!rowOrder.includes(key)) finalHtml += blocks[key];
   });
@@ -1095,7 +1116,6 @@ function renderLiveGrid(data,trend,nm1,fc,aq){
   grid.innerHTML = finalHtml; 
   el('sync-time').innerText=`Mise à jour : ${new Date().toLocaleTimeString('fr-FR')}`;
   
-  // Maintien des activations de styles si rafraîchissement pendant mode réorganisation actif
   if (isReorderMode) grid.classList.add('reorder-active');
   
   const mc=el('moon-canvas'); if(mc) drawMoonPhase(mc,moon.age);
@@ -1150,7 +1170,6 @@ function buildCharts(data){
     borderRadius:4,backgroundColor:'rgba(167,139,250,0.4)',borderColor:'#a78bfa',borderWidth:1
   }],base);
 
-  // Application du multiplicateur de vent sur les graphiques de données historiques
   const wOpts={...base,plugins:{...base.plugins,legend:{display:true,labels:{color:'#94a3b8',font:{size:10},boxWidth:12}}}};
   initChart('windChart','bar',labels,[
     {type:'bar',label:'Rafales',data:ts.map(t=>gO[t]!==undefined?Math.round(parseFloat(gO[t])*mult*10)/10:0),backgroundColor:'rgba(251,191,36,.18)',borderColor:'rgba(251,191,36,.5)',borderWidth:1,borderRadius:2},
