@@ -213,6 +213,157 @@ input:focus{outline:none;border-color:var(--neon-blue);box-shadow:0 0 10px rgba(
   outline-offset: 4px;
   border-radius: 14px;
 }
+
+/* ══ MODAL TEMPÉRATURE ══ */
+#temp-modal-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  background: rgba(0,0,0,0.72);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  align-items: flex-end;
+  justify-content: center;
+  padding: 0;
+  animation: fadeIn 0.2s ease;
+}
+#temp-modal-overlay.open {
+  display: flex;
+}
+.temp-modal-card {
+  width: 100%;
+  max-width: 480px;
+  background: rgba(12,18,38,0.97);
+  backdrop-filter: blur(40px);
+  -webkit-backdrop-filter: blur(40px);
+  border: 1px solid rgba(255,255,255,0.10);
+  border-bottom: none;
+  border-radius: 24px 24px 0 0;
+  padding: 24px 18px calc(28px + env(safe-area-inset-bottom));
+  box-shadow: 0 -20px 60px rgba(0,0,0,0.7), inset 0 1px 1px rgba(255,255,255,0.07);
+  position: relative;
+  max-height: 88vh;
+  overflow-y: auto;
+  animation: slideUp 0.28s cubic-bezier(.32,1.2,.55,1) forwards;
+}
+@keyframes slideUp {
+  from { transform: translateY(100%); opacity: 0.4; }
+  to   { transform: translateY(0);    opacity: 1; }
+}
+/* Poignée de tirage */
+.temp-modal-handle {
+  width: 40px;
+  height: 4px;
+  background: rgba(255,255,255,0.18);
+  border-radius: 2px;
+  margin: 0 auto 20px;
+}
+.temp-modal-close {
+  position: absolute;
+  top: 18px;
+  right: 16px;
+  background: rgba(255,255,255,0.09);
+  border: 1px solid rgba(255,255,255,0.13);
+  color: var(--text-muted);
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  font-size: 15px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  line-height: 1;
+}
+.temp-modal-close:active {
+  background: rgba(255,255,255,0.2);
+  color: var(--text-main);
+  transform: scale(0.93);
+}
+.temp-modal-title {
+  font-size: 17px;
+  font-weight: 700;
+  margin: 0 0 16px;
+  letter-spacing: 0.2px;
+}
+/* Toggle période */
+.temp-period-toggle {
+  display: flex;
+  background: rgba(30,41,59,.5);
+  border: var(--glass-border);
+  border-radius: 20px;
+  padding: 3px;
+  margin-bottom: 16px;
+}
+.temp-period-btn {
+  flex: 1;
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  padding: 9px;
+  font-size: 12px;
+  font-weight: 600;
+  border-radius: 17px;
+  cursor: pointer;
+  transition: all .2s;
+}
+.temp-period-btn.active {
+  background: rgba(255,255,255,.13);
+  color: var(--text-main);
+  box-shadow: 0 2px 8px rgba(0,0,0,.3);
+}
+/* Stats rapides */
+.temp-stats-row {
+  display: grid;
+  grid-template-columns: repeat(3,1fr);
+  gap: 8px;
+  margin-bottom: 16px;
+}
+.temp-stat-box {
+  background: rgba(30,41,59,.45);
+  border: var(--glass-border);
+  border-radius: 12px;
+  padding: 11px 8px;
+  text-align: center;
+}
+.temp-stat-val {
+  font-size: 19px;
+  font-weight: 700;
+  line-height: 1.1;
+}
+.temp-stat-label {
+  font-size: 9px;
+  color: var(--text-muted);
+  margin-top: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+}
+/* Zone graphique */
+.temp-chart-container {
+  position: relative;
+  height: 220px;
+  width: 100%;
+}
+/* Indicateur cliquable sur la carte température */
+.temp-click-hint {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  font-size: 9px;
+  color: rgba(255,255,255,0.28);
+  margin-top: 10px;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+}
+.temp-box-clickable {
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
+}
+.temp-box-clickable:active {
+  transform: scale(0.97);
+}
 </style>
 </head>
 <body>
@@ -317,6 +468,48 @@ input:focus{outline:none;border-color:var(--neon-blue);box-shadow:0 0 10px rgba(
 </div>
 </div>
 
+<!-- ══════════════════════════════════════════════
+     MODAL HISTORIQUE TEMPÉRATURES
+     ══════════════════════════════════════════════ -->
+<div id="temp-modal-overlay" onclick="handleModalOverlayClick(event)">
+  <div class="temp-modal-card" id="temp-modal-card">
+    <div class="temp-modal-handle"></div>
+    <button class="temp-modal-close" onclick="closeTempModal()" aria-label="Fermer">✕</button>
+    <div class="temp-modal-title">🌡️ Températures Min / Max</div>
+
+    <!-- Toggle Année / Mois -->
+    <div class="temp-period-toggle">
+      <button class="temp-period-btn active" id="ttog-year"  onclick="switchTempPeriod('year')">Cette année</button>
+      <button class="temp-period-btn"        id="ttog-month" onclick="switchTempPeriod('month')">Ce mois</button>
+    </div>
+
+    <!-- Stats rapides -->
+    <div class="temp-stats-row" id="temp-stats-row">
+      <!-- rempli dynamiquement -->
+    </div>
+
+    <!-- Graphique -->
+    <div class="temp-chart-container" id="temp-chart-container">
+      <div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--text-muted);font-size:13px">
+        ⏳ Chargement…
+      </div>
+    </div>
+
+    <!-- Légende -->
+    <div style="display:flex;gap:16px;justify-content:center;margin-top:12px">
+      <div style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text-muted)">
+        <span style="width:20px;height:2px;background:#f97316;display:inline-block;border-radius:1px"></span> Max
+      </div>
+      <div style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text-muted)">
+        <span style="width:20px;height:2px;background:#38bdf8;display:inline-block;border-radius:1px"></span> Min
+      </div>
+      <div style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text-muted)">
+        <span style="width:14px;height:10px;background:rgba(167,139,250,0.18);display:inline-block;border-radius:2px;border:1px solid rgba(167,139,250,0.35)"></span> Amplitude
+      </div>
+    </div>
+  </div>
+</div>
+
 <script>
 /* STATE */
 let currentRange='24h',charts={},historyCache={};
@@ -332,6 +525,10 @@ try {
   const savedOrder = localStorage.getItem('weather_row_order');
   if(savedOrder) rowOrder = JSON.parse(savedOrder);
 } catch(e) { console.error(e); }
+
+// ── Cache et état modal température ──
+let tempHistoryCache = {};
+let tempModalPeriod = 'year';
 
 /* INIT */
 document.addEventListener('DOMContentLoaded',()=>{
@@ -448,13 +645,16 @@ async function saveSettings(){
   localStorage.setItem('ecowitt_t_uv_critique',el('s-t-uv-critique').value.trim());
   localStorage.setItem('ecowitt_wind_multiplier',el('s-w-multiplier').value.trim() || '1.0');
   
-  historyCache={};lyRainCache=null;forecastCache=null;aqCache=null;checkCredsUI();startAutoRefresh();
+  historyCache={};lyRainCache=null;forecastCache=null;aqCache=null;
+  tempHistoryCache={};   // reset cache température modal
+  checkCredsUI();startAutoRefresh();
   fb.style.color='var(--neon-green)';fb.innerText='✓ Connexion établie';
   setTimeout(()=>{switchSubTab('live');refreshLive();},800);
 }
 function clearSettings(){
   if(!confirm('Réinitialiser vos identifiants Ecowitt et vos alertes ?'))return;
-  clearInterval(autoRefreshTimer);historyCache={};lyRainCache=null;forecastCache=null;aqCache=null;detectedCity="";
+  clearInterval(autoRefreshTimer);historyCache={};lyRainCache=null;forecastCache=null;aqCache=null;
+  detectedCity="";tempHistoryCache={};
   ['ecowitt_app_key','ecowitt_api_key','ecowitt_mac','ecowitt_lat','ecowitt_lon','ecowitt_t_gel','ecowitt_t_vent_fort','ecowitt_t_vent_tempete','ecowitt_t_uv_eleve','ecowitt_t_uv_critique','ecowitt_wind_multiplier'].forEach(k=>localStorage.removeItem(k));
   ['s-app-key','s-api-key','s-mac','s-lat','s-lon','s-t-gel','s-t-vent-fort','s-t-vent-tempete','s-t-uv-eleve','s-t-uv-critique','s-w-multiplier'].forEach(id=>el(id).value='');
   el('settings-feedback').style.display='none';checkCredsUI();
@@ -474,7 +674,6 @@ async function fetchLiveData(appKey,apiKey,mac){
   const j=await r.json();return(j.code===0&&j.data)?j.data:false;
 }
 
-/* TENDANCES : on récupère maintenant aussi la vitesse/rafales du vent et l'UV du jour */
 async function fetchRecentTrend(appKey,apiKey,mac){
   const now=new Date(),midnight=new Date(now);midnight.setHours(0,0,0,0);
   const r=await fetchWTimeout(`https://api.ecowitt.net/api/v3/device/history?application_key=${appKey}&api_key=${apiKey}&mac=${mac}&start_date=${encodeURIComponent(fmtDate(midnight))}&end_date=${encodeURIComponent(fmtDate(now))}&cycle=1800&call_back=wind.wind_direction,wind.wind_speed,wind.wind_gust,solar_and_uvi.uvi,pressure.relative,outdoor.temperature,outdoor.humidity&pressure_unitid=3&temp_unitid=1&wind_speed_unitid=7`);
@@ -532,6 +731,260 @@ async function refreshLive(){
   startAutoRefresh();
 }
 
+/* ══════════════════════════════════════════════════════
+   MODAL TEMPÉRATURE — HISTORIQUE MIN / MAX
+   ══════════════════════════════════════════════════════ */
+
+function openTempModal() {
+  if (!hasCredentials()) return;
+  const overlay = el('temp-modal-overlay');
+  overlay.classList.add('open');
+  document.body.style.overflow = 'hidden';
+  // Reset au cas où on revient sur la modale
+  el('ttog-year').classList.add('active');
+  el('ttog-month').classList.remove('active');
+  tempModalPeriod = 'year';
+  loadTempHistory('year');
+}
+
+function closeTempModal() {
+  const overlay = el('temp-modal-overlay');
+  overlay.classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+function handleModalOverlayClick(e) {
+  // Ferme si clic sur le fond noir, pas sur la carte
+  if (e.target === el('temp-modal-overlay')) closeTempModal();
+}
+
+function switchTempPeriod(period) {
+  if (period === tempModalPeriod) return;
+  tempModalPeriod = period;
+  el('ttog-year').classList.toggle('active', period === 'year');
+  el('ttog-month').classList.toggle('active', period === 'month');
+  loadTempHistory(period);
+}
+
+async function loadTempHistory(period) {
+  // Utilise le cache si dispo
+  if (tempHistoryCache[period]) {
+    renderTempModal(tempHistoryCache[period], period);
+    return;
+  }
+
+  // Affiche le loader
+  el('temp-chart-container').innerHTML = `
+    <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:10px;color:var(--text-muted);">
+      <div style="font-size:26px">⏳</div>
+      <div style="font-size:12px">Récupération des données…</div>
+    </div>`;
+  el('temp-stats-row').innerHTML = '';
+
+  const { appKey, apiKey, mac } = getCreds();
+  const now = new Date();
+  let start, cycle;
+
+  if (period === 'year') {
+    // Depuis le 1er janvier de l'année en cours, pas 4h par point
+    start = new Date(now.getFullYear(), 0, 1);
+    cycle = '14400';   // 4h → ~6 points/jour → assez pour min/max fidèles
+  } else {
+    // Depuis le 1er du mois en cours, 30min par point
+    start = new Date(now.getFullYear(), now.getMonth(), 1);
+    cycle = '1800';    // 30min → très précis
+  }
+
+  try {
+    const url = `https://api.ecowitt.net/api/v3/device/history?application_key=${appKey}&api_key=${apiKey}&mac=${mac}&start_date=${encodeURIComponent(fmtDate(start))}&end_date=${encodeURIComponent(fmtDate(now))}&cycle=${cycle}&call_back=outdoor.temperature&temp_unitid=1`;
+    const r = await fetchWTimeout(url, 14000);
+    const j = await r.json();
+
+    if (j.code !== 0 || !j.data) {
+      el('temp-chart-container').innerHTML = `<div style="text-align:center;color:var(--neon-red);padding:24px;font-size:13px">❌ Erreur API (${j.code}) : ${j.msg || 'données indisponibles'}</div>`;
+      return;
+    }
+
+    tempHistoryCache[period] = j.data;
+    renderTempModal(j.data, period);
+
+  } catch (e) {
+    el('temp-chart-container').innerHTML = `<div style="text-align:center;color:var(--neon-red);padding:24px;font-size:13px">❌ Erreur réseau : ${e.message}</div>`;
+  }
+}
+
+function renderTempModal(data, period) {
+  const list = data.outdoor?.temperature?.list || {};
+  const keys = Object.keys(list).sort((a, b) => Number(a) - Number(b));
+
+  if (!keys.length) {
+    el('temp-chart-container').innerHTML = '<div style="text-align:center;color:var(--text-muted);padding:24px">Aucune donnée disponible pour cette période.</div>';
+    el('temp-stats-row').innerHTML = '';
+    return;
+  }
+
+  // Grouper par jour → min / max
+  const dayMap = {};
+  keys.forEach(ts => {
+    const d   = new Date(parseInt(ts) * 1000);
+    const key = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+    const val = parseFloat(list[ts]);
+    if (isNaN(val)) return;
+    if (!dayMap[key]) dayMap[key] = { min: val, max: val };
+    else {
+      if (val < dayMap[key].min) dayMap[key].min = val;
+      if (val > dayMap[key].max) dayMap[key].max = val;
+    }
+  });
+
+  const days    = Object.keys(dayMap).sort();
+  const minVals = days.map(d => Math.round(dayMap[d].min * 10) / 10);
+  const maxVals = days.map(d => Math.round(dayMap[d].max * 10) / 10);
+
+  // Labels axe X
+  const labels = days.map(d => {
+    const [, mm, dd] = d.split('-');
+    return period === 'year'
+      ? `${parseInt(dd)}/${parseInt(mm)}`   // ex : 3/6
+      : `${parseInt(dd)}`;                  // ex : 3
+  });
+
+  // ── Stats rapides ──
+  const absMax         = Math.max(...maxVals);
+  const absMin         = Math.min(...minVals);
+  const avgAmplitude   = Math.round(
+    days.reduce((s, d) => s + (dayMap[d].max - dayMap[d].min), 0) / days.length * 10
+  ) / 10;
+
+  // Dates des records
+  const maxDay = days[maxVals.indexOf(absMax)];
+  const minDay = days[minVals.indexOf(absMin)];
+  const fmtDayLabel = d => { const [, mm, dd] = d.split('-'); return `${parseInt(dd)}/${parseInt(mm)}`; };
+
+  el('temp-stats-row').innerHTML = `
+    <div class="temp-stat-box">
+      <div class="temp-stat-val" style="color:#f97316">↑ ${absMax}°</div>
+      <div class="temp-stat-label" style="margin-top:5px">Record max</div>
+      <div style="font-size:9px;color:rgba(249,115,22,0.55);margin-top:2px">${fmtDayLabel(maxDay)}</div>
+    </div>
+    <div class="temp-stat-box">
+      <div class="temp-stat-val" style="color:#38bdf8">↓ ${absMin}°</div>
+      <div class="temp-stat-label" style="margin-top:5px">Record min</div>
+      <div style="font-size:9px;color:rgba(56,189,248,0.55);margin-top:2px">${fmtDayLabel(minDay)}</div>
+    </div>
+    <div class="temp-stat-box">
+      <div class="temp-stat-val" style="color:#a78bfa">${avgAmplitude}°</div>
+      <div class="temp-stat-label" style="margin-top:5px">Amplitude moy.</div>
+      <div style="font-size:9px;color:rgba(167,139,250,0.45);margin-top:2px">par jour</div>
+    </div>`;
+
+  // ── Graphique ──
+  el('temp-chart-container').innerHTML = '<canvas id="tempModalChart"></canvas>';
+  const ctx = el('tempModalChart').getContext('2d');
+
+  if (charts['tempModal']) { charts['tempModal'].destroy(); delete charts['tempModal']; }
+
+  const tickLimit = period === 'year' ? 12 : (days.length <= 15 ? days.length : 10);
+
+  charts['tempModal'] = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [
+        {
+          label: 'Max',
+          data: maxVals,
+          borderColor: '#f97316',
+          backgroundColor: 'rgba(249,115,22,0.00)',
+          borderWidth: 2,
+          fill: false,
+          tension: 0.35,
+          pointRadius: 0,
+          pointHoverRadius: 4,
+          spanGaps: true,
+          order: 1
+        },
+        {
+          label: 'Min',
+          data: minVals,
+          borderColor: '#38bdf8',
+          backgroundColor: 'rgba(167,139,250,0.13)',
+          borderWidth: 2,
+          fill: '-1',          // remplit la zone entre Min et Max
+          tension: 0.35,
+          pointRadius: 0,
+          pointHoverRadius: 4,
+          spanGaps: true,
+          order: 2
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: 'rgba(8,14,32,0.96)',
+          titleColor: '#f3f4f6',
+          bodyColor: '#94a3b8',
+          borderColor: 'rgba(255,255,255,0.10)',
+          borderWidth: 1,
+          padding: 11,
+          cornerRadius: 10,
+          callbacks: {
+            title: items => {
+              const day = days[items[0].dataIndex];
+              const [yr, mm, dd] = day.split('-');
+              const months = ['Jan','Fév','Mar','Avr','Mai','Jun','Jul','Aoû','Sep','Oct','Nov','Déc'];
+              return `${parseInt(dd)} ${months[parseInt(mm)-1]} ${yr}`;
+            },
+            label: item => {
+              const icon = item.datasetIndex === 0 ? '↑' : '↓';
+              const color = item.datasetIndex === 0 ? '#f97316' : '#38bdf8';
+              return `  ${icon} ${item.dataset.label} : ${item.parsed.y}°C`;
+            },
+            afterBody: items => {
+              if (items.length >= 2) {
+                const mx = items[0].parsed.y;
+                const mn = items[1].parsed.y;
+                return [`  ↔ Amplitude : ${Math.round((mx - mn)*10)/10}°C`];
+              }
+              return [];
+            }
+          }
+        }
+      },
+      scales: {
+        x: {
+          ticks: {
+            color: '#64748b',
+            font: { size: 10 },
+            maxTicksLimit: tickLimit,
+            maxRotation: 0
+          },
+          grid: { display: false },
+          border: { color: 'rgba(255,255,255,0.04)' }
+        },
+        y: {
+          ticks: {
+            color: '#64748b',
+            font: { size: 10 },
+            callback: v => v + '°'
+          },
+          grid: { color: 'rgba(255,255,255,0.04)' },
+          border: { color: 'rgba(255,255,255,0.04)' }
+        }
+      }
+    }
+  });
+}
+
+/* ══════════════════════════════════════════════════════
+   FIN MODAL TEMPÉRATURE
+   ══════════════════════════════════════════════════════ */
+
 /* LOGIQUE D'ANALYSE MATHÉMATIQUE */
 function getSunTimes(lat,lon){
   const D=Math.PI/180,R=180/Math.PI,now=new Date();
@@ -552,7 +1005,6 @@ function getSunTimes(lat,lon){
   return{sunrise:calc(true),sunset:calc(false)};
 }
 
-/* LOOK ARC-EN-CIEL PALIERS TEMPÉRATURE & BAROMÈTRE */
 function getRainbowTempColor(t) {
   const ts = Math.round(t / 2) * 2;
   if (ts <= 0) return '#ffffff';
@@ -571,12 +1023,6 @@ function getBaroColor(p) {
   return '#ea580c';
 }
 
-/* ─────────────────────────────────────────────────────────
-   CADRE SOLEIL & AMBIANCE — thème dynamique lissé
-   Retourne { style, starsOpacity }
-   • dayFactor : 0 = nuit, 1 = plein jour
-   • Transition lissée sur ±30 min autour du lever/coucher
-   ───────────────────────────────────────────────────────── */
 function getSunCardStyle(sun, rainRate) {
   if (!sun || !sun.sunrise || !sun.sunset) {
     return { style: 'background:rgba(30,41,59,.3); border:var(--glass-border); position:relative; overflow:hidden;', starsOpacity: 0 };
@@ -588,7 +1034,6 @@ function getSunCardStyle(sun, rainRate) {
   const s = mToMin(sun.sunset);
   const isRain = rainRate > 0;
 
-  // dayFactor : 0 = pleine nuit, 1 = plein jour, transition lissée ±30 min
   let dayFactor;
   if      (nm < r - 30) dayFactor = 0;
   else if (nm < r + 30) dayFactor = (nm - (r - 30)) / 60;
@@ -605,8 +1050,7 @@ function getSunCardStyle(sun, rainRate) {
 
   if (isRain) {
     if (dayFactor <= 0.5) {
-      // Nuit pluvieuse / transition pluvieuse vers la nuit
-      const f = 1 - dayFactor * 2; // 1 = nuit totale, 0 = mi-transition
+      const f = 1 - dayFactor * 2;
       gradient = `linear-gradient(135deg,
         rgba(15,23,42,${(0.85 + f * 0.07).toFixed(2)}) 0%,
         rgba(30,27,75,${(0.40 + f * 0.15).toFixed(2)}) 60%,
@@ -615,26 +1059,22 @@ function getSunCardStyle(sun, rainRate) {
       shadow = `box-shadow: 0 10px 25px rgba(0,0,0,${(0.45 + f * 0.08).toFixed(2)}), inset 0 1px 1px rgba(255,255,255,0.03)`;
       starsOpacity = parseFloat((0.45 * f).toFixed(2));
     } else {
-      // Journée pluvieuse
       gradient = 'linear-gradient(135deg, rgba(30,41,59,0.88) 0%, rgba(71,85,105,0.45) 50%, rgba(15,23,42,0.88) 100%)';
       borderColor = 'rgba(148,163,184,0.25)';
       shadow = 'box-shadow: 0 10px 25px rgba(0,0,0,.4), inset 0 1px 1px rgba(255,255,255,0.12)';
       starsOpacity = 0;
     }
   } else if (dayFactor <= 0) {
-    // Pleine nuit
     gradient = 'linear-gradient(135deg, rgba(8,12,28,0.94) 0%, rgba(15,23,42,0.84) 55%, rgba(30,27,75,0.48) 100%)';
     borderColor = 'rgba(56,189,248,0.14)';
     shadow = 'box-shadow: 0 10px 25px rgba(0,0,0,.52)';
     starsOpacity = 0.88;
   } else if (dayFactor >= 1) {
-    // Plein jour
     gradient = 'linear-gradient(135deg, rgba(251,191,36,0.18) 0%, rgba(217,119,6,0.08) 60%, rgba(15,23,42,0.78) 100%)';
     borderColor = 'rgba(251,191,36,0.28)';
     shadow = 'box-shadow: 0 10px 25px rgba(0,0,0,.4), inset 0 1px 2px rgba(251,191,36,0.18)';
     starsOpacity = 0;
   } else if (isDawn) {
-    // Aube : nuit → jour (f : 0→1)
     const f = dayFactor;
     gradient = `linear-gradient(135deg,
       rgba(251,146,60,${(0.05 + f * 0.22).toFixed(2)}) 0%,
@@ -642,10 +1082,8 @@ function getSunCardStyle(sun, rainRate) {
       rgba(8,12,28,${(0.92 - f * 0.18).toFixed(2)}) 100%)`;
     borderColor = `rgba(249,115,22,${(0.08 + f * 0.24).toFixed(2)})`;
     shadow = `box-shadow: 0 10px 25px rgba(0,0,0,.4), inset 0 1px 2px rgba(251,146,60,${(f * 0.14).toFixed(2)})`;
-    // Étoiles disparaissent progressivement jusqu'à mi-aube (f=0.5 → lever exact)
     starsOpacity = parseFloat((Math.max(0, 0.80 * (1 - f * 2))).toFixed(2));
   } else {
-    // Crépuscule : jour → nuit (f : 0→1)
     const f = 1 - dayFactor;
     gradient = `linear-gradient(135deg,
       rgba(219,39,119,${(0.05 + f * 0.18).toFixed(2)}) 0%,
@@ -653,7 +1091,6 @@ function getSunCardStyle(sun, rainRate) {
       rgba(8,12,28,${(0.72 + f * 0.20).toFixed(2)}) 100%)`;
     borderColor = `rgba(167,139,250,${(0.10 + f * 0.22).toFixed(2)})`;
     shadow = `box-shadow: 0 10px 25px rgba(0,0,0,.4), inset 0 1px 2px rgba(219,39,119,${((1 - f) * 0.08).toFixed(2)})`;
-    // Étoiles apparaissent progressivement à partir de mi-crépuscule (f=0.5 → coucher exact)
     starsOpacity = parseFloat((Math.max(0, 0.80 * (f * 2 - 1))).toFixed(2));
   }
 
@@ -661,7 +1098,6 @@ function getSunCardStyle(sun, rainRate) {
   return { style, starsOpacity };
 }
 
-/* Overlay d'étoiles pour le cadre Soleil (injecté en HTML) */
 function getStarsOverlayHtml(opacity) {
   if (opacity <= 0) return '';
   return `<div style="position:absolute;top:0;left:0;right:0;bottom:0;pointer-events:none;overflow:hidden;border-radius:14px;opacity:${opacity};
@@ -748,7 +1184,7 @@ function drawCompass(canvas,degrees,size){
   if(!mini){ctx.fillStyle='#f3f4f6';ctx.font='700 19px -apple-system,sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(`${degrees}°`,cx,cy-8);ctx.fillStyle='#38bdf8';ctx.font='600 12px -apple-system,sans-serif';ctx.fillText(toCard(degrees),cx,cy+11);}
 }
 
-/* MÉTHODE DE WRAPPING POUR MODE ÉDITION / TRI */
+/* WRAPPING POUR MODE ÉDITION / TRI */
 function wrapRow(id, htmlContent) {
   return `
     <div class="weather-row" data-id="${id}">
@@ -905,7 +1341,6 @@ function renderLiveGrid(data, trend, nm1, fc, aq) {
   const temp = parseFloat(data.outdoor?.temperature?.value);
   const humid = parseFloat(data.outdoor?.humidity?.value);
 
-  // Vent courant avec multiplicateur
   const rawWindKmh = parseFloat(data.wind?.wind_speed?.value) || 0;
   const rawWindGust = data.wind?.wind_gust?.value;
   const windKmh = Math.round(rawWindKmh * mult * 10) / 10;
@@ -919,7 +1354,7 @@ function renderLiveGrid(data, trend, nm1, fc, aq) {
   const solarVal = solarRaw !== null ? parseFloat(solarRaw) : null;
   const rainRate = (rf && rf.hourly && rf.hourly.value) ? parseFloat(rf.hourly.value) : 0;
 
-  /* ── MAX VENT DU JOUR (depuis les tendances depuis minuit) ── */
+  /* MAX VENT DU JOUR */
   let wMax = null, wgMax = null;
   const wsList = trend?.wind?.wind_speed?.list || {};
   Object.values(wsList).forEach(v => {
@@ -932,7 +1367,7 @@ function renderLiveGrid(data, trend, nm1, fc, aq) {
     if (!isNaN(val) && (wgMax === null || val > wgMax)) wgMax = val;
   });
 
-  /* ── MAX UV DU JOUR (depuis les tendances depuis minuit) ── */
+  /* MAX UV DU JOUR */
   let uviMax = null;
   const uviList = trend?.solar_and_uvi?.uvi?.list || {};
   Object.values(uviList).forEach(v => {
@@ -941,7 +1376,7 @@ function renderLiveGrid(data, trend, nm1, fc, aq) {
   });
   if (uviMax !== null) uviMax = Math.round(uviMax * 10) / 10;
 
-  /* ── ALERTES ── */
+  /* ALERTES */
   let alertsHtml = '';
   if (!isNaN(temp)) {
     if (temp <= 0) alertsHtml += `<div class="alert-banner alert-danger">🥶 Alerte Gel : Risque de verglas (${temp}°C)</div>`;
@@ -956,7 +1391,7 @@ function renderLiveGrid(data, trend, nm1, fc, aq) {
   }
   el('alerts-container').innerHTML = alertsHtml;
 
-  /* ── TEMP MIN/MAX DU JOUR ── */
+  /* TEMP MIN/MAX DU JOUR */
   const tList = trend?.outdoor?.temperature?.list || {};
   let tMin = null, tMax = null, tMinTs = null, tMaxTs = null;
   Object.entries(tList).forEach(([ts, v]) => {
@@ -987,7 +1422,6 @@ function renderLiveGrid(data, trend, nm1, fc, aq) {
     const r = mToMin(sun.sunrise);
     const s = mToMin(sun.sunset);
 
-    // dayFactor lissé
     let dayFactor;
     if      (nm < r - 30) dayFactor = 0;
     else if (nm < r + 30) dayFactor = (nm - (r - 30)) / 60;
@@ -998,7 +1432,6 @@ function renderLiveGrid(data, trend, nm1, fc, aq) {
 
     const isDawn = nm >= r - 30 && nm < r + 30;
 
-    // Label contextuel
     let lbl;
     if (rainRate > 0) {
       if (dayFactor <= 0)      lbl = "🌧️ Nuit pluvieuse";
@@ -1012,12 +1445,10 @@ function renderLiveGrid(data, trend, nm1, fc, aq) {
       else                     lbl = "🌇 Coucher du Soleil";
     }
 
-    // Barre 00:00 → 23:59 avec zone jour mise en évidence
     const dayPct = Math.round(nm / 1440 * 100);
     const sunrisePct = Math.round(r / 1440 * 100);
     const sunsetPct  = Math.round(s / 1440 * 100);
 
-    // Texte "prochain lever" si c'est la nuit après le coucher
     const nextSunriseStr = (dayFactor <= 0 && nm > r)
       ? `<div class="next-sunrise">Prochain lever à ${sun.sunrise}</div>` : '';
 
@@ -1057,14 +1488,18 @@ function renderLiveGrid(data, trend, nm1, fc, aq) {
   let tempHtml = '';
   if (!isNaN(temp)) {
     const tempColor = getRainbowTempColor(temp);
-    const tempStyle = `background: linear-gradient(135deg, color-mix(in srgb, ${tempColor} 14%, transparent) 0%, rgba(15,23,42,0.75) 100%); border: 1px solid color-mix(in srgb, ${tempColor} 30%, transparent); box-shadow: 0 10px 25px rgba(0,0,0,.4); background-clip: padding-box; width:100%;`;
-    tempHtml = `<div class="kpi-box" style="${tempStyle}">
+    const tempStyle = `background: linear-gradient(135deg, color-mix(in srgb, ${tempColor} 14%, transparent) 0%, rgba(15,23,42,0.75) 100%); border: 1px solid color-mix(in srgb, ${tempColor} 30%, transparent); box-shadow: 0 10px 25px rgba(0,0,0,.4); background-clip: padding-box; width:100%; cursor:pointer;`;
+    tempHtml = `<div class="kpi-box temp-box-clickable" style="${tempStyle}" onclick="openTempModal()" role="button" aria-label="Voir l'historique des températures">
       <div class="section-title">Température</div>
       <div class="kpi-val" style="color:${tempColor}">${temp} °C</div>
       <div style="display:flex;flex-direction:column;align-items:center;gap:4px;margin-top:6px">
         ${tMin !== null ? `<div style="font-size:11px"><span style="color:var(--neon-blue)">↓ ${tMin}°</span> <span style="color:var(--text-muted)">${fmtHM(tMinTs)}</span></div>` : ''}
         ${tMax !== null ? `<div style="font-size:11px"><span style="color:var(--neon-orange)">↑ ${tMax}°</span> <span style="color:var(--text-muted)">${fmtHM(tMaxTs)}</span></div>` : ''}
         ${fl !== null ? `<div class="kpi-sub">Ressenti ${fl}°</div>` : ''}
+      </div>
+      <div class="temp-click-hint">
+        <span style="font-size:11px">📊</span>
+        <span>Historique</span>
       </div>
     </div>`;
   }
@@ -1113,7 +1548,7 @@ function renderLiveGrid(data, trend, nm1, fc, aq) {
     blocks.aq = wrapRow('aq', aqContent);
   }
 
-  /* ══ BLOC PHASE LUNAIRE — fond étoilé renforcé (24 étoiles) ══ */
+  /* ══ BLOC PHASE LUNAIRE ══ */
   const moonColor = '#fbbf24';
   const moonStyle = `background:
     linear-gradient(135deg, color-mix(in srgb, ${moonColor} 12%, transparent) 0%, rgba(10,16,36,0.90) 100%),
@@ -1168,12 +1603,11 @@ function renderLiveGrid(data, trend, nm1, fc, aq) {
   </div>`;
   blocks.moon = wrapRow('moon', moonContent);
 
-  /* ══ BLOC UV & RAYONNEMENT — avec max du jour ══ */
+  /* ══ BLOC UV & RAYONNEMENT ══ */
   if (uviVal !== null && !isNaN(uviVal)) {
     const { color, label } = uvInfo(uviVal), pctUV = Math.min(uviVal / 11 * 100, 100).toFixed(1);
     const uvStyle = `background: linear-gradient(135deg, color-mix(in srgb, ${color} 14%, transparent) 0%, rgba(15,23,42,0.75) 100%); border: 1px solid color-mix(in srgb, ${color} 30%, transparent); box-shadow: 0 10px 25px rgba(0,0,0,.4); background-clip: padding-box; margin-bottom:0;`;
 
-    // Max UV du jour
     const uviMaxHtml = (uviMax !== null && uviMax !== uviVal)
       ? `<div style="font-size:11px;margin-top:6px"><span style="color:var(--neon-orange)">↑ ${uviMax.toFixed(1)}</span> <span style="color:var(--text-muted)">max aujourd'hui</span></div>`
       : (uviMax !== null ? `<div style="font-size:11px;margin-top:6px;color:var(--text-muted)">🏆 Max aujourd'hui</div>` : '');
@@ -1197,12 +1631,11 @@ function renderLiveGrid(data, trend, nm1, fc, aq) {
     blocks.uv = wrapRow('uv', uvContent);
   }
 
-  /* ══ BLOC VENT — style cohérent avec les autres cadres + max du jour ══ */
+  /* ══ BLOC VENT ══ */
   if (!isNaN(windDeg)) {
     const windCardColor = '#fbbf24';
     const windCardStyle = `background: linear-gradient(135deg, color-mix(in srgb, ${windCardColor} 12%, transparent) 0%, rgba(15,23,42,0.75) 100%); border: 1px solid color-mix(in srgb, ${windCardColor} 25%, transparent); box-shadow: 0 10px 25px rgba(0,0,0,.4); background-clip: padding-box; margin-bottom:0;`;
 
-    // Max vent et rafale du jour
     const windMaxHtml = (wMax !== null || wgMax !== null) ? `
       <div style="display:flex;gap:16px;justify-content:center;margin-top:6px;padding-top:6px;border-top:1px solid rgba(255,255,255,0.06);">
         ${wMax !== null ? `<div style="font-size:11px;text-align:center"><span style="color:var(--neon-orange)">↑ ${wMax}</span> <span style="color:var(--text-muted)">km/h max moy.</span></div>` : ''}
@@ -1295,7 +1728,7 @@ function renderLiveGrid(data, trend, nm1, fc, aq) {
     blocks.pressure = wrapRow('pressure', baroContent);
   }
 
-  /* ── Assemblage final selon l'ordre défini ── */
+  /* Assemblage final selon l'ordre défini */
   let finalHtml = '';
   rowOrder.forEach(key => { if (blocks[key]) finalHtml += blocks[key]; });
   Object.keys(blocks).forEach(key => { if (!rowOrder.includes(key)) finalHtml += blocks[key]; });
