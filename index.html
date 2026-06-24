@@ -251,7 +251,6 @@ input:focus{outline:none;border-color:var(--neon-blue);box-shadow:0 0 10px rgba(
   from { transform: translateY(100%); opacity: 0.4; }
   to   { transform: translateY(0);    opacity: 1; }
 }
-/* Poignée de tirage */
 .temp-modal-handle {
   width: 40px;
   height: 4px;
@@ -288,7 +287,6 @@ input:focus{outline:none;border-color:var(--neon-blue);box-shadow:0 0 10px rgba(
   margin: 0 0 16px;
   letter-spacing: 0.2px;
 }
-/* Toggle période */
 .temp-period-toggle {
   display: flex;
   background: rgba(30,41,59,.5);
@@ -314,7 +312,6 @@ input:focus{outline:none;border-color:var(--neon-blue);box-shadow:0 0 10px rgba(
   color: var(--text-main);
   box-shadow: 0 2px 8px rgba(0,0,0,.3);
 }
-/* Stats rapides */
 .temp-stats-row {
   display: grid;
   grid-template-columns: repeat(3,1fr);
@@ -340,23 +337,10 @@ input:focus{outline:none;border-color:var(--neon-blue);box-shadow:0 0 10px rgba(
   text-transform: uppercase;
   letter-spacing: 0.6px;
 }
-/* Zone graphique */
 .temp-chart-container {
   position: relative;
   height: 220px;
   width: 100%;
-}
-/* Indicateur cliquable sur la carte température */
-.temp-click-hint {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 4px;
-  font-size: 9px;
-  color: rgba(255,255,255,0.28);
-  margin-top: 10px;
-  letter-spacing: 0.4px;
-  text-transform: uppercase;
 }
 .temp-box-clickable {
   transition: transform 0.18s ease, box-shadow 0.18s ease;
@@ -477,25 +461,19 @@ input:focus{outline:none;border-color:var(--neon-blue);box-shadow:0 0 10px rgba(
     <button class="temp-modal-close" onclick="closeTempModal()" aria-label="Fermer">✕</button>
     <div class="temp-modal-title">🌡️ Températures Min / Max</div>
 
-    <!-- Toggle Année / Mois -->
     <div class="temp-period-toggle">
       <button class="temp-period-btn active" id="ttog-year"  onclick="switchTempPeriod('year')">Cette année</button>
       <button class="temp-period-btn"        id="ttog-month" onclick="switchTempPeriod('month')">Ce mois</button>
     </div>
 
-    <!-- Stats rapides -->
-    <div class="temp-stats-row" id="temp-stats-row">
-      <!-- rempli dynamiquement -->
-    </div>
+    <div class="temp-stats-row" id="temp-stats-row"></div>
 
-    <!-- Graphique -->
     <div class="temp-chart-container" id="temp-chart-container">
       <div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--text-muted);font-size:13px">
         ⏳ Chargement…
       </div>
     </div>
 
-    <!-- Légende -->
     <div style="display:flex;gap:16px;justify-content:center;margin-top:12px">
       <div style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text-muted)">
         <span style="width:20px;height:2px;background:#f97316;display:inline-block;border-radius:1px"></span> Max
@@ -517,7 +495,6 @@ let lyRainCache=null,forecastCache=null,forecastCacheTime=0,autoRefreshTimer=nul
 let aqCache=null,aqCacheTime=0;
 let detectedCity="";
 
-// États liés à l'agencement et la réorganisation
 let isReorderMode = false;
 let lastRenderedData = null;
 let rowOrder = ['sun', 'temphum', 'forecast', 'aq', 'moon', 'uv', 'wind', 'rain', 'pressure'];
@@ -526,9 +503,12 @@ try {
   if(savedOrder) rowOrder = JSON.parse(savedOrder);
 } catch(e) { console.error(e); }
 
-// ── Cache et état modal température ──
 let tempHistoryCache = {};
 let tempModalPeriod = 'year';
+
+/* MOIS FR */
+const MONTHS_FR = ['jan','fév','mar','avr','mai','juin','juil','aoû','sep','oct','nov','déc'];
+const MONTHS_FR_LONG = ['janvier','février','mars','avril','mai','juin','juillet','août','septembre','octobre','novembre','décembre'];
 
 /* INIT */
 document.addEventListener('DOMContentLoaded',()=>{
@@ -583,7 +563,7 @@ function startAutoRefresh(){
   },5*60*1000);
 }
 
-/* GEOLOCALISATION NATIVE */
+/* GEOLOCALISATION */
 function askGPS(){
   if(!navigator.geolocation){alert("La géolocalisation n'est pas supportée par votre iPhone.");return;}
   const btn=event.target,orig=btn.innerText; btn.innerText="⌛ Recherche satellite...";
@@ -598,7 +578,7 @@ function askGPS(){
   },{enableHighAccuracy:true,timeout:8000});
 }
 
-/* NOM DE LA VILLE VIA COORDONNÉES */
+/* NOM DE LA VILLE */
 async function fetchCityName() {
   if(!hasGPS()) return;
   const {lat, lon} = getCreds();
@@ -646,7 +626,7 @@ async function saveSettings(){
   localStorage.setItem('ecowitt_wind_multiplier',el('s-w-multiplier').value.trim() || '1.0');
   
   historyCache={};lyRainCache=null;forecastCache=null;aqCache=null;
-  tempHistoryCache={};   // reset cache température modal
+  tempHistoryCache={};
   checkCredsUI();startAutoRefresh();
   fb.style.color='var(--neon-green)';fb.innerText='✓ Connexion établie';
   setTimeout(()=>{switchSubTab('live');refreshLive();},800);
@@ -660,7 +640,7 @@ function clearSettings(){
   el('settings-feedback').style.display='none';checkCredsUI();
 }
 
-/* TIMEOUT RÉSEAU (8 SECONDES) */
+/* TIMEOUT RÉSEAU */
 async function fetchWTimeout(url,ms=8000){
   const ctrl=new AbortController(),id=setTimeout(()=>ctrl.abort(),ms);
   try{const res=await fetch(url,{signal:ctrl.signal});clearTimeout(id);return res;}
@@ -740,7 +720,6 @@ function openTempModal() {
   const overlay = el('temp-modal-overlay');
   overlay.classList.add('open');
   document.body.style.overflow = 'hidden';
-  // Reset au cas où on revient sur la modale
   el('ttog-year').classList.add('active');
   el('ttog-month').classList.remove('active');
   tempModalPeriod = 'year';
@@ -754,7 +733,6 @@ function closeTempModal() {
 }
 
 function handleModalOverlayClick(e) {
-  // Ferme si clic sur le fond noir, pas sur la carte
   if (e.target === el('temp-modal-overlay')) closeTempModal();
 }
 
@@ -767,13 +745,11 @@ function switchTempPeriod(period) {
 }
 
 async function loadTempHistory(period) {
-  // Utilise le cache si dispo
   if (tempHistoryCache[period]) {
     renderTempModal(tempHistoryCache[period], period);
     return;
   }
 
-  // Affiche le loader
   el('temp-chart-container').innerHTML = `
     <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:10px;color:var(--text-muted);">
       <div style="font-size:26px">⏳</div>
@@ -786,18 +762,19 @@ async function loadTempHistory(period) {
   let start, cycle;
 
   if (period === 'year') {
-    // Depuis le 1er janvier de l'année en cours, pas 4h par point
+    // Depuis le 1er janvier de l'année en cours
+    // Cycle 1h → 24 points/jour → capture fidèle des vraies min/max journalières
     start = new Date(now.getFullYear(), 0, 1);
-    cycle = '14400';   // 4h → ~6 points/jour → assez pour min/max fidèles
+    cycle = '3600';
   } else {
     // Depuis le 1er du mois en cours, 30min par point
     start = new Date(now.getFullYear(), now.getMonth(), 1);
-    cycle = '1800';    // 30min → très précis
+    cycle = '1800';
   }
 
   try {
     const url = `https://api.ecowitt.net/api/v3/device/history?application_key=${appKey}&api_key=${apiKey}&mac=${mac}&start_date=${encodeURIComponent(fmtDate(start))}&end_date=${encodeURIComponent(fmtDate(now))}&cycle=${cycle}&call_back=outdoor.temperature&temp_unitid=1`;
-    const r = await fetchWTimeout(url, 14000);
+    const r = await fetchWTimeout(url, 18000);
     const j = await r.json();
 
     if (j.code !== 0 || !j.data) {
@@ -845,32 +822,36 @@ function renderTempModal(data, period) {
   const labels = days.map(d => {
     const [, mm, dd] = d.split('-');
     return period === 'year'
-      ? `${parseInt(dd)}/${parseInt(mm)}`   // ex : 3/6
-      : `${parseInt(dd)}`;                  // ex : 3
+      ? `${parseInt(dd)} ${MONTHS_FR[parseInt(mm)-1]}`
+      : `${parseInt(dd)}`;
   });
 
+  // ── Format date long pour les stats : "23 juin 26" ──
+  const fmtDayLabel = d => {
+    const [yr, mm, dd] = d.split('-');
+    return `${parseInt(dd)} ${MONTHS_FR[parseInt(mm)-1]} ${String(yr).slice(2)}`;
+  };
+
   // ── Stats rapides ──
-  const absMax         = Math.max(...maxVals);
-  const absMin         = Math.min(...minVals);
-  const avgAmplitude   = Math.round(
+  const absMax       = Math.max(...maxVals);
+  const absMin       = Math.min(...minVals);
+  const avgAmplitude = Math.round(
     days.reduce((s, d) => s + (dayMap[d].max - dayMap[d].min), 0) / days.length * 10
   ) / 10;
 
-  // Dates des records
   const maxDay = days[maxVals.indexOf(absMax)];
   const minDay = days[minVals.indexOf(absMin)];
-  const fmtDayLabel = d => { const [, mm, dd] = d.split('-'); return `${parseInt(dd)}/${parseInt(mm)}`; };
 
   el('temp-stats-row').innerHTML = `
     <div class="temp-stat-box">
       <div class="temp-stat-val" style="color:#f97316">↑ ${absMax}°</div>
       <div class="temp-stat-label" style="margin-top:5px">Record max</div>
-      <div style="font-size:9px;color:rgba(249,115,22,0.55);margin-top:2px">${fmtDayLabel(maxDay)}</div>
+      <div style="font-size:9px;color:rgba(249,115,22,0.65);margin-top:3px">${fmtDayLabel(maxDay)}</div>
     </div>
     <div class="temp-stat-box">
       <div class="temp-stat-val" style="color:#38bdf8">↓ ${absMin}°</div>
       <div class="temp-stat-label" style="margin-top:5px">Record min</div>
-      <div style="font-size:9px;color:rgba(56,189,248,0.55);margin-top:2px">${fmtDayLabel(minDay)}</div>
+      <div style="font-size:9px;color:rgba(56,189,248,0.65);margin-top:3px">${fmtDayLabel(minDay)}</div>
     </div>
     <div class="temp-stat-box">
       <div class="temp-stat-val" style="color:#a78bfa">${avgAmplitude}°</div>
@@ -910,7 +891,7 @@ function renderTempModal(data, period) {
           borderColor: '#38bdf8',
           backgroundColor: 'rgba(167,139,250,0.13)',
           borderWidth: 2,
-          fill: '-1',          // remplit la zone entre Min et Max
+          fill: '-1',
           tension: 0.35,
           pointRadius: 0,
           pointHoverRadius: 4,
@@ -937,12 +918,10 @@ function renderTempModal(data, period) {
             title: items => {
               const day = days[items[0].dataIndex];
               const [yr, mm, dd] = day.split('-');
-              const months = ['Jan','Fév','Mar','Avr','Mai','Jun','Jul','Aoû','Sep','Oct','Nov','Déc'];
-              return `${parseInt(dd)} ${months[parseInt(mm)-1]} ${yr}`;
+              return `${parseInt(dd)} ${MONTHS_FR_LONG[parseInt(mm)-1]} ${yr}`;
             },
             label: item => {
               const icon = item.datasetIndex === 0 ? '↑' : '↓';
-              const color = item.datasetIndex === 0 ? '#f97316' : '#38bdf8';
               return `  ${icon} ${item.dataset.label} : ${item.parsed.y}°C`;
             },
             afterBody: items => {
@@ -982,10 +961,8 @@ function renderTempModal(data, period) {
 }
 
 /* ══════════════════════════════════════════════════════
-   FIN MODAL TEMPÉRATURE
+   LOGIQUE D'ANALYSE MATHÉMATIQUE
    ══════════════════════════════════════════════════════ */
-
-/* LOGIQUE D'ANALYSE MATHÉMATIQUE */
 function getSunTimes(lat,lon){
   const D=Math.PI/180,R=180/Math.PI,now=new Date();
   const N=Math.floor((now-new Date(now.getFullYear(),0,0))/86400000),lh=lon/15;
@@ -1489,6 +1466,7 @@ function renderLiveGrid(data, trend, nm1, fc, aq) {
   if (!isNaN(temp)) {
     const tempColor = getRainbowTempColor(temp);
     const tempStyle = `background: linear-gradient(135deg, color-mix(in srgb, ${tempColor} 14%, transparent) 0%, rgba(15,23,42,0.75) 100%); border: 1px solid color-mix(in srgb, ${tempColor} 30%, transparent); box-shadow: 0 10px 25px rgba(0,0,0,.4); background-clip: padding-box; width:100%; cursor:pointer;`;
+    // ── Le hint "Historique" est supprimé — le clic reste actif mais discret ──
     tempHtml = `<div class="kpi-box temp-box-clickable" style="${tempStyle}" onclick="openTempModal()" role="button" aria-label="Voir l'historique des températures">
       <div class="section-title">Température</div>
       <div class="kpi-val" style="color:${tempColor}">${temp} °C</div>
@@ -1497,24 +1475,21 @@ function renderLiveGrid(data, trend, nm1, fc, aq) {
         ${tMax !== null ? `<div style="font-size:11px"><span style="color:var(--neon-orange)">↑ ${tMax}°</span> <span style="color:var(--text-muted)">${fmtHM(tMaxTs)}</span></div>` : ''}
         ${fl !== null ? `<div class="kpi-sub">Ressenti ${fl}°</div>` : ''}
       </div>
-      <div class="temp-click-hint">
-        <span style="font-size:11px">📊</span>
-        <span>Historique</span>
-      </div>
     </div>`;
   }
 
   let humidHtml = '';
   if (!isNaN(humid)) {
     const fillBorder = `1px solid color-mix(in srgb, var(--neon-blue) 30%, transparent)`;
+    // ── justify-content:center ajouté pour centrage vertical du contenu ──
     humidHtml = `
-      <div class="kpi-box" style="position:relative;overflow:hidden;background:rgba(30,41,59,0.3);border:${fillBorder};box-shadow:0 10px 25px rgba(0,0,0,.4);background-clip:padding-box;width:100%;">
+      <div class="kpi-box" style="position:relative;overflow:hidden;background:rgba(30,41,59,0.3);border:${fillBorder};box-shadow:0 10px 25px rgba(0,0,0,.4);background-clip:padding-box;width:100%;justify-content:center;">
         <div class="wave-fill" style="position:absolute;left:0;right:0;bottom:0;height:${humid}%;pointer-events:none;z-index:1;transition:height 0.5s ease;">
           <svg viewBox="0 0 100 100" preserveAspectRatio="none" style="position:absolute;top:-15px;left:0;width:100%;height:calc(100% + 15px);fill:color-mix(in srgb, var(--neon-blue) 12%, transparent);">
             <path d="M0,15 Q25,20 50,15 T100,15 L100,100 L0,100 Z"></path>
           </svg>
         </div>
-        <div style="position:relative;z-index:2;display:flex;flex-direction:column;align-items:center;width:100%;">
+        <div style="position:relative;z-index:2;display:flex;flex-direction:column;align-items:center;justify-content:center;width:100%;flex:1;">
           <div class="section-title">Humidité</div>
           <div class="kpi-val color-humidity">${humid} %</div>
           ${dp !== null ? `<div class="kpi-sub" style="margin-top:6px">Pt de rosée <strong style="color:var(--neon-blue)">${dp}°C</strong></div>` : ''}
