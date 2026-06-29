@@ -375,19 +375,22 @@ async function refreshLive(){if(!hasCredentials())return;const{appKey,apiKey,mac
 function startAutoRefresh(){clearInterval(autoRefreshTimer);autoRefreshTimer=setInterval(()=>{if(hasCredentials())refreshLive();},300000);}
 
 /* ═══ MODAL 1: TEMPÉRATURE 15J ═══ */
-async function openTempModal(){if(!hasCredentials())return;openModal('temp-modal-overlay');if(!modalCaches['temp15']){showLoading('temp-chart-container','Récupération des 15 derniers jours…');el('temp-stats-row').innerHTML='';}try{const data=await fetchModalData('temp15','outdoor.temperature',300,15,22000);renderTempModal(data);}catch(e){showError('temp-chart-container',e.message);}}
+async function openTempModal(){if(!hasCredentials())return;openModal('temp-modal-overlay');if(!modalCaches['temp15b']){showLoading('temp-chart-container','Récupération des 15 derniers jours…');el('temp-stats-row').innerHTML='';}try{const data=await fetchModalData('temp15b','outdoor.temperature_max,outdoor.temperature_min',1800,15,20000);renderTempModal(data);}catch(e){showError('temp-chart-container',e.message);}}
 
 function renderTempModal(data){
-const list=data.outdoor?.temperature?.list||{},keys=Object.keys(list).sort((a,b)=>Number(a)-Number(b));
+const maxList=data.outdoor?.temperature_max?.list||data.outdoor?.temperature?.list||{};
+const minList=data.outdoor?.temperature_min?.list||data.outdoor?.temperature?.list||{};
+const allTs=new Set([...Object.keys(maxList),...Object.keys(minList)]);
+const keys=[...allTs].sort((a,b)=>Number(a)-Number(b));
 if(!keys.length){showError('temp-chart-container','Aucune donnée disponible.');return;}
 const dm={};
 keys.forEach(ts=>{
   const d=new Date(parseInt(ts)*1000);
   const k=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
-  const v=parseFloat(list[ts]);
-  if(isNaN(v))return;
-  if(!dm[k])dm[k]={min:v,max:v};
-  else{if(v<dm[k].min)dm[k].min=v;if(v>dm[k].max)dm[k].max=v;}
+  const vMax=parseFloat(maxList[ts]),vMin=parseFloat(minList[ts]);
+  if(!dm[k])dm[k]={min:Infinity,max:-Infinity};
+  if(!isNaN(vMax)&&vMax>dm[k].max)dm[k].max=vMax;
+  if(!isNaN(vMin)&&vMin<dm[k].min)dm[k].min=vMin;
 });
 const days=Object.keys(dm).sort();
 const minV=days.map(d=>Math.round(dm[d].min*10)/10);
