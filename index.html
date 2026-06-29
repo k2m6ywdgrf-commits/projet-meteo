@@ -637,12 +637,12 @@ function renderLiveGrid(data,trend,nm1,fc,aq){
     const nxt=(df<=0&&nm>r)?`<div class="next-sunrise">Prochain lever à ${sun.sunrise}</div>`:'';
     const si=getSunCardStyle(sun,rainRate),sh=getStarsOverlayHtml(si.starsOpacity);
     /* Arc SVG */
-    const ARX=90,ARY=44,ACX=100,ACY=50;
+    const ARX=95,ARY=44,ACX=100,ACY=50;
     const sRad=Math.PI*(1-df);
     const sX=(ACX+ARX*Math.cos(sRad)).toFixed(1),sY=(ACY-ARY*Math.sin(sRad)).toFixed(1);
     const sunDot=df>0?`<circle cx="${sX}" cy="${sY}" r="7" fill="rgba(251,191,36,.95)" filter="url(#sg)"/><circle cx="${sX}" cy="${sY}" r="3.5" fill="#fef3c7"/>`:'';
-    const arcFill=df>0?`<path d="M 10 ${ACY} A ${ARX} ${ARY} 0 0 1 ${sX} ${sY}" fill="none" stroke="rgba(251,191,36,.6)" stroke-width="2.5" stroke-linecap="round"/>`:'';
-    const arcSvg=`<svg viewBox="0 0 200 ${ACY+14}" preserveAspectRatio="xMidYMid meet" style="width:100%;max-height:60px;display:block;overflow:visible"><defs><filter id="sg" x="-100%" y="-100%" width="300%" height="300%"><feGaussianBlur in="SourceGraphic" stdDeviation="3.5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs><line x1="5" y1="${ACY}" x2="195" y2="${ACY}" stroke="rgba(255,255,255,.07)" stroke-width="1"/><path d="M 10 ${ACY} A ${ARX} ${ARY} 0 0 1 190 ${ACY}" fill="none" stroke="rgba(255,255,255,.11)" stroke-width="1.5" stroke-dasharray="4 3"/>${arcFill}<circle cx="10" cy="${ACY}" r="3.5" fill="rgba(251,191,36,.65)"/><circle cx="190" cy="${ACY}" r="3.5" fill="rgba(251,191,36,.45)"/>${sunDot}<text x="10" y="${ACY+11}" text-anchor="middle" fill="rgba(251,191,36,.7)" font-size="8" font-family="system-ui,sans-serif">${sun.sunrise}</text><text x="190" y="${ACY+11}" text-anchor="middle" fill="rgba(251,191,36,.5)" font-size="8" font-family="system-ui,sans-serif">${sun.sunset}</text></svg>`;
+    const arcFill=df>0?`<path d="M 5 ${ACY} A ${ARX} ${ARY} 0 0 1 ${sX} ${sY}" fill="none" stroke="rgba(251,191,36,.6)" stroke-width="2.5" stroke-linecap="round"/>`:'';
+    const arcSvg=`<svg viewBox="0 0 200 ${ACY+14}" preserveAspectRatio="xMidYMid meet" style="width:100%;max-height:60px;display:block;overflow:visible"><defs><filter id="sg" x="-100%" y="-100%" width="300%" height="300%"><feGaussianBlur in="SourceGraphic" stdDeviation="3.5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs><line x1="3" y1="${ACY}" x2="197" y2="${ACY}" stroke="rgba(255,255,255,.07)" stroke-width="1"/><path d="M 5 ${ACY} A ${ARX} ${ARY} 0 0 1 195 ${ACY}" fill="none" stroke="rgba(255,255,255,.11)" stroke-width="1.5" stroke-dasharray="4 3"/>${arcFill}${sunDot}<text x="5" y="${ACY+11}" text-anchor="start" fill="rgba(251,191,36,.7)" font-size="8" font-family="system-ui,sans-serif">${sun.sunrise}</text><text x="195" y="${ACY+11}" text-anchor="end" fill="rgba(251,191,36,.5)" font-size="8" font-family="system-ui,sans-serif">${sun.sunset}</text></svg>`;
     /* Durée du jour + lumière restante */
     const durMin=s-r,durH=Math.floor(durMin/60),durM=durMin%60;
     const durStr=`${durH}h ${String(durM).padStart(2,'0')}min`;
