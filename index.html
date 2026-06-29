@@ -375,11 +375,12 @@ async function refreshLive(){if(!hasCredentials())return;const{appKey,apiKey,mac
 function startAutoRefresh(){clearInterval(autoRefreshTimer);autoRefreshTimer=setInterval(()=>{if(hasCredentials())refreshLive();},300000);}
 
 /* ═══ MODAL 1: TEMPÉRATURE 15J ═══ */
-async function openTempModal(){if(!hasCredentials())return;openModal('temp-modal-overlay');if(!modalCaches['temp15b']){showLoading('temp-chart-container','Récupération des 15 derniers jours…');el('temp-stats-row').innerHTML='';}try{const data=await fetchModalData('temp15b','outdoor.temperature_max,outdoor.temperature_min',1800,15,20000);renderTempModal(data);}catch(e){showError('temp-chart-container',e.message);}}
+async function openTempModal(){if(!hasCredentials())return;openModal('temp-modal-overlay');if(!modalCaches['temp15c']){showLoading('temp-chart-container','Récupération des 15 derniers jours…');el('temp-stats-row').innerHTML='';}try{const data=await fetchModalData('temp15c','outdoor.temperature',1800,15,20000);renderTempModal(data);}catch(e){showError('temp-chart-container',e.message);}}
 
 function renderTempModal(data){
-const maxList=data.outdoor?.temperature_max?.list||data.outdoor?.temperature?.list||{};
-const minList=data.outdoor?.temperature_min?.list||data.outdoor?.temperature?.list||{};
+const t=data.outdoor?.temperature||{};
+const maxList=t.list_max||t.list||{};
+const minList=t.list_min||t.list||{};
 const allTs=new Set([...Object.keys(maxList),...Object.keys(minList)]);
 const keys=[...allTs].sort((a,b)=>Number(a)-Number(b));
 if(!keys.length){showError('temp-chart-container','Aucune donnée disponible.');return;}
