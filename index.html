@@ -375,7 +375,7 @@ async function refreshLive(){if(!hasCredentials())return;const{appKey,apiKey,mac
 function startAutoRefresh(){clearInterval(autoRefreshTimer);autoRefreshTimer=setInterval(()=>{if(hasCredentials())refreshLive();},300000);}
 
 /* ═══ MODAL 1: TEMPÉRATURE 15J ═══ */
-async function openTempModal(){if(!hasCredentials())return;openModal('temp-modal-overlay');if(!modalCaches['temp15c']){showLoading('temp-chart-container','Récupération des 15 derniers jours…');el('temp-stats-row').innerHTML='';}try{const data=await fetchModalData('temp15c','outdoor.temperature',1800,15,20000);renderTempModal(data);}catch(e){showError('temp-chart-container',e.message);}}
+async function openTempModal(){if(!hasCredentials())return;openModal('temp-modal-overlay');if(!modalCaches['temp15d']){showLoading('temp-chart-container','Récupération des 15 derniers jours…');el('temp-stats-row').innerHTML='';}try{const data=await fetchModalData('temp15d','outdoor.temperature',86400,15,15000);renderTempModal(data);}catch(e){showError('temp-chart-container',e.message);}}
 
 function renderTempModal(data){
 const t=data.outdoor?.temperature||{};
