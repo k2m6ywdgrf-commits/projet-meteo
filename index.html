@@ -217,7 +217,7 @@ input:focus{outline:none;border-color:var(--neon-blue);box-shadow:0 0 10px rgba(
   <div class="modal-sheet">
     <div class="modal-handle"></div>
     <button class="modal-close" onclick="closeModal('temp-modal-overlay')">✕</button>
-    <div class="modal-title">🌡️ Températures · 15 jours glissants</div>
+    <div class="modal-title">🌡️ Températures · 30 jours glissants</div>
     <div class="modal-stats-row" id="temp-stats-row"></div>
     <div class="modal-chart-wrap" id="temp-chart-container">
       <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:10px;color:var(--text-muted)"><div style="font-size:26px">⏳</div><div style="font-size:12px">Chargement…</div></div>
@@ -375,8 +375,8 @@ async function fetchHistory(key,cb,startD,endD,ms=20000){if(modalCaches[key])ret
 async function refreshLive(){if(!hasCredentials())return;const{appKey,apiKey,mac}=getCreds();fetchCityName();const[lr,tr]=await Promise.allSettled([fetchLiveData(appKey,apiKey,mac),fetchRecentTrend(appKey,apiKey,mac)]);const live=lr.status==='fulfilled'&&lr.value!==false?lr.value:null,trend=tr.status==='fulfilled'?tr.value:null;if(live)renderLiveGrid(live,trend,null,null,null);const[nr,fr,aqr]=await Promise.allSettled([fetchLastYearRain(appKey,apiKey,mac),fetchForecast(),fetchAirQuality()]);const nm1=nr.status==='fulfilled'?nr.value:null,fc=fr.status==='fulfilled'?fr.value:null,aq=aqr.status==='fulfilled'?aqr.value:null;if(live)renderLiveGrid(live,trend,nm1,fc,aq);startAutoRefresh();}
 function startAutoRefresh(){clearInterval(autoRefreshTimer);autoRefreshTimer=setInterval(()=>{if(hasCredentials())refreshLive();},300000);}
 
-/* ═══ MODAL 1: TEMPÉRATURE 15J ═══ */
-async function openTempModal(){if(!hasCredentials())return;openModal('temp-modal-overlay');if(!modalCaches['temp15']){showLoading('temp-chart-container','Récupération des 15 derniers jours…');el('temp-stats-row').innerHTML='';}try{if(!modalCaches['temp15']){const now=new Date();const t1=new Date(now.getTime()-5*86400000);t1.setHours(0,0,0,0);const t2=new Date(now.getTime()-10*86400000);t2.setHours(0,0,0,0);const t3=new Date(now.getTime()-15*86400000);t3.setHours(0,0,0,0);const r1=await fetchHistory('_th1','outdoor.temperature',t3,t2,20000);const r2=await fetchHistory('_th2','outdoor.temperature',t2,t1,20000);const r3=await fetchHistory('_th3','outdoor.temperature',t1,now,20000);const unit=r1.outdoor?.temperature?.unit||r2.outdoor?.temperature?.unit||r3.outdoor?.temperature?.unit||'°C';const list={...r1.outdoor?.temperature?.list||{},...r2.outdoor?.temperature?.list||{},...r3.outdoor?.temperature?.list||{}};modalCaches['temp15']={outdoor:{temperature:{unit,list}}};}renderTempModal(modalCaches['temp15']);}catch(e){showError('temp-chart-container',e.message);}}
+/* ═══ MODAL 1: TEMPÉRATURE 30J ═══ */
+async function openTempModal(){if(!hasCredentials())return;openModal('temp-modal-overlay');if(!modalCaches['temp30']){showLoading('temp-chart-container','Récupération des 30 derniers jours…');el('temp-stats-row').innerHTML='';}try{if(!modalCaches['temp30']){const now=new Date();const t1=new Date(now.getTime()-5*86400000);t1.setHours(0,0,0,0);const t2=new Date(now.getTime()-10*86400000);t2.setHours(0,0,0,0);const t3=new Date(now.getTime()-15*86400000);t3.setHours(0,0,0,0);const t4=new Date(now.getTime()-20*86400000);t4.setHours(0,0,0,0);const t5=new Date(now.getTime()-25*86400000);t5.setHours(0,0,0,0);const t6=new Date(now.getTime()-30*86400000);t6.setHours(0,0,0,0);const r1=await fetchHistory('_th1','outdoor.temperature',t6,t5,20000);const r2=await fetchHistory('_th2','outdoor.temperature',t5,t4,20000);const r3=await fetchHistory('_th3','outdoor.temperature',t4,t3,20000);const r4=await fetchHistory('_th4','outdoor.temperature',t3,t2,20000);const r5=await fetchHistory('_th5','outdoor.temperature',t2,t1,20000);const r6=await fetchHistory('_th6','outdoor.temperature',t1,now,20000);const unit=r1.outdoor?.temperature?.unit||r2.outdoor?.temperature?.unit||'°C';const list={...r1.outdoor?.temperature?.list||{},...r2.outdoor?.temperature?.list||{},...r3.outdoor?.temperature?.list||{},...r4.outdoor?.temperature?.list||{},...r5.outdoor?.temperature?.list||{},...r6.outdoor?.temperature?.list||{}};modalCaches['temp30']={outdoor:{temperature:{unit,list}}};}renderTempModal(modalCaches['temp30']);}catch(e){showError('temp-chart-container',e.message);}}
 
 function renderTempModal(data){
 const t=data.outdoor?.temperature||{};
@@ -449,7 +449,7 @@ var rb=el('temp-range-bar');
 if(rb){
   var totalAmp=Math.round((aMax-aMin)*10)/10;
   rb.innerHTML='<div style="background:rgba(15,23,42,.45);border:1px solid rgba(255,255,255,.07);border-radius:12px;padding:14px 16px">'+
-    '<div style="font-size:10px;text-transform:uppercase;letter-spacing:.6px;font-weight:700;color:var(--text-muted);margin-bottom:12px">Amplitude \u00b7 15 jours</div>'+
+    '<div style="font-size:10px;text-transform:uppercase;letter-spacing:.6px;font-weight:700;color:var(--text-muted);margin-bottom:12px">Amplitude \u00b7 30 jours</div>'+
     '<div style="position:relative;height:8px;border-radius:4px;background:linear-gradient(to right,#38bdf8,#4ade80,#fbbf24,#f97316,#f43f5e);margin-bottom:10px">'+
       '<div style="position:absolute;left:0%;top:-4px;width:16px;height:16px;border-radius:50%;background:#38bdf8;transform:translateX(-50%);border:2px solid rgba(12,18,38,.9);box-shadow:0 0 8px rgba(56,189,248,.9)"></div>'+
       '<div style="position:absolute;left:100%;top:-4px;width:16px;height:16px;border-radius:50%;background:#f97316;transform:translateX(-50%);border:2px solid rgba(12,18,38,.9);box-shadow:0 0 8px rgba(249,115,22,.9)"></div>'+
