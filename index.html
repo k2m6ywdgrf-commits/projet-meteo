@@ -55,8 +55,9 @@ input:focus{outline:none;border-color:var(--neon-blue);box-shadow:0 0 10px rgba(
 .color-wind{color:var(--neon-orange)}
 .kpi-sub{font-size:11px;color:var(--text-muted);margin-top:2px}
 .tap-hint{position:absolute;top:10px;right:12px;display:flex;align-items:center;gap:3px;font-size:9px;font-weight:600;letter-spacing:.4px;color:rgba(255,255,255,.22);pointer-events:none}
-.modal-clickable{cursor:pointer;position:relative;transition:transform .18s ease}
+.modal-clickable{cursor:pointer;position:relative;overflow:hidden;transition:transform .18s ease}
 .modal-clickable:active{transform:scale(.985)}
+.modal-clickable::after{content:'';position:absolute;bottom:0;right:0;width:22px;height:22px;background:linear-gradient(225deg,rgba(255,255,255,.22) 44%,transparent 45%);pointer-events:none;}
 .forecast-toggle{display:flex;background:rgba(30,41,59,.4);border:var(--glass-border);border-radius:20px;padding:3px;margin-bottom:12px}
 .forecast-toggle-btn{flex:1;background:transparent;border:none;color:var(--text-muted);padding:8px;font-size:12px;font-weight:600;border-radius:17px;cursor:pointer;transition:all .2s}
 .forecast-toggle-btn.active{background:rgba(255,255,255,.12);color:var(--text-main)}
@@ -379,11 +380,14 @@ const minV=days.map(d=>Math.round(dm[d].min*10)/10);
 const maxV=days.map(d=>Math.round(dm[d].max*10)/10);
 const labels=days.map(d=>{const p=d.split('-');return parseInt(p[2])+' '+MF[parseInt(p[1])-1];});
 const fd=function(d){const p=d.split('-');return parseInt(p[2])+' '+MF[parseInt(p[1])-1]+' '+String(p[0]).slice(2);};
-const aMax=Math.max.apply(null,maxV),aMin=Math.min.apply(null,minV);
+const aMaxIdx=maxV.reduce((bi,v,i,a)=>v>a[bi]?i:bi,0);
+const aMinIdx=minV.reduce((bi,v,i,a)=>v<a[bi]?i:bi,0);
+const aMax=maxV[aMaxIdx],aMin=minV[aMinIdx];
 const amp=Math.round(days.reduce(function(s,d){return s+(dm[d].max-dm[d].min);},0)/days.length*10)/10;
+const nDays=days.length;
 el('temp-stats-row').innerHTML=
-  '<div class="stat-box"><div class="stat-val" style="color:#f97316">\u2191 '+aMax+'\u00b0</div><div class="stat-label">Max 15j</div><div class="stat-sub" style="color:rgba(249,115,22,.65)">'+fd(days[maxV.indexOf(aMax)])+'</div></div>'+
-  '<div class="stat-box"><div class="stat-val" style="color:#38bdf8">\u2193 '+aMin+'\u00b0</div><div class="stat-label">Min 15j</div><div class="stat-sub" style="color:rgba(56,189,248,.65)">'+fd(days[minV.indexOf(aMin)])+'</div></div>'+
+  '<div class="stat-box"><div class="stat-val" style="color:#f97316">\u2191 '+aMax+'\u00b0</div><div class="stat-label">Max '+nDays+'j</div><div class="stat-sub" style="color:rgba(249,115,22,.65)">'+fd(days[aMaxIdx])+'</div></div>'+
+  '<div class="stat-box"><div class="stat-val" style="color:#38bdf8">\u2193 '+aMin+'\u00b0</div><div class="stat-label">Min '+nDays+'j</div><div class="stat-sub" style="color:rgba(56,189,248,.65)">'+fd(days[aMinIdx])+'</div></div>'+
   '<div class="stat-box"><div class="stat-val" style="color:#a78bfa">'+amp+'\u00b0</div><div class="stat-label">Amplitude moy.</div><div class="stat-sub">par jour</div></div>';
 el('temp-chart-container').innerHTML='<canvas id="tempModalChart"></canvas>';
 if(charts['tempModal']){charts['tempModal'].destroy();delete charts['tempModal'];}
