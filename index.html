@@ -375,23 +375,22 @@ async function refreshLive(){if(!hasCredentials())return;const{appKey,apiKey,mac
 function startAutoRefresh(){clearInterval(autoRefreshTimer);autoRefreshTimer=setInterval(()=>{if(hasCredentials())refreshLive();},300000);}
 
 /* ═══ MODAL 1: TEMPÉRATURE 15J ═══ */
-async function openTempModal(){if(!hasCredentials())return;openModal('temp-modal-overlay');if(!modalCaches['temp15d']){showLoading('temp-chart-container','Récupération des 15 derniers jours…');el('temp-stats-row').innerHTML='';}try{const data=await fetchModalData('temp15d','outdoor.temperature',86400,15,15000);renderTempModal(data);}catch(e){showError('temp-chart-container',e.message);}}
+async function openTempModal(){if(!hasCredentials())return;openModal('temp-modal-overlay');if(!modalCaches['temp15e']){showLoading('temp-chart-container','Récupération des 15 derniers jours…');el('temp-stats-row').innerHTML='';}try{const data=await fetchModalData('temp15e','outdoor.temperature',300,15,25000);const t=data.outdoor?.temperature||{};const dbg=`Clés: ${Object.keys(t).join(', ')}\n\nlist (5 premiers):\n${Object.entries(t.list||{}).slice(0,5).map(([k,v])=>`${new Date(k*1000).toISOString().slice(0,16)} → ${v}`).join('\n')}\n\nlist_max (5 premiers):\n${Object.entries(t.list_max||{}).slice(0,5).map(([k,v])=>`${new Date(k*1000).toISOString().slice(0,16)} → ${v}`).join('\n')||'(absent)'}\n\nlist_min (5 premiers):\n${Object.entries(t.list_min||{}).slice(0,5).map(([k,v])=>`${new Date(k*1000).toISOString().slice(0,16)} → ${v}`).join('\n')||'(absent)'}`;el('temp-chart-container').innerHTML=`<pre style="font-size:11px;color:#e2e8f0;white-space:pre-wrap;padding:8px;overflow:auto;max-height:300px">${dbg}</pre>`;el('temp-stats-row').innerHTML='';}catch(e){showError('temp-chart-container',e.message);}}
 
 function renderTempModal(data){
 const t=data.outdoor?.temperature||{};
-const maxList=t.list_max||t.list||{};
-const minList=t.list_min||t.list||{};
-const allTs=new Set([...Object.keys(maxList),...Object.keys(minList)]);
-const keys=[...allTs].sort((a,b)=>Number(a)-Number(b));
+const list=t.list||{};
+const keys=Object.keys(list).sort((a,b)=>Number(a)-Number(b));
 if(!keys.length){showError('temp-chart-container','Aucune donnée disponible.');return;}
 const dm={};
 keys.forEach(ts=>{
   const d=new Date(parseInt(ts)*1000);
   const k=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
-  const vMax=parseFloat(maxList[ts]),vMin=parseFloat(minList[ts]);
+  const v=parseFloat(list[ts]);
+  if(isNaN(v))return;
   if(!dm[k])dm[k]={min:Infinity,max:-Infinity};
-  if(!isNaN(vMax)&&vMax>dm[k].max)dm[k].max=vMax;
-  if(!isNaN(vMin)&&vMin<dm[k].min)dm[k].min=vMin;
+  if(v>dm[k].max)dm[k].max=v;
+  if(v<dm[k].min)dm[k].min=v;
 });
 const days=Object.keys(dm).sort();
 const minV=days.map(d=>Math.round(dm[d].min*10)/10);
