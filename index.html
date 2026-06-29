@@ -57,7 +57,7 @@ input:focus{outline:none;border-color:var(--neon-blue);box-shadow:0 0 10px rgba(
 .tap-hint{position:absolute;top:10px;right:12px;display:flex;align-items:center;gap:3px;font-size:9px;font-weight:600;letter-spacing:.4px;color:rgba(255,255,255,.22);pointer-events:none}
 .modal-clickable{cursor:pointer;position:relative;overflow:hidden;transition:transform .18s ease}
 .modal-clickable:active{transform:scale(.985)}
-.modal-clickable::after{content:'';position:absolute;bottom:0;right:0;width:15px;height:15px;background:linear-gradient(to top left,rgba(255,255,255,.13) 50%,transparent 51%);border-radius:0 0 14px 0;pointer-events:none;}
+.modal-clickable::after{content:'';position:absolute;bottom:0;right:0;width:15px;height:15px;background:linear-gradient(to top left,rgba(255,255,255,.13) 50%,transparent 51%);border-radius:0 0 14px 0;pointer-events:none;z-index:3;}
 .forecast-toggle{display:flex;background:rgba(30,41,59,.4);border:var(--glass-border);border-radius:20px;padding:3px;margin-bottom:12px}
 .forecast-toggle-btn{flex:1;background:transparent;border:none;color:var(--text-muted);padding:8px;font-size:12px;font-weight:600;border-radius:17px;cursor:pointer;transition:all .2s}
 .forecast-toggle-btn.active{background:rgba(255,255,255,.12);color:var(--text-main)}
@@ -231,6 +231,20 @@ input:focus{outline:none;border-color:var(--neon-blue);box-shadow:0 0 10px rgba(
   </div>
 </div>
 
+<!-- MODAL 1.5: HUMIDITÉ -->
+<div id="humid-modal-overlay" class="modal-overlay" onclick="if(event.target===this)closeModal('humid-modal-overlay')">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <button class="modal-close" onclick="closeModal('humid-modal-overlay')">✕</button>
+    <div class="modal-title">💧 Humidité · 15 jours glissants</div>
+    <div class="modal-stats-row" id="humid-stats-row"></div>
+    <div class="modal-chart-wrap" id="humid-chart-container" style="height:200px">
+      <div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--text-muted);font-size:12px">⏳ Chargement…</div>
+    </div>
+    <div id="humid-comfort-legend" style="margin-top:12px"></div>
+  </div>
+</div>
+
 <!-- MODAL 2: VENT -->
 <div id="wind-modal-overlay" class="modal-overlay" onclick="if(event.target===this)closeModal('wind-modal-overlay')">
   <div class="modal-sheet">
@@ -354,14 +368,14 @@ async function fetchForecast(){const now=Date.now();if(forecastCache&&now-foreca
 async function fetchAirQuality(){const now=Date.now();if(aqCache&&now-aqCacheTime<1800000)return aqCache;if(!hasGPS())return null;const{lat,lon}=getCreds();try{const r=await fetchWTimeout(`https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${lat}&longitude=${lon}&current=european_aqi,pm2_5,pm10&timezone=auto`);const j=await r.json();if(j&&j.current){aqCache=j.current;aqCacheTime=now;return aqCache;}}catch{return null;}return null;}
 
 /* MODAL DATA FETCHER (générique) */
-async function fetchModalData(key,cb,cycle,days,ms=18000){if(modalCaches[key])return modalCaches[key];const{appKey,apiKey,mac}=getCreds(),now=new Date(),start=new Date(now.getTime()-days*86400000);const url=`https://api.ecowitt.net/api/v3/device/history?application_key=${appKey}&api_key=${apiKey}&mac=${mac}&start_date=${encodeURIComponent(fmtDate(start))}&end_date=${encodeURIComponent(fmtDate(now))}&cycle=${cycle}&call_back=${encodeURIComponent(cb)}&temp_unitid=1&wind_speed_unitid=7&rainfall_unitid=12&pressure_unitid=3`;const r=await fetchWTimeout(url,ms);const j=await r.json();if(j.code!==0||!j.data)throw new Error(`API ${j.code}: ${j.msg||'données indisponibles'}`);modalCaches[key]=j.data;return j.data;}
+async function fetchModalData(key,cb,cycle,days,ms=18000){if(modalCaches[key])return modalCaches[key];const{appKey,apiKey,mac}=getCreds(),now=new Date(),start=new Date(now.getTime()-days*86400000);start.setHours(0,0,0,0);const url=`https://api.ecowitt.net/api/v3/device/history?application_key=${appKey}&api_key=${apiKey}&mac=${mac}&start_date=${encodeURIComponent(fmtDate(start))}&end_date=${encodeURIComponent(fmtDate(now))}&cycle=${cycle}&call_back=${encodeURIComponent(cb)}&temp_unitid=1&wind_speed_unitid=7&rainfall_unitid=12&pressure_unitid=3`;const r=await fetchWTimeout(url,ms);const j=await r.json();if(j.code!==0||!j.data)throw new Error(`API ${j.code}: ${j.msg||'données indisponibles'}`);modalCaches[key]=j.data;return j.data;}
 
 /* REFRESH */
 async function refreshLive(){if(!hasCredentials())return;const{appKey,apiKey,mac}=getCreds();fetchCityName();const[lr,tr]=await Promise.allSettled([fetchLiveData(appKey,apiKey,mac),fetchRecentTrend(appKey,apiKey,mac)]);const live=lr.status==='fulfilled'&&lr.value!==false?lr.value:null,trend=tr.status==='fulfilled'?tr.value:null;if(live)renderLiveGrid(live,trend,null,null,null);const[nr,fr,aqr]=await Promise.allSettled([fetchLastYearRain(appKey,apiKey,mac),fetchForecast(),fetchAirQuality()]);const nm1=nr.status==='fulfilled'?nr.value:null,fc=fr.status==='fulfilled'?fr.value:null,aq=aqr.status==='fulfilled'?aqr.value:null;if(live)renderLiveGrid(live,trend,nm1,fc,aq);startAutoRefresh();}
 function startAutoRefresh(){clearInterval(autoRefreshTimer);autoRefreshTimer=setInterval(()=>{if(hasCredentials())refreshLive();},300000);}
 
 /* ═══ MODAL 1: TEMPÉRATURE 15J ═══ */
-async function openTempModal(){if(!hasCredentials())return;openModal('temp-modal-overlay');if(!modalCaches['temp15']){showLoading('temp-chart-container','Récupération des 15 derniers jours…');el('temp-stats-row').innerHTML='';}try{const data=await fetchModalData('temp15','outdoor.temperature',1800,15,18000);renderTempModal(data);}catch(e){showError('temp-chart-container',e.message);}}
+async function openTempModal(){if(!hasCredentials())return;openModal('temp-modal-overlay');if(!modalCaches['temp15']){showLoading('temp-chart-container','Récupération des 15 derniers jours…');el('temp-stats-row').innerHTML='';}try{const data=await fetchModalData('temp15','outdoor.temperature',300,15,22000);renderTempModal(data);}catch(e){showError('temp-chart-container',e.message);}}
 
 function renderTempModal(data){
 const list=data.outdoor?.temperature?.list||{},keys=Object.keys(list).sort((a,b)=>Number(a)-Number(b));
@@ -444,7 +458,68 @@ if(rb){
 }
 }
 
-async function openWindModal(){if(!hasCredentials())return;openModal('wind-modal-overlay');if(!modalCaches['wind15']){showLoading('wind-rose-wrap','Chargement de la rose des vents…');showLoading('wind-chart-container',null);el('wind-stats-row').innerHTML='';}try{const data=await fetchModalData('wind15','wind.wind_speed,wind.wind_gust,wind.wind_direction',1800,15,20000);renderWindModal(data);}catch(e){showError('wind-rose-wrap',e.message);}}
+async function openHumidModal(){if(!hasCredentials())return;openModal('humid-modal-overlay');if(!modalCaches['humid15']){showLoading('humid-chart-container','Récupération de l\'historique humidité…');el('humid-stats-row').innerHTML='';el('humid-comfort-legend').innerHTML='';}try{const data=await fetchModalData('humid15','outdoor.humidity',300,15,22000);renderHumidModal(data);}catch(e){showError('humid-chart-container',e.message);}}
+
+function renderHumidModal(data){
+const list=data.outdoor?.humidity?.list||{},keys=Object.keys(list).sort((a,b)=>Number(a)-Number(b));
+if(!keys.length){showError('humid-chart-container','Aucune donnée disponible.');return;}
+const dm={};
+keys.forEach(ts=>{
+  const d=new Date(parseInt(ts)*1000);
+  const k=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+  const v=parseFloat(list[ts]);
+  if(isNaN(v))return;
+  if(!dm[k])dm[k]={min:v,max:v,sum:v,count:1};
+  else{if(v<dm[k].min)dm[k].min=v;if(v>dm[k].max)dm[k].max=v;dm[k].sum+=v;dm[k].count++;}
+});
+const days=Object.keys(dm).sort();
+const minV=days.map(d=>Math.round(dm[d].min));
+const maxV=days.map(d=>Math.round(dm[d].max));
+const labels=days.map(d=>{const p=d.split('-');return parseInt(p[2])+' '+MF[parseInt(p[1])-1];});
+const fd=function(d){const p=d.split('-');return parseInt(p[2])+' '+MF[parseInt(p[1])-1]+' '+String(p[0]).slice(2);};
+const aMaxIdx=maxV.reduce((bi,v,i,a)=>v>a[bi]?i:bi,0);
+const aMinIdx=minV.reduce((bi,v,i,a)=>v<a[bi]?i:bi,0);
+const aMax=maxV[aMaxIdx],aMin=minV[aMinIdx];
+const avgAll=Math.round(days.reduce((s,d)=>s+dm[d].sum/dm[d].count,0)/days.length);
+const nDays=days.length;
+el('humid-stats-row').innerHTML=
+  '<div class="stat-box"><div class="stat-val" style="color:var(--neon-blue)">↑ '+aMax+'%</div><div class="stat-label">Max '+nDays+'j</div><div class="stat-sub" style="color:rgba(56,189,248,.65)">'+fd(days[aMaxIdx])+'</div></div>'+
+  '<div class="stat-box"><div class="stat-val" style="color:var(--neon-green)">↓ '+aMin+'%</div><div class="stat-label">Min '+nDays+'j</div><div class="stat-sub" style="color:rgba(74,222,128,.65)">'+fd(days[aMinIdx])+'</div></div>'+
+  '<div class="stat-box"><div class="stat-val" style="color:var(--text-muted)">~'+avgAll+'%</div><div class="stat-label">Moyenne</div><div class="stat-sub">sur '+nDays+'j</div></div>';
+el('humid-chart-container').innerHTML='<canvas id="humidModalChart"></canvas>';
+if(charts['humidModal']){charts['humidModal'].destroy();delete charts['humidModal'];}
+const ctx=el('humidModalChart').getContext('2d');
+charts['humidModal']=new Chart(ctx,{
+  type:'line',
+  data:{labels,datasets:[
+    {label:'Max',data:maxV,borderColor:'#38bdf8',backgroundColor:'rgba(56,189,248,0)',borderWidth:2,fill:false,tension:.35,pointRadius:0,pointHoverRadius:4,spanGaps:true,order:1},
+    {label:'Min',data:minV,borderColor:'#4ade80',backgroundColor:'rgba(56,189,248,.10)',borderWidth:2,fill:'-1',tension:.35,pointRadius:0,pointHoverRadius:4,spanGaps:true,order:2}
+  ]},
+  options:{
+    responsive:true,maintainAspectRatio:false,
+    interaction:{mode:'index',intersect:false},
+    plugins:{
+      legend:{display:false},
+      tooltip:{
+        backgroundColor:'rgba(8,14,32,.96)',titleColor:'#f3f4f6',bodyColor:'#94a3b8',
+        borderColor:'rgba(255,255,255,.10)',borderWidth:1,padding:11,cornerRadius:10,
+        callbacks:{
+          title:function(items){var d=days[items[0].dataIndex],p=d.split('-');return parseInt(p[2])+' '+MFL[parseInt(p[1])-1]+' '+p[0];},
+          label:function(item){return '  '+(item.datasetIndex===0?'↑':'↓')+' '+item.dataset.label+' : '+item.parsed.y+'%';},
+          afterBody:function(items){if(items.length>=2)return['  ↔ Amplitude : '+(items[0].parsed.y-items[1].parsed.y)+'%'];return[];}
+        }
+      }
+    },
+    scales:{
+      x:{ticks:{color:'#64748b',font:{size:10},maxTicksLimit:nDays<=15?nDays:8,maxRotation:0},grid:{display:false}},
+      y:{ticks:{color:'#64748b',font:{size:10},callback:function(v){return v+'%';}},grid:{color:'rgba(255,255,255,.04)'},min:0,max:100}
+    }
+  }
+});
+el('humid-comfort-legend').innerHTML='<div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center">'+[['< 30%','Trop sec','#f97316'],['30–60%','Confortable','#4ade80'],['60–80%','Humide','#fbbf24'],['> 80%','Très humide','#f43f5e']].map(([r,l,c])=>`<div style="display:flex;align-items:center;gap:4px;font-size:10px"><span style="width:10px;height:10px;border-radius:2px;background:${c};display:inline-block"></span><span style="color:${c}">${r}</span><span style="color:var(--text-muted)">${l}</span></div>`).join('')+'</div>';
+}
+
+async function openWindModal(){if(!hasCredentials())return;openModal('wind-modal-overlay');if(!modalCaches['wind15']){showLoading('wind-rose-wrap','Chargement de la rose des vents…');showLoading('wind-chart-container',null);el('wind-stats-row').innerHTML='';}try{const data=await fetchModalData('wind15','wind.wind_speed,wind.wind_gust,wind.wind_direction',300,15,25000);renderWindModal(data);}catch(e){showError('wind-rose-wrap',e.message);}}
 
 function renderWindModal(data){const mult=getThresholds().windMultiplier,rS=data.wind?.wind_speed?.list||{},rG=data.wind?.wind_gust?.list||{},rD=data.wind?.wind_direction?.list||{};if(!Object.keys(rS).length){showError('wind-rose-wrap','Aucune donnée vent disponible.');return;}const speeds={},gusts={},dirs={};Object.keys(rS).forEach(ts=>speeds[ts]=Math.round(parseFloat(rS[ts])*mult*10)/10);Object.keys(rG).forEach(ts=>gusts[ts]=Math.round(parseFloat(rG[ts])*mult*10)/10);Object.keys(rD).forEach(ts=>dirs[ts]=parseFloat(rD[ts]));const aS=Object.values(speeds).filter(v=>!isNaN(v)),aG=Object.values(gusts).filter(v=>!isNaN(v));const maxS=aS.length?Math.max(...aS):null,maxG=aG.length?Math.max(...aG):null;const calmPct=aS.length?Math.round(aS.filter(v=>v<5).length/aS.length*100):0;const sc=new Array(16).fill(0),dv=Object.values(dirs).filter(v=>!isNaN(v));dv.forEach(deg=>sc[Math.round(deg/22.5)%16]++);const domI=sc.indexOf(Math.max(...sc)),domPct=dv.length?Math.round(sc[domI]/dv.length*100):0;el('wind-stats-row').innerHTML=`<div class="stat-box"><div class="stat-val" style="color:var(--neon-orange)">↑ ${maxG??'—'}</div><div class="stat-label">Max rafale (km/h)</div></div><div class="stat-box"><div class="stat-val" style="color:var(--neon-blue)">↑ ${maxS??'—'}</div><div class="stat-label">Max moyen (km/h)</div></div><div class="stat-box"><div class="stat-val" style="color:var(--neon-green)">${D16[domI]}</div><div class="stat-label">Dir. dominante</div><div class="stat-sub">${domPct}% · calme ${calmPct}%</div></div>`;el('wind-rose-wrap').innerHTML='<canvas id="windRoseCanvas" width="220" height="220" style="width:220px;height:220px;display:block;margin:0 auto"></canvas>';drawWindRose(el('windRoseCanvas'),dirs,speeds);el('wind-chart-container').innerHTML='<canvas id="windModalChart"></canvas>';if(charts['windModal']){charts['windModal'].destroy();delete charts['windModal'];}const sk=Object.keys(speeds).sort((a,b)=>Number(a)-Number(b)),labels=sk.map(ts=>{const d=new Date(parseInt(ts)*1000);return`${d.getDate()}/${d.getMonth()+1} ${String(d.getHours()).padStart(2,'0')}h`;});charts['windModal']=new Chart(el('windModalChart').getContext('2d'),{type:'line',data:{labels,datasets:[{label:'Rafales',data:sk.map(ts=>gusts[ts]??null),borderColor:'#fbbf24',backgroundColor:'rgba(251,191,36,.06)',borderWidth:1.5,fill:true,tension:.3,pointRadius:0,spanGaps:true,order:2},{label:'Moyen',data:sk.map(ts=>speeds[ts]??null),borderColor:'#38bdf8',backgroundColor:'rgba(56,189,248,.03)',borderWidth:2,fill:false,tension:.3,pointRadius:0,spanGaps:true,order:1}]},options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},plugins:{legend:{display:true,labels:{color:'#94a3b8',font:{size:10},boxWidth:12}},tooltip:{backgroundColor:'rgba(8,14,32,.96)',titleColor:'#f3f4f6',bodyColor:'#94a3b8',borderColor:'rgba(255,255,255,.10)',borderWidth:1,padding:10,cornerRadius:10,callbacks:{label:item=>`  ${item.dataset.label} : ${item.parsed.y} km/h`}}},scales:{x:{ticks:{color:'#64748b',font:{size:10},maxTicksLimit:8,maxRotation:0},grid:{display:false}},y:{ticks:{color:'#64748b',font:{size:10},callback:v=>v+' km/h'},grid:{color:'rgba(255,255,255,.04)'},min:0}}}});}
 
@@ -568,7 +643,7 @@ function renderLiveGrid(data,trend,nm1,fc,aq){
     tempHtml=`<div class="kpi-box modal-clickable" style="${tStyle}" onclick="openTempModal()"><div class="section-title">Température</div><div class="kpi-val" style="color:${tc}">${temp} °C</div><div style="display:flex;flex-direction:column;align-items:center;gap:4px;margin-top:6px">${tMin!==null?`<div style="font-size:11px"><span style="color:var(--neon-blue)">↓ ${tMin}°</span> <span style="color:var(--text-muted)">${fmtHM(tMinTs)}</span></div>`:''} ${tMax!==null?`<div style="font-size:11px"><span style="color:var(--neon-orange)">↑ ${tMax}°</span> <span style="color:var(--text-muted)">${fmtHM(tMaxTs)}</span></div>`:''} ${fl!==null?`<div class="kpi-sub">Ressenti ${fl}°</div>`:''}</div></div>`;
   }
   if(!isNaN(humid)){
-    humidHtml=`<div class="kpi-box" style="position:relative;overflow:hidden;background:rgba(30,41,59,.3);border:1px solid color-mix(in srgb,var(--neon-blue) 30%,transparent);box-shadow:0 10px 25px rgba(0,0,0,.4);background-clip:padding-box;width:100%;justify-content:center;"><div class="wave-fill" style="position:absolute;left:0;right:0;bottom:0;height:${humid}%;pointer-events:none;z-index:1;transition:height .5s ease;"><svg viewBox="0 0 100 100" preserveAspectRatio="none" style="position:absolute;top:-15px;left:0;width:100%;height:calc(100% + 15px);fill:color-mix(in srgb,var(--neon-blue) 12%,transparent)"><path d="M0,15 Q25,20 50,15 T100,15 L100,100 L0,100 Z"></path></svg></div><div style="position:relative;z-index:2;display:flex;flex-direction:column;align-items:center;justify-content:center;width:100%;flex:1"><div class="section-title">Humidité</div><div class="kpi-val" style="color:var(--neon-blue)">${humid} %</div>${dp!==null?`<div class="kpi-sub" style="margin-top:6px">Pt de rosée <strong style="color:var(--neon-blue)">${dp}°C</strong></div>`:''}</div></div>`;
+    humidHtml=`<div class="kpi-box modal-clickable" onclick="openHumidModal()" style="position:relative;overflow:hidden;background:rgba(30,41,59,.3);border:1px solid color-mix(in srgb,var(--neon-blue) 30%,transparent);box-shadow:0 10px 25px rgba(0,0,0,.4);background-clip:padding-box;width:100%;justify-content:center;"><div class="wave-fill" style="position:absolute;left:0;right:0;bottom:0;height:${humid}%;pointer-events:none;z-index:1;transition:height .5s ease;"><svg viewBox="0 0 100 100" preserveAspectRatio="none" style="position:absolute;top:-15px;left:0;width:100%;height:calc(100% + 15px);fill:color-mix(in srgb,var(--neon-blue) 12%,transparent)"><path d="M0,15 Q25,20 50,15 T100,15 L100,100 L0,100 Z"></path></svg></div><div style="position:relative;z-index:2;display:flex;flex-direction:column;align-items:center;justify-content:center;width:100%;flex:1"><div class="section-title">Humidité</div><div class="kpi-val" style="color:var(--neon-blue)">${humid} %</div>${dp!==null?`<div class="kpi-sub" style="margin-top:6px">Pt de rosée <strong style="color:var(--neon-blue)">${dp}°C</strong></div>`:''}</div></div>`;
   }
   if(tempHtml||humidHtml)blocks.temphum=wrapRow('temphum',`<div style="display:grid;grid-template-columns:repeat(2,1fr);gap:12px;width:100%">${tempHtml}${humidHtml}</div>`);
 
