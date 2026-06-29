@@ -181,7 +181,7 @@ input:focus{outline:none;border-color:var(--neon-blue);box-shadow:0 0 10px rgba(
       <div id="alerts-container"></div>
       <div class="section-title" style="text-align:left">Indicateurs clés</div>
       <div class="kpi-grid" id="weather-live-grid"></div>
-      <button class="btn" style="margin-top:20px" onclick="refreshLive()">Actualiser</button>
+      <button class="btn" id="btn-refresh" style="margin-top:20px" onclick="refreshLive()">Actualiser</button>
       <button class="btn-secondary" id="btn-reorder" style="margin-top:12px;border-color:rgba(255,255,255,.12);color:var(--text-muted)" onclick="toggleReorderMode()">Réorganiser</button>
     </div>
   </div>
@@ -327,7 +327,7 @@ input:focus{outline:none;border-color:var(--neon-blue);box-shadow:0 0 10px rgba(
 /* ═══ STATE ═══ */
 let charts={},modalCaches={};
 let lyRainCache=null,forecastCache=null,forecastCacheTime=0;
-let aqCache=null,aqCacheTime=0,autoRefreshTimer=null;
+let aqCache=null,aqCacheTime=0,autoRefreshTimer=null,countdownTimer=null,refreshCountdown=15;
 let detectedCity="",isReorderMode=false,lastRenderedData=null;
 let alertStartTimes={};
 let rowOrder=['sun','temphum','forecast','aq','moon','uv','wind','rain','pressure'];
@@ -382,7 +382,8 @@ async function fetchHistory(key,cb,startD,endD,ms=20000){if(modalCaches[key])ret
 
 /* REFRESH */
 async function refreshLive(){if(!hasCredentials())return;const{appKey,apiKey,mac}=getCreds();fetchCityName();const[lr,tr]=await Promise.allSettled([fetchLiveData(appKey,apiKey,mac),fetchRecentTrend(appKey,apiKey,mac)]);const live=lr.status==='fulfilled'&&lr.value!==false?lr.value:null,trend=tr.status==='fulfilled'?tr.value:null;if(live)renderLiveGrid(live,trend,null,null,null);const[nr,fr,aqr]=await Promise.allSettled([fetchLastYearRain(appKey,apiKey,mac),fetchForecast(),fetchAirQuality()]);const nm1=nr.status==='fulfilled'?nr.value:null,fc=fr.status==='fulfilled'?fr.value:null,aq=aqr.status==='fulfilled'?aqr.value:null;if(live)renderLiveGrid(live,trend,nm1,fc,aq);startAutoRefresh();}
-function startAutoRefresh(){clearInterval(autoRefreshTimer);autoRefreshTimer=setInterval(()=>{if(hasCredentials())refreshLive();},300000);}
+function updateRefreshBtn(){const b=el('btn-refresh');if(b)b.textContent=`Actualiser (${refreshCountdown}s)`;}
+function startAutoRefresh(){clearInterval(countdownTimer);refreshCountdown=15;updateRefreshBtn();countdownTimer=setInterval(()=>{refreshCountdown--;if(refreshCountdown<=0){refreshCountdown=15;if(hasCredentials())refreshLive();}else{updateRefreshBtn();}},1000);}
 
 /* ═══ MODAL 1: TEMPÉRATURE 30J ═══ */
 async function openTempModal(){if(!hasCredentials())return;openModal('temp-modal-overlay');if(!modalCaches['temp30']){showLoading('temp-chart-container','Récupération des 30 derniers jours…');el('temp-stats-row').innerHTML='';}try{if(!modalCaches['temp30']){const now=new Date();const t1=new Date(now.getTime()-5*86400000);t1.setHours(0,0,0,0);const t2=new Date(now.getTime()-10*86400000);t2.setHours(0,0,0,0);const t3=new Date(now.getTime()-15*86400000);t3.setHours(0,0,0,0);const t4=new Date(now.getTime()-20*86400000);t4.setHours(0,0,0,0);const t5=new Date(now.getTime()-25*86400000);t5.setHours(0,0,0,0);const t6=new Date(now.getTime()-30*86400000);t6.setHours(0,0,0,0);const r1=await fetchHistory('_th1','outdoor.temperature',t6,t5,20000);const r2=await fetchHistory('_th2','outdoor.temperature',t5,t4,20000);const r3=await fetchHistory('_th3','outdoor.temperature',t4,t3,20000);const r4=await fetchHistory('_th4','outdoor.temperature',t3,t2,20000);const r5=await fetchHistory('_th5','outdoor.temperature',t2,t1,20000);const r6=await fetchHistory('_th6','outdoor.temperature',t1,now,20000);const unit=r1.outdoor?.temperature?.unit||r2.outdoor?.temperature?.unit||'°C';const list={...r1.outdoor?.temperature?.list||{},...r2.outdoor?.temperature?.list||{},...r3.outdoor?.temperature?.list||{},...r4.outdoor?.temperature?.list||{},...r5.outdoor?.temperature?.list||{},...r6.outdoor?.temperature?.list||{}};modalCaches['temp30']={outdoor:{temperature:{unit,list}}};}renderTempModal(modalCaches['temp30']);}catch(e){showError('temp-chart-container',e.message);}}
@@ -660,7 +661,7 @@ function renderLiveGrid(data,trend,nm1,fc,aq){
       `<circle cx="${dPt.x}" cy="${dPt.y}" r="5" fill="rgba(148,163,184,.45)"/><circle cx="${dPt.x}" cy="${dPt.y}" r="2.5" fill="rgba(226,232,240,.75)"/>`;
     const rDot=`<circle cx="${rPt.x}" cy="${rPt.y}" r="2.5" fill="rgba(251,191,36,.70)"/>`;
     const sDot=`<circle cx="${sPt.x}" cy="${sPt.y}" r="2.5" fill="rgba(251,191,36,.50)"/>`;
-    const arcSvg=`<svg viewBox="0 0 200 ${ACY+14}" preserveAspectRatio="xMidYMid meet" style="width:100%;max-height:60px;display:block;overflow:visible"><defs><filter id="sg" x="-100%" y="-100%" width="300%" height="300%"><feGaussianBlur in="SourceGraphic" stdDeviation="3.5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs><line x1="3" y1="${ACY}" x2="197" y2="${ACY}" stroke="rgba(255,255,255,.07)" stroke-width="1"/>${nightArc1}${dayArc}${nightArc2}${rDot}${sDot}${sunDot}<text x="5" y="${ACY+11}" text-anchor="start" fill="rgba(251,191,36,.70)" font-size="8" font-family="system-ui,sans-serif">${sun.sunrise}</text><text x="195" y="${ACY+11}" text-anchor="end" fill="rgba(251,191,36,.50)" font-size="8" font-family="system-ui,sans-serif">${sun.sunset}</text></svg>`;
+    const arcSvg=`<div style="display:flex;align-items:center;gap:6px"><div style="display:flex;flex-direction:column;align-items:center;gap:1px;min-width:42px"><span style="font-size:13px">🌅</span><span style="font-size:12px;font-weight:600;color:rgba(251,191,36,.85)">${sun.sunrise}</span></div><svg viewBox="0 0 200 ${ACY}" preserveAspectRatio="xMidYMid meet" style="flex:1;max-height:56px;display:block;overflow:visible"><defs><filter id="sg" x="-100%" y="-100%" width="300%" height="300%"><feGaussianBlur in="SourceGraphic" stdDeviation="3.5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs><line x1="3" y1="${ACY}" x2="197" y2="${ACY}" stroke="rgba(255,255,255,.07)" stroke-width="1"/>${nightArc1}${dayArc}${nightArc2}${rDot}${sDot}${sunDot}</svg><div style="display:flex;flex-direction:column;align-items:center;gap:1px;min-width:42px"><span style="font-size:13px">🌇</span><span style="font-size:12px;font-weight:600;color:rgba(251,191,36,.55)">${sun.sunset}</span></div></div>`;
     /* Durée du jour + lumière restante */
     const durMin=s-r,durH=Math.floor(durMin/60),durM=durMin%60;
     const durStr=`${durH}h ${String(durM).padStart(2,'0')}min`;
