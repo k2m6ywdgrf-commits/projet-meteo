@@ -375,7 +375,16 @@ async function refreshLive(){if(!hasCredentials())return;const{appKey,apiKey,mac
 function startAutoRefresh(){clearInterval(autoRefreshTimer);autoRefreshTimer=setInterval(()=>{if(hasCredentials())refreshLive();},300000);}
 
 /* ═══ MODAL 1: TEMPÉRATURE 15J ═══ */
-async function openTempModal(){if(!hasCredentials())return;openModal('temp-modal-overlay');if(!modalCaches['temp15e']){showLoading('temp-chart-container','Récupération des 15 derniers jours…');el('temp-stats-row').innerHTML='';}try{const data=await fetchModalData('temp15e','outdoor.temperature',300,15,25000);const t=data.outdoor?.temperature||{};const dbg=`Clés: ${Object.keys(t).join(', ')}\n\nlist (5 premiers):\n${Object.entries(t.list||{}).slice(0,5).map(([k,v])=>`${new Date(k*1000).toISOString().slice(0,16)} → ${v}`).join('\n')}\n\nlist_max (5 premiers):\n${Object.entries(t.list_max||{}).slice(0,5).map(([k,v])=>`${new Date(k*1000).toISOString().slice(0,16)} → ${v}`).join('\n')||'(absent)'}\n\nlist_min (5 premiers):\n${Object.entries(t.list_min||{}).slice(0,5).map(([k,v])=>`${new Date(k*1000).toISOString().slice(0,16)} → ${v}`).join('\n')||'(absent)'}`;el('temp-chart-container').innerHTML=`<pre style="font-size:11px;color:#e2e8f0;white-space:pre-wrap;padding:8px;overflow:auto;max-height:300px">${dbg}</pre>`;el('temp-stats-row').innerHTML='';}catch(e){showError('temp-chart-container',e.message);}}
+async function openTempModal(){if(!hasCredentials())return;openModal('temp-modal-overlay');showLoading('temp-chart-container','Récupération…');el('temp-stats-row').innerHTML='';try{
+const[d4h,d1d]=await Promise.all([fetchModalData('dbg4h','outdoor.temperature',14400,15,25000),fetchModalData('dbg1d','outdoor.temperature',86400,15,15000)]);
+const t4h=d4h.outdoor?.temperature||{},t1d=d1d.outdoor?.temperature||{};
+const fmt=ts=>`${new Date(ts*1000).toISOString().slice(0,13)}h → ${t4h.list?.[ts]??''}`;
+const fmtD=ts=>`${new Date(ts*1000).toISOString().slice(0,10)} → ${t1d.list?.[ts]??''}`;
+const dbg=
+`=== cycle=14400 (4h) — clés: ${Object.keys(t4h).join(', ')}\n5 dernières valeurs:\n`+Object.keys(t4h.list||{}).sort((a,b)=>b-a).slice(0,5).map(fmt).join('\n')+
+`\n\n=== cycle=86400 (daily) — clés: ${Object.keys(t1d).join(', ')}\nToutes les valeurs:\n`+Object.keys(t1d.list||{}).sort((a,b)=>a-b).map(fmtD).join('\n');
+el('temp-chart-container').innerHTML=`<pre style="font-size:11px;color:#e2e8f0;white-space:pre-wrap;padding:8px;overflow:auto;max-height:360px">${dbg}</pre>`;
+}catch(e){showError('temp-chart-container',e.message);}}
 
 function renderTempModal(data){
 const t=data.outdoor?.temperature||{};
