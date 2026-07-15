@@ -747,7 +747,7 @@ function renderLiveGrid(data,trend,nm1,fc,aq){
   const solarRaw=data.solar_and_uvi?.solar_radiation?.value??data.solar?.solar_radiation?.value??null;
   const uviVal=uviRaw!==null?parseFloat(uviRaw):null;
   const solarVal=solarRaw!==null?parseFloat(solarRaw):null;
-  const rainRate=(rf&&rf.hourly&&rf.hourly.value)?parseFloat(rf.hourly.value):0;
+  const rainRate=Math.max(parseFloat(rf?.rain_rate?.value)||0,parseFloat(rf?.rrain_piezo?.value)||0,parseFloat(rf?.hourly?.value)||0);
 
   let wMax=null,wgMax=null,uviMax=null;
   Object.values(trend?.wind?.wind_speed?.list||{}).forEach(v=>{const val=Math.round(parseFloat(v)*mult*10)/10;if(!isNaN(val)&&(wMax===null||val>wMax))wMax=val;});
