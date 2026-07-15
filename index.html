@@ -174,6 +174,9 @@ input:focus{outline:none;border-color:var(--neon-blue);box-shadow:0 0 10px rgba(
 .yearly-thermo-bar{position:relative;height:8px;border-radius:4px;background:linear-gradient(to right,#38bdf8,#4ade80,#fbbf24,#f97316,#f43f5e);margin-bottom:6px}
 .yearly-thermo-dot{position:absolute;top:-4px;width:16px;height:16px;border-radius:50%;transform:translateX(-50%);border:2px solid rgba(12,18,38,.9)}
 .yearly-thermo-labels{display:flex;justify-content:space-between;font-size:10px;color:var(--text-muted)}
+.kpi-reveal{opacity:0;transform:translateY(16px) scale(.985)}
+.kpi-reveal:not(.reveal-in) *{animation-play-state:paused!important}
+.kpi-reveal.reveal-in{opacity:1;transform:none;transition:opacity .45s ease-out,transform .55s cubic-bezier(.22,.9,.32,1)}
 .baro-lin{position:relative;width:100%;height:56px;margin-top:8px}
 .baro-needle{position:absolute;top:2px;width:0;height:0;z-index:3}
 .pressure-zones-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:4px;margin-top:12px}
@@ -728,6 +731,10 @@ if(code<=1)return wrapA([[10,70,2.5,0],[25,80,2,1.2],[40,65,3,.6],[60,75,2.5,1.8
 return wrapA([[5,18,70,.10,0],[30,32,90,.08,1],[55,12,80,.09,2],[12,52,100,.07,3],[60,58,75,.08,4],[38,74,85,.06,5],[72,42,70,.09,6]].map(([x,y,w,op,i])=>`<div style="position:absolute;left:${x}%;top:${y}%;width:${w}px;height:9px;border-radius:6px;background:rgba(148,163,184,${op});filter:blur(3px);animation:decoWave ${6+i}s ease-in-out ${(i*.7).toFixed(1)}s infinite"></div>`).join(''));}
 
 /* ═══ RÉORGANISATION ═══ */
+let revealDone=false;
+function setupReveal(){if(revealDone)return;revealDone=true;if(!('IntersectionObserver'in window)||matchMedia('(prefers-reduced-motion: reduce)').matches)return;
+const obs=new IntersectionObserver(entries=>{let i=0;entries.forEach(en=>{if(!en.isIntersecting)return;const b=en.target;b.style.transitionDelay=(90+Math.min(i,4)*80)+'ms';b.classList.add('reveal-in');b.addEventListener('transitionend',()=>{b.style.transitionDelay='';},{once:true});const bm=b.querySelector('.baro-main');if(bm){const tr=bm.style.transition;bm.style.transition='none';bm.style.left='61.5%';requestAnimationFrame(()=>requestAnimationFrame(()=>{bm.style.transition=tr;bm.style.left=bm.dataset.left+'%';}));}obs.unobserve(b);i++;});},{threshold:.15,rootMargin:'0px 0px -6% 0px'});
+document.querySelectorAll('#live-grid .kpi-box, .kpi-box').forEach(b=>{if(!b.classList.contains('kpi-reveal')){b.classList.add('kpi-reveal');obs.observe(b);}});}
 function wrapRow(id,html){return`<div class="weather-row" data-id="${id}"><div class="reorder-controls"><button class="reorder-btn-action" onclick="moveRow('${id}',-1);event.stopPropagation()">▲</button><button class="reorder-btn-action" onclick="moveRow('${id}',1);event.stopPropagation()">▼</button></div>${html}</div>`;}
 function toggleReorderMode(){isReorderMode=!isReorderMode;const grid=el('weather-live-grid'),btn=el('btn-reorder');if(isReorderMode){grid.classList.add('reorder-active');btn.innerText='⚙️ Terminer la réorganisation';btn.style.borderColor='var(--neon-green)';btn.style.color='var(--neon-green)';}else{grid.classList.remove('reorder-active');btn.innerText='Réorganiser';btn.style.borderColor='rgba(255,255,255,.12)';btn.style.color='var(--text-muted)';}}
 window.moveRow=function(id,dir){const i=rowOrder.indexOf(id);if(i===-1)return;const ni=i+dir;if(ni<0||ni>=rowOrder.length)return;[rowOrder[i],rowOrder[ni]]=[rowOrder[ni],rowOrder[i]];localStorage.setItem('weather_row_order',JSON.stringify(rowOrder));if(lastRenderedData)renderLiveGrid(lastRenderedData.data,lastRenderedData.trend,lastRenderedData.nm1,lastRenderedData.fc,lastRenderedData.aq);};
@@ -920,6 +927,7 @@ function renderLiveGrid(data,trend,nm1,fc,aq){
   const smc=el('sun-moon-canvas');if(smc)drawMoonPhase(smc,moon.age);
   if(!isNaN(windDeg)){const cc=el('compass-canvas');if(cc)drawCompass(cc,windDeg,84,windColor(windKmh));}
   document.querySelectorAll('.mini-compass-canvas').forEach(c=>drawCompass(c,parseInt(c.dataset.deg),52,windColor(windKmh)));
+  setupReveal();
 }
 </script>
 </body>
