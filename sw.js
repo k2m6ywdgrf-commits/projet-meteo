@@ -1,7 +1,7 @@
 /* Météo Glass — coquille en cache pour le hors-ligne.
    Seuls les fichiers de l'appli et le CDN chart.js sont mis en cache :
-   aucune donnée ni URL d'API (Ecowitt, Open-Meteo, Enphase, relais…) n'y entre. */
-const CACHE='meteo-glass-v3';
+   aucune donnée ni URL d'API (Ecowitt, Open-Meteo…) n'y entre. */
+const CACHE='meteo-glass-v4';
 const ASSETS=['index.html','manifest.json','icon.svg','favicon-32.png','apple-touch-icon.png','icon-192.png','icon-512.png','https://cdn.jsdelivr.net/npm/chart.js@4.5.0/dist/chart.umd.min.js'];
 self.addEventListener('install',e=>{e.waitUntil(caches.open(CACHE).then(c=>c.addAll(ASSETS)).then(()=>self.skipWaiting()));});
 self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(ks=>Promise.all(ks.filter(k=>k!==CACHE).map(k=>caches.delete(k)))).then(()=>self.clients.claim()));});
