@@ -208,7 +208,7 @@ input:focus{outline:none;border-color:var(--neon-blue);box-shadow:0 0 10px rgba(
 .season-name-modal{font-size:12px;font-weight:700;text-align:center}
 .season-dates-modal{font-size:10px;color:#64748b;text-align:center}
 /* ── Icônes de danger « qui respirent » ── */
-.section-title-row{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}
+.section-title-row{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px;position:relative}
 .section-title-row .section-title{margin-bottom:0}
 .danger-icons{display:flex;align-items:center;gap:7px}
 .danger-icon{position:relative;width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0;flex-shrink:0;transition:transform .15s}
@@ -218,13 +218,18 @@ input:focus{outline:none;border-color:var(--neon-blue);box-shadow:0 0 10px rgba(
 .di-danger{color:var(--neon-red);border:1px solid rgba(244,63,94,.46);background:rgba(244,63,94,.15);animation:breatheDanger 1.5s ease-in-out infinite}
 @keyframes breatheWarn{0%,100%{transform:scale(1);box-shadow:0 0 0 0 rgba(251,191,36,.4)}50%{transform:scale(1.1);box-shadow:0 0 13px 2px rgba(251,191,36,.5)}}
 @keyframes breatheDanger{0%,100%{transform:scale(1);box-shadow:0 0 3px 0 rgba(244,63,94,.5)}50%{transform:scale(1.16);box-shadow:0 0 18px 3px rgba(244,63,94,.7)}}
-.danger-tip{display:none;align-items:center;gap:9px;margin:-2px 0 14px;padding:10px 13px;border-radius:12px;font-size:11.5px;font-weight:600;line-height:1.4}
-.danger-tip.show{display:flex;animation:fadeIn .22s ease}
-.danger-tip .danger-tip-ico{width:18px;height:18px;flex-shrink:0}
-.danger-tip .danger-tip-ico svg{width:18px;height:18px;display:block}
-.danger-tip .dt-since{margin-left:auto;font-size:10px;font-weight:500;opacity:.7;white-space:nowrap}
-.di-tip-warn{background:rgba(251,191,36,.12);border:1px solid rgba(251,191,36,.3);color:#fbbf24}
-.di-tip-danger{background:rgba(244,63,94,.14);border:1px solid rgba(244,63,94,.34);color:#fb7185}
+/* Bulle de conversation issue de l'icône de danger */
+.danger-bubble{display:none;position:absolute;z-index:60;max-width:280px;padding:10px 13px;border-radius:14px;font-size:12px;font-weight:600;line-height:1.42;box-shadow:0 10px 26px rgba(0,0,0,.5);transform-origin:var(--tail,50%) top}
+.danger-bubble.show{display:flex;align-items:center;gap:9px;animation:bubblePop .24s cubic-bezier(.32,1.45,.5,1)}
+.danger-bubble .db-ico{width:18px;height:18px;flex-shrink:0}
+.danger-bubble .db-ico svg{width:18px;height:18px;display:block}
+.danger-bubble .db-since{font-size:10px;font-weight:500;opacity:.7;white-space:nowrap;flex-shrink:0}
+.danger-bubble::after{content:'';position:absolute;top:-6px;left:var(--tail,50%);margin-left:-6px;width:12px;height:12px;transform:rotate(45deg);border-radius:2px}
+.db-warn{background:#2a2413;border:1px solid rgba(251,191,36,.5);color:#fbbf24}
+.db-warn::after{background:#2a2413;border-left:1px solid rgba(251,191,36,.5);border-top:1px solid rgba(251,191,36,.5)}
+.db-danger{background:#2c1219;border:1px solid rgba(244,63,94,.55);color:#fb7185}
+.db-danger::after{background:#2c1219;border-left:1px solid rgba(244,63,94,.55);border-top:1px solid rgba(244,63,94,.55)}
+@keyframes bubblePop{from{opacity:0;transform:translateY(-8px) scale(.85)}to{opacity:1;transform:translateY(0) scale(1)}}
 /* ── Fête & dicton du jour ── */
 .feast-banner{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:14px;margin-bottom:14px;cursor:pointer;background:linear-gradient(120deg,rgba(167,139,250,.16),rgba(56,189,248,.07));border:1px solid rgba(167,139,250,.32);position:relative;overflow:hidden;transition:transform .15s}
 .feast-banner:active{transform:scale(.99)}
@@ -245,6 +250,9 @@ input:focus{outline:none;border-color:var(--neon-blue);box-shadow:0 0 10px rgba(
 .feast-card-label{font-size:10px;text-transform:uppercase;letter-spacing:1px;font-weight:700;margin-bottom:9px;display:flex;align-items:center;gap:7px;color:var(--text-muted)}
 .feast-card-text{font-size:14.5px;line-height:1.55;font-style:italic;color:#eef2f7}
 .feast-card-author{font-size:11px;color:var(--text-muted);margin-top:9px;text-align:right;font-style:normal}
+.feast-others{display:flex;align-items:center;flex-wrap:wrap;gap:6px;margin:0 2px 16px}
+.feast-others-label{font-size:10px;text-transform:uppercase;letter-spacing:.8px;font-weight:700;color:var(--text-muted);margin-right:2px}
+.feast-chip{font-size:12px;font-weight:600;color:#c4b5fd;background:rgba(167,139,250,.13);border:1px solid rgba(167,139,250,.28);border-radius:999px;padding:3px 10px}
 </style>
 </head>
 <body>
@@ -270,8 +278,8 @@ input:focus{outline:none;border-color:var(--neon-blue);box-shadow:0 0 10px rgba(
       <div class="section-title-row">
         <div class="section-title" style="text-align:left">Indicateurs clés</div>
         <div id="danger-icons" class="danger-icons"></div>
+        <div id="danger-bubble" class="danger-bubble"></div>
       </div>
-      <div id="danger-tip" class="danger-tip"></div>
       <div class="kpi-grid" id="weather-live-grid"></div>
       <button class="btn" id="btn-refresh" style="margin-top:20px" onclick="refreshLive()">Actualiser</button>
       <button class="btn-secondary" id="btn-reorder" style="margin-top:12px;border-color:rgba(255,255,255,.12);color:var(--text-muted)" onclick="toggleReorderMode()">Réorganiser</button>
@@ -489,14 +497,33 @@ function dangerSvg(type){
 }
 let dangerMsgs={};
 function renderDangerIcons(list){
-  const box=el('danger-icons'),tip=el('danger-tip');if(!box)return;
+  const box=el('danger-icons');if(!box)return;
   dangerMsgs={};
-  if(!list.length){box.innerHTML='';if(tip){tip.className='danger-tip';tip.innerHTML='';tip.dataset.key='';}return;}
-  box.innerHTML=list.map(d=>{dangerMsgs[d.key]={sev:d.sev,type:d.type,msg:d.msg};return`<button type="button" class="danger-icon di-${d.sev==='danger'?'danger':'warn'}" aria-label="${esc(d.msg)}" title="${esc(d.msg)}" onclick="toggleDangerTip('${d.key}')">${dangerSvg(d.type)}</button>`;}).join('');
-  if(tip&&tip.dataset.key){if(dangerMsgs[tip.dataset.key]&&tip.classList.contains('show'))showDangerTip(tip.dataset.key);else{tip.className='danger-tip';tip.innerHTML='';tip.dataset.key='';}}
+  if(!list.length){box.innerHTML='';hideDangerBubble();return;}
+  box.innerHTML=list.map(d=>{dangerMsgs[d.key]={sev:d.sev,type:d.type,msg:d.msg};return`<button type="button" class="danger-icon di-${d.sev==='danger'?'danger':'warn'}" data-key="${d.key}" aria-label="${esc(d.msg)}" title="${esc(d.msg)}" onclick="toggleDangerBubble('${d.key}',this)">${dangerSvg(d.type)}</button>`;}).join('');
+  const bub=el('danger-bubble');
+  if(bub&&bub.classList.contains('show')&&bub.dataset.key){const k=bub.dataset.key,btn=box.querySelector(`button[data-key="${k}"]`);if(dangerMsgs[k]&&btn)showDangerBubble(k,btn);else hideDangerBubble();}
 }
-function showDangerTip(key){const tip=el('danger-tip'),d=dangerMsgs[key];if(!tip||!d)return;const s=sinceStr(key);tip.dataset.key=key;tip.className=`danger-tip show di-tip-${d.sev==='danger'?'danger':'warn'}`;tip.innerHTML=`<span class="danger-tip-ico">${dangerSvg(d.type)}</span><span>${esc(d.msg)}</span>${s?`<span class="dt-since">${esc(s)}</span>`:''}`;}
-function toggleDangerTip(key){const tip=el('danger-tip');if(!tip)return;if(tip.dataset.key===key&&tip.classList.contains('show')){tip.className='danger-tip';tip.innerHTML='';tip.dataset.key='';return;}showDangerTip(key);}
+function hideDangerBubble(){const bub=el('danger-bubble');if(!bub)return;bub.className='danger-bubble';bub.innerHTML='';bub.dataset.key='';}
+function showDangerBubble(key,btn){
+  const bub=el('danger-bubble'),d=dangerMsgs[key];if(!bub||!d||!btn)return;
+  const row=btn.closest('.section-title-row');if(!row)return;
+  const s=sinceStr(key);
+  bub.dataset.key=key;
+  bub.className=`danger-bubble show db-${d.sev==='danger'?'danger':'warn'}`;
+  bub.innerHTML=`<span class="db-ico">${dangerSvg(d.type)}</span><span>${esc(d.msg)}</span>${s?`<span class="db-since">${esc(s)}</span>`:''}`;
+  const rb=row.getBoundingClientRect(),bb=btn.getBoundingClientRect();
+  bub.style.top=(btn.offsetTop+btn.offsetHeight+9)+'px';
+  bub.style.left='0px';
+  const bw=bub.offsetWidth,rw=row.offsetWidth;
+  const iconCx=(bb.left-rb.left)+bb.width/2;
+  let left=Math.max(0,Math.min(iconCx-bw+22,rw-bw));
+  bub.style.left=left+'px';
+  bub.style.setProperty('--tail',Math.max(12,Math.min(bw-12,iconCx-left))+'px');
+}
+function toggleDangerBubble(key,btn){const bub=el('danger-bubble');if(!bub)return;if(bub.dataset.key===key&&bub.classList.contains('show')){hideDangerBubble();return;}showDangerBubble(key,btn);}
+document.addEventListener('click',e=>{const bub=el('danger-bubble');if(bub&&bub.classList.contains('show')&&!e.target.closest('#danger-bubble')&&!e.target.closest('.danger-icon'))hideDangerBubble();});
+document.addEventListener('keydown',e=>{if(e.key==='Escape')hideDangerBubble();});
 /* ═══ FÊTE & DICTON DU JOUR ═══ */
 const SAINTS=[
 "Jour de l'An,Basile,Geneviève,Odilon,Édouard,Mélaine,Raymond,Lucien,Alix,Guillaume,Pauline,Tatiana,Yvette,Nina,Rémi,Marcel,Roseline,Prisca,Marius,Sébastien,Agnès,Vincent,Barnard,François,Ananie,Paule,Angèle,Thomas,Gildas,Martine,Marcelle",
@@ -570,8 +597,17 @@ function getDicton(d){d=d||new Date();const k=(d.getMonth()+1)+'-'+d.getDate();i
 function getCitation(d){d=d||new Date();const doy=Math.floor((d-new Date(d.getFullYear(),0,0))/864e5);return CITATIONS[doy%CITATIONS.length];}
 const FEAST_HOLIDAY=/^(Jour de l'An|Chandeleur|Assomption|Toussaint|Défunts|Annonciation|Nativité de Marie|Présentation de Marie|Immaculée Conception|Transfiguration|La Sainte Croix|Noël|Notre-Dame)/;
 function feastIcoSvg(){return`<svg viewBox="0 0 40 40" style="width:100%;height:100%;overflow:visible"><g style="transform-origin:20px 20px;animation:feastPulse 3.2s ease-in-out infinite"><path d="M20 4.5 L22.7 15.3 L33.5 18 L22.7 20.7 L20 31.5 L17.3 20.7 L6.5 18 L17.3 15.3 Z" fill="#c4b5fd"/></g><path d="M31.5 6 L32.8 10.2 L37 11.5 L32.8 12.8 L31.5 17 L30.2 12.8 L26 11.5 L30.2 10.2 Z" fill="#7dd3fc" style="transform-origin:31.5px 11.5px;animation:feastTwinkle 2.1s ease-in-out infinite"/><circle cx="7.5" cy="31" r="2" fill="#fbbf24" style="transform-origin:7.5px 31px;animation:feastTwinkle 2.5s ease-in-out infinite .6s"/><circle cx="33" cy="31.5" r="1.7" fill="#f9a8d4" style="transform-origin:33px 31.5px;animation:feastTwinkle 2.9s ease-in-out infinite .3s"/></svg>`;}
-function renderFeast(){const b=el('feast-banner');if(!b)return;const name=getFeast();if(!name){b.style.display='none';return;}b.style.display='flex';const intro=FEAST_HOLIDAY.test(name)?`Aujourd'hui&nbsp;: <span class="fn">${esc(name)}</span>`:`Bonne fête aux <span class="fn">${esc(name)}</span>&nbsp;!`;b.innerHTML=`<span class="feast-ico">${feastIcoSvg()}</span><span class="feast-txt">${intro}</span><span class="feast-hint">Dicton ›</span>`;}
-function openFeastModal(){const c=el('feast-modal-content');if(!c)return;const now=new Date(),name=getFeast(now),dic=getDicton(now),[cit,aut]=getCitation(now);const dateStr=`${now.getDate()} ${MFL[now.getMonth()]}`;const title=FEAST_HOLIDAY.test(name)?esc(name):`Bonne fête aux ${esc(name)} !`;const sub=FEAST_HOLIDAY.test(name)?'':`On souhaite leur fête à tous les ${esc(name)} aujourd'hui.`;c.innerHTML=`<div class="feast-hero"><div class="feast-hero-ico">${feastIcoSvg()}</div><div class="feast-hero-date">${esc(dateStr)}</div><div class="feast-hero-name">${title}</div>${sub?`<div class="feast-hero-sub">${sub}</div>`:''}</div><div class="feast-card c-dicton"><div class="feast-card-label">🌾 Dicton du jour</div><div class="feast-card-text">« ${esc(dic)} »</div></div><div class="feast-card c-citation"><div class="feast-card-label">✨ Citation du jour</div><div class="feast-card-text">« ${esc(cit)} »</div><div class="feast-card-author">— ${esc(aut)}</div></div>`;openModal('feast-modal-overlay');}
+/* Prénoms fêtés : récupérés en ligne (Nominis / Église catholique de France),
+   mis en cache par jour ; repli sur le calendrier embarqué si hors-ligne. */
+let feastState={key:'',names:[]};
+function feastKey(d){d=d||new Date();return(d.getMonth()+1)+'-'+d.getDate();}
+function collectNoms(o,out){if(!o)return;if(Array.isArray(o)){o.forEach(x=>collectNoms(x,out));return;}if(typeof o==='object'){if(typeof o.nom==='string')out.push(o.nom);for(const k in o)collectNoms(o[k],out);}else if(typeof o==='string'){out.push(o);}}
+function cleanFeastName(raw){if(!raw||typeof raw!=='string')return'';let s=raw.trim().replace(/<[^>]*>/g,'').replace(/&[a-z]+;/gi,' ').trim();s=s.replace(/^(les?\s+)?((tr[eè]s\s+)?(saintes?|saints?|sainte|ste?|st|bienheureux(se)?|bx|bse|v[ée]n[ée]rable)\b\.?\s+)+/i,'');s=s.split(/[,(;:]/)[0].trim();s=s.split(/\s+(?:de|du|des|d'|of)\s+/i)[0].trim();s=s.replace(/\s+/g,' ').trim();if(!/^[A-Za-zÀ-ÿ][A-Za-zÀ-ÿ' -]{1,26}$/.test(s))return'';return s.charAt(0).toUpperCase()+s.slice(1);}
+async function fetchFeastNames(d){const key=feastKey(d),ck='feast_names_'+key;try{const c=JSON.parse(localStorage.getItem(ck)||'null');if(Array.isArray(c)&&c.length)return c;}catch(e){}const ctrl=new AbortController(),to=setTimeout(()=>ctrl.abort(),7000);try{const r=await fetch(`https://nominis.cef.fr/json/nominis.php?jour=${d.getDate()}&mois=${d.getMonth()+1}`,{signal:ctrl.signal});clearTimeout(to);if(!r.ok)return null;const j=await r.json(),raw=[];collectNoms(j.response||j,raw);const seen=new Set(),names=[];raw.forEach(n=>{const c=cleanFeastName(n);if(c&&!seen.has(c.toLowerCase())){seen.add(c.toLowerCase());names.push(c);}});const top=names.slice(0,12);if(top.length){localStorage.setItem(ck,JSON.stringify(top));return top;}return null;}catch(e){clearTimeout(to);return null;}}
+function feastNames(){const k=feastKey();if(feastState.key===k&&feastState.names.length)return feastState.names;const l=getFeast();return l?[l]:[];}
+async function loadFeast(){const d=new Date(),k=feastKey(d);if(feastState.key===k&&feastState.names.length){renderFeast();return;}const on=await fetchFeastNames(d);feastState={key:k,names:(on&&on.length)?on:(getFeast(d)?[getFeast(d)]:[])};renderFeast();}
+function renderFeast(){const b=el('feast-banner');if(!b)return;const names=feastNames();if(!names.length){b.style.display='none';return;}b.style.display='flex';const primary=names[0];const intro=FEAST_HOLIDAY.test(primary)?`Aujourd'hui&nbsp;: <span class="fn">${esc(primary)}</span>`:`Bonne fête aux <span class="fn">${esc(primary)}</span>&nbsp;!`;b.innerHTML=`<span class="feast-ico">${feastIcoSvg()}</span><span class="feast-txt">${intro}</span><span class="feast-hint">Dicton ›</span>`;}
+function openFeastModal(){const c=el('feast-modal-content');if(!c)return;loadFeast();const now=new Date(),names=feastNames(),primary=names[0]||getFeast(now),others=names.slice(1),dic=getDicton(now),[cit,aut]=getCitation(now);const dateStr=`${now.getDate()} ${MFL[now.getMonth()]}`;const isHol=FEAST_HOLIDAY.test(primary);const title=isHol?esc(primary):`Bonne fête aux ${esc(primary)} !`;const sub=isHol?'':`On souhaite leur fête à tous les ${esc(primary)} aujourd'hui.`;const othersHtml=others.length?`<div class="feast-others"><span class="feast-others-label">On fête aussi</span> ${others.map(n=>`<span class="feast-chip">${esc(n)}</span>`).join('')}</div>`:'';c.innerHTML=`<div class="feast-hero"><div class="feast-hero-ico">${feastIcoSvg()}</div><div class="feast-hero-date">${esc(dateStr)}</div><div class="feast-hero-name">${title}</div>${sub?`<div class="feast-hero-sub">${sub}</div>`:''}</div>${othersHtml}<div class="feast-card c-dicton"><div class="feast-card-label">🌾 Dicton du jour</div><div class="feast-card-text">« ${esc(dic)} »</div></div><div class="feast-card c-citation"><div class="feast-card-label">✨ Citation du jour</div><div class="feast-card-text">« ${esc(cit)} »</div><div class="feast-card-author">— ${esc(aut)}</div></div>`;openModal('feast-modal-overlay');}
 function getSeasonModalGridHtml(){const cur=getSeason();
 const sprSvg=`<svg class="season-icon-modal" viewBox="0 0 46 46"><g><line x1="14" y1="24" x2="14" y2="40" stroke="#4ade80" stroke-width="1.3" opacity=".6"/><circle cx="14" cy="22" r="2" fill="#fde68a" opacity=".8"/><g fill="#f9a8d4" opacity=".8"><ellipse cx="14" cy="17" rx="2" ry="3"/><ellipse cx="19" cy="22" rx="3" ry="2"/><ellipse cx="14" cy="27" rx="2" ry="3"/><ellipse cx="9" cy="22" rx="3" ry="2"/></g><animateTransform attributeName="transform" type="rotate" values="-6 14 40;6 14 40;-6 14 40" keyTimes="0;0.5;1" calcMode="spline" keySplines="0.45 0 0.55 1;0.45 0 0.55 1" dur="4s" repeatCount="indefinite"/></g><g style="animation:decoFlutter 3.2s ease-in-out infinite"><ellipse cx="25" cy="12" ry="2.4" fill="#a78bfa" opacity=".8" transform="rotate(-20 25 12)"><animate attributeName="rx" values="3.4;0.5;3.4" dur="0.55s" repeatCount="indefinite" calcMode="spline" keyTimes="0;0.5;1" keySplines="0.42 0 0.58 1;0.42 0 0.58 1"/></ellipse><ellipse cx="25" cy="17" ry="1.8" fill="#a78bfa" opacity=".7" transform="rotate(20 25 17)"><animate attributeName="rx" values="2.6;0.4;2.6" dur="0.55s" repeatCount="indefinite" calcMode="spline" keyTimes="0;0.5;1" keySplines="0.42 0 0.58 1;0.42 0 0.58 1"/></ellipse><ellipse cx="31" cy="12" ry="2.4" fill="#f9a8d4" opacity=".8" transform="rotate(20 31 12)"><animate attributeName="rx" values="3.4;0.5;3.4" dur="0.55s" repeatCount="indefinite" calcMode="spline" keyTimes="0;0.5;1" keySplines="0.42 0 0.58 1;0.42 0 0.58 1"/></ellipse><ellipse cx="31" cy="17" ry="1.8" fill="#f9a8d4" opacity=".7" transform="rotate(-20 31 17)"><animate attributeName="rx" values="2.6;0.4;2.6" dur="0.55s" repeatCount="indefinite" calcMode="spline" keyTimes="0;0.5;1" keySplines="0.42 0 0.58 1;0.42 0 0.58 1"/></ellipse><line x1="28" y1="10" x2="28" y2="19" stroke="#1e293b" stroke-width="1" opacity=".5"/></g></svg>`;
 const sumSvg=`<svg class="season-icon-modal" viewBox="0 0 46 46"><g stroke="#fbbf24" stroke-width="1.3" stroke-linecap="round" fill="none" opacity=".65"><line x1="37" y1="3" x2="37" y2="6"/><line x1="37" y1="14" x2="37" y2="17"/><line x1="30" y1="10" x2="32.5" y2="10"/><line x1="41.5" y1="10" x2="44" y2="10"/><line x1="32.5" y1="5.5" x2="34.3" y2="7.3"/><line x1="39.7" y1="12.7" x2="41.5" y2="14.5"/><line x1="32.5" y1="14.5" x2="34.3" y2="12.7"/><line x1="39.7" y1="7.3" x2="41.5" y2="5.5"/><animateTransform attributeName="transform" type="rotate" from="0 37 10" to="360 37 10" dur="18s" repeatCount="indefinite"/></g><circle cx="37" cy="10" r="4.3" fill="#fbbf24"><animate attributeName="opacity" values=".8;1;.8" dur="3.5s" repeatCount="indefinite"/></circle><g style="animation:decoWave 4s ease-in-out infinite" stroke="#38bdf8" stroke-width="1.2" fill="none" opacity=".6"><path d="M1 36 Q5 33 9 36 T17 36 T25 36 T33 36 T41 36 T45 36"/></g><g style="animation:decoWave 5s ease-in-out infinite .5s" stroke="#7dd3fc" stroke-width="1" fill="none" opacity=".45"><path d="M1 40 Q5 38 9 40 T17 40 T25 40 T33 40 T41 40 T45 40"/></g><ellipse cx="16" cy="37" rx="10" ry="3.6" fill="#e0c08c" opacity=".6"/><path d="M16 37 Q14 29 17 21" stroke="#a16207" stroke-width="1.5" fill="none" stroke-linecap="round" opacity=".75"/><g opacity=".8" stroke="#4ade80" stroke-width="1.5" fill="none" stroke-linecap="round"><path d="M17 21 Q10 17 5 20"/><path d="M17 21 Q24 15 30 17"/><path d="M17 21 Q13 13 14 7"/><animateTransform attributeName="transform" type="rotate" values="-6 17 21;6 17 21;-6 17 21" keyTimes="0;0.5;1" calcMode="spline" keySplines="0.45 0 0.55 1;0.45 0 0.55 1" dur="4.5s" repeatCount="indefinite"/></g></svg>`;
@@ -579,7 +615,7 @@ const autSvg=`<svg class="season-icon-modal" viewBox="0 0 46 46"><line x1="23" y
 const winSvg=`<svg class="season-icon-modal" viewBox="0 0 46 46"><g><circle cx="23" cy="35" r="9" fill="#f8fafc" opacity=".6"/><circle cx="23" cy="21" r="6" fill="#f8fafc" opacity=".65"/><rect x="18" y="11" width="10" height="3" rx="1" fill="#1e293b" opacity=".65"/><rect x="20" y="6" width="6" height="6" fill="#1e293b" opacity=".65"/><g><line x1="16" y1="33" x2="6" y2="28" stroke="#92400e" stroke-width="1.3" stroke-linecap="round" opacity=".6"/><animateTransform attributeName="transform" type="rotate" values="0 16 33;-14 16 33;0 16 33" keyTimes="0;0.5;1" calcMode="spline" keySplines="0.45 0 0.55 1;0.45 0 0.55 1" dur="2.5s" repeatCount="indefinite"/></g><line x1="30" y1="33" x2="39" y2="36" stroke="#92400e" stroke-width="1.3" stroke-linecap="round" opacity=".6"/><circle cx="20.5" cy="20" r=".8" fill="#1e293b" opacity=".75"/><circle cx="25.5" cy="20" r=".8" fill="#1e293b" opacity=".75"/><path d="M22 22.3 L26.5 23.3 L22 24.3 Z" fill="#f97316" opacity=".8"/><circle cx="23" cy="32" r=".7" fill="#1e293b" opacity=".6"/><circle cx="23" cy="37" r=".7" fill="#1e293b" opacity=".6"/><animateTransform attributeName="transform" type="rotate" values="-5 23 44;5 23 44;-5 23 44" keyTimes="0;0.5;1" calcMode="spline" keySplines="0.45 0 0.55 1;0.45 0 0.55 1" dur="5s" repeatCount="indefinite"/></g><circle cx="8" cy="4" r="1" fill="#7dd3fc" style="animation:decoSnow 3.2s linear infinite"/><circle cx="38" cy="2" r="1.1" fill="#7dd3fc" style="animation:decoSnow 4s linear infinite .9s"/><circle cx="20" cy="0" r=".9" fill="#7dd3fc" style="animation:decoSnow 3.6s linear infinite 1.8s"/><circle cx="32" cy="4" r="1" fill="#7dd3fc" style="animation:decoSnow 4.4s linear infinite 2.4s"/></svg>`;
 const yS=new Date().getFullYear(),fSD=d=>`${d.getDate()} ${MF[d.getMonth()]}`;const spD=seasonInstant(yS,0),suD=seasonInstant(yS,1),auD=seasonInstant(yS,2),wiD=seasonInstant(yS,3),spN=seasonInstant(yS+1,0);const seasons=[{id:'spring',cls:'s-spring-card',name:'Printemps',dates:`${fSD(spD)} → ${fSD(suD)}`,color:'#a78bfa',svg:sprSvg},{id:'summer',cls:'s-summer-card',name:'Été',dates:`${fSD(suD)} → ${fSD(auD)}`,color:'#fbbf24',svg:sumSvg},{id:'autumn',cls:'s-autumn-card',name:'Automne',dates:`${fSD(auD)} → ${fSD(wiD)}`,color:'#f97316',svg:autSvg},{id:'winter',cls:'s-winter-card',name:'Hiver',dates:`${fSD(wiD)} → ${fSD(spN)}`,color:'#7dd3fc',svg:winSvg}];
 return seasons.map(s=>{const isCur=cur===s.id;return`<div class="season-card-modal ${s.cls}${isCur?' s-current':''}">${isCur?`<div class="season-badge-modal">En cours</div>`:''} ${s.svg} <div class="season-name-modal"${isCur?` style="color:${s.color}"`:''}>  ${s.name}</div><div class="season-dates-modal">${s.dates}</div></div>`;}).join('');}
-document.addEventListener('DOMContentLoaded',()=>{['enphase_key','enphase_cid','enphase_csec','enphase_proxy','enphase_system','enphase_at','enphase_rt','enphase_at_exp','enphase_quota'].forEach(k=>localStorage.removeItem(k));prefillSettings();checkCredsUI();renderSeasonDeco();renderFeast();switchSubTab('live');if(hasCredentials())refreshLive();if('serviceWorker'in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});});
+document.addEventListener('DOMContentLoaded',()=>{['enphase_key','enphase_cid','enphase_csec','enphase_proxy','enphase_system','enphase_at','enphase_rt','enphase_at_exp','enphase_quota'].forEach(k=>localStorage.removeItem(k));prefillSettings();checkCredsUI();renderSeasonDeco();renderFeast();loadFeast();switchSubTab('live');if(hasCredentials())refreshLive();if('serviceWorker'in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});});
 document.addEventListener('keydown',e=>{if(e.key==='Escape')document.querySelectorAll('.modal-overlay.open').forEach(o=>closeModal(o.id));});
 const el=id=>document.getElementById(id);
 
@@ -951,7 +987,7 @@ function renderLiveGrid(data,trend,nm1,fc,aq){
   if(isUVCrit)dangers.push({key:'uvcritique',sev:'danger',type:'uv',msg:`Index UV critique : évitez l'exposition (${uviVal?.toFixed(1)})`});
   else if(isUVEleve)dangers.push({key:'uveleve',sev:'warn',type:'uv',msg:`Index UV élevé : protection requise (${uviVal?.toFixed(1)})`});
   renderDangerIcons(dangers);
-  renderFeast();
+  renderFeast();loadFeast();
 
   /* TEMP MIN/MAX JOUR */
   const tList=trend?.outdoor?.temperature?.list||{};let tMin=null,tMax=null,tMinTs=null,tMaxTs=null;
