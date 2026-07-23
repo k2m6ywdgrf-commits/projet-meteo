@@ -207,6 +207,59 @@ input:focus{outline:none;border-color:var(--neon-blue);box-shadow:0 0 10px rgba(
 .season-icon-modal{width:72px;height:72px;flex-shrink:0;overflow:visible}
 .season-name-modal{font-size:12px;font-weight:700;text-align:center}
 .season-dates-modal{font-size:10px;color:#64748b;text-align:center}
+/* ── Icônes de danger « qui respirent » ── */
+.section-title-row{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px;position:relative}
+.section-title-row .section-title{margin-bottom:0}
+.danger-icons{display:flex;align-items:center;gap:7px}
+.danger-icon{position:relative;width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0;flex-shrink:0;transition:transform .15s}
+.danger-icon svg{width:16px;height:16px;display:block}
+.danger-icon:active{transform:scale(.88)}
+.di-warn{color:var(--neon-orange);border:1px solid rgba(251,191,36,.42);background:rgba(251,191,36,.12);animation:breatheWarn 2.9s ease-in-out infinite}
+.di-danger{color:var(--neon-red);border:1px solid rgba(244,63,94,.46);background:rgba(244,63,94,.15);animation:breatheDanger 1.5s ease-in-out infinite}
+@keyframes breatheWarn{0%,100%{transform:scale(1);box-shadow:0 0 0 0 rgba(251,191,36,.4)}50%{transform:scale(1.1);box-shadow:0 0 13px 2px rgba(251,191,36,.5)}}
+@keyframes breatheDanger{0%,100%{transform:scale(1);box-shadow:0 0 3px 0 rgba(244,63,94,.5)}50%{transform:scale(1.16);box-shadow:0 0 18px 3px rgba(244,63,94,.7)}}
+/* Bulle de conversation issue de l'icône de danger */
+.danger-bubble{display:none;position:absolute;z-index:60;max-width:280px;padding:10px 13px;border-radius:14px;font-size:12px;font-weight:600;line-height:1.42;box-shadow:0 10px 26px rgba(0,0,0,.5);transform-origin:var(--tail,50%) top}
+.danger-bubble.show{display:flex;align-items:center;gap:9px;animation:bubblePop .24s cubic-bezier(.32,1.45,.5,1)}
+.danger-bubble .db-ico{width:18px;height:18px;flex-shrink:0}
+.danger-bubble .db-ico svg{width:18px;height:18px;display:block}
+.danger-bubble .db-since{font-size:10px;font-weight:500;opacity:.7;white-space:nowrap;flex-shrink:0}
+.danger-bubble::after{content:'';position:absolute;top:-6px;left:var(--tail,50%);margin-left:-6px;width:12px;height:12px;transform:rotate(45deg);border-radius:2px}
+.db-warn{background:#2a2413;border:1px solid rgba(251,191,36,.5);color:#fbbf24}
+.db-warn::after{background:#2a2413;border-left:1px solid rgba(251,191,36,.5);border-top:1px solid rgba(251,191,36,.5)}
+.db-danger{background:#2c1219;border:1px solid rgba(244,63,94,.55);color:#fb7185}
+.db-danger::after{background:#2c1219;border-left:1px solid rgba(244,63,94,.55);border-top:1px solid rgba(244,63,94,.55)}
+@keyframes bubblePop{from{opacity:0;transform:translateY(-8px) scale(.85)}to{opacity:1;transform:translateY(0) scale(1)}}
+/* ── Fête & dicton du jour ── */
+.feast-banner{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:14px;margin-bottom:14px;cursor:pointer;background:linear-gradient(120deg,rgba(167,139,250,.16),rgba(56,189,248,.07));border:1px solid rgba(167,139,250,.32);position:relative;overflow:hidden;transition:transform .15s}
+.feast-banner:active{transform:scale(.99)}
+.feast-ico{width:34px;height:34px;flex-shrink:0;overflow:visible}
+.feast-txt{flex:1;font-size:13px;line-height:1.35;color:#e2e8f0}
+.feast-txt .fn{font-weight:800;color:#c4b5fd;border-bottom:1.5px dashed rgba(196,181,253,.55)}
+.feast-hint{font-size:9px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.6px;white-space:nowrap;opacity:.8;font-weight:700}
+@keyframes feastPulse{0%,100%{transform:scale(1) rotate(0)}50%{transform:scale(1.09) rotate(5deg)}}
+@keyframes feastTwinkle{0%,100%{opacity:.35;transform:scale(.65)}50%{opacity:1;transform:scale(1.1)}}
+.feast-hero{display:flex;flex-direction:column;align-items:center;text-align:center;gap:4px;margin:0 0 20px}
+.feast-hero-ico{width:78px;height:78px;overflow:visible;margin-bottom:2px}
+.feast-hero-date{font-size:11px;text-transform:uppercase;letter-spacing:1.2px;color:var(--text-muted)}
+.feast-hero-name{font-size:24px;font-weight:800;background:linear-gradient(120deg,#c4b5fd,#7dd3fc);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;line-height:1.15}
+.feast-hero-sub{font-size:12px;color:var(--text-muted);margin-top:2px}
+.feast-card{background:rgba(30,41,59,.45);border:var(--glass-border);border-radius:14px;padding:15px 16px;margin-bottom:12px;text-align:left;position:relative}
+.feast-card.c-dicton{border-left:3px solid rgba(125,211,252,.6)}
+.feast-card.c-citation{border-left:3px solid rgba(167,139,250,.6)}
+.feast-card.c-prenom{border-left:3px solid rgba(45,212,191,.6)}
+.feast-card-text.t-prenom{font-style:normal;font-size:13.5px;line-height:1.6;color:#dbe4ee}
+.feast-src{display:block;margin-top:10px;font-size:11px;font-weight:600;color:#2dd4bf;text-decoration:none}
+.feast-src:active{opacity:.7}
+.feast-loading{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text-muted);font-style:normal}
+.feast-loading::before{content:'';width:13px;height:13px;border-radius:50%;border:2px solid rgba(148,163,184,.3);border-top-color:#94a3b8;animation:feastSpin .7s linear infinite}
+@keyframes feastSpin{to{transform:rotate(360deg)}}
+.feast-card-label{font-size:10px;text-transform:uppercase;letter-spacing:1px;font-weight:700;margin-bottom:9px;display:flex;align-items:center;gap:7px;color:var(--text-muted)}
+.feast-card-text{font-size:14.5px;line-height:1.55;font-style:italic;color:#eef2f7}
+.feast-card-author{font-size:11px;color:var(--text-muted);margin-top:9px;text-align:right;font-style:normal}
+.feast-others{display:flex;align-items:center;flex-wrap:wrap;gap:6px;margin:0 2px 16px}
+.feast-others-label{font-size:10px;text-transform:uppercase;letter-spacing:.8px;font-weight:700;color:var(--text-muted);margin-right:2px}
+.feast-chip{font-size:12px;font-weight:600;color:#c4b5fd;background:rgba(167,139,250,.13);border:1px solid rgba(167,139,250,.28);border-radius:999px;padding:3px 10px}
 </style>
 </head>
 <body>
@@ -228,8 +281,12 @@ input:focus{outline:none;border-color:var(--neon-blue);box-shadow:0 0 10px rgba(
       <div id="season-deco" style="position:absolute;top:14px;right:14px;width:48px;height:48px;opacity:.7;cursor:pointer" onclick="openSeasonModal()"></div>
       <h1 style="text-align:left;font-size:20px">Ma Station</h1>
       <div id="sync-time" style="font-size:11px;color:var(--text-muted);margin-bottom:14px">Actualisation...</div>
-      <div id="alerts-container"></div>
-      <div class="section-title" style="text-align:left">Indicateurs clés</div>
+      <div id="feast-banner" class="feast-banner" style="display:none" onclick="openFeastModal()"></div>
+      <div class="section-title-row">
+        <div class="section-title" style="text-align:left">Indicateurs clés</div>
+        <div id="danger-icons" class="danger-icons"></div>
+        <div id="danger-bubble" class="danger-bubble"></div>
+      </div>
       <div class="kpi-grid" id="weather-live-grid"></div>
       <button class="btn" id="btn-refresh" style="margin-top:20px" onclick="refreshLive()">Actualiser</button>
       <button class="btn-secondary" id="btn-reorder" style="margin-top:12px;border-color:rgba(255,255,255,.12);color:var(--text-muted)" onclick="toggleReorderMode()">Réorganiser</button>
@@ -404,6 +461,13 @@ input:focus{outline:none;border-color:var(--neon-blue);box-shadow:0 0 10px rgba(
     <div id="season-grid-container" class="season-grid-modal"></div>
   </div>
 </div>
+<div id="feast-modal-overlay" class="modal-overlay" onclick="if(event.target===this)closeModal('feast-modal-overlay')">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <button class="modal-close" onclick="closeModal('feast-modal-overlay')">✕</button>
+    <div id="feast-modal-content"></div>
+  </div>
+</div>
 <script>
 /* ═══ STATE ═══ */
 let charts={},modalCaches={},modalInflight={};
@@ -432,6 +496,138 @@ return`<svg viewBox="0 0 46 46" style="width:100%;height:100%;overflow:visible">
 function renderSeasonDeco(){const d=el('season-deco');if(d)d.innerHTML=getSeasonDecoHtml();}
 function openSeasonModal(){const g=el('season-grid-container');if(g)g.innerHTML=getSeasonModalGridHtml();openModal('season-modal-overlay');}
 function closeSeasonModal(){closeModal('season-modal-overlay');}
+/* ═══ ICÔNES DE DANGER « QUI RESPIRENT » ═══ */
+function dangerSvg(type){
+  if(type==='wind')return`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8h9.5a2.5 2.5 0 1 0-2.5-2.6"/><path d="M3 12.5h13a2.6 2.6 0 1 1-2.6 2.7"/><path d="M3 16.5h7a2 2 0 1 1-2 2.1"/></svg>`;
+  if(type==='frost')return`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M3.4 7l17.2 10M20.6 7L3.4 17"/><path d="M12 5.5l-2.4-2.3M12 5.5l2.4-2.3M12 18.5l-2.4 2.3M12 18.5l2.4 2.3M5.2 8.8l-3.1-.6M5.2 8.8l-.5-3.1M18.8 15.2l3.1.6M18.8 15.2l.5 3.1M5.2 15.2l-.5 3.1M5.2 15.2l-3.1.6M18.8 8.8l.5-3.1M18.8 8.8l3.1-.6"/></svg>`;
+  return`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2.6M12 19.4V22M2 12h2.6M19.4 12H22M4.6 4.6l1.9 1.9M17.5 17.5l1.9 1.9M19.4 4.6l-1.9 1.9M6.5 17.5l-1.9 1.9"/></svg>`;
+}
+let dangerMsgs={};
+function renderDangerIcons(list){
+  const box=el('danger-icons');if(!box)return;
+  dangerMsgs={};
+  if(!list.length){box.innerHTML='';hideDangerBubble();return;}
+  box.innerHTML=list.map(d=>{dangerMsgs[d.key]={sev:d.sev,type:d.type,msg:d.msg};return`<button type="button" class="danger-icon di-${d.sev==='danger'?'danger':'warn'}" data-key="${d.key}" aria-label="${esc(d.msg)}" title="${esc(d.msg)}" onclick="toggleDangerBubble('${d.key}',this)">${dangerSvg(d.type)}</button>`;}).join('');
+  const bub=el('danger-bubble');
+  if(bub&&bub.classList.contains('show')&&bub.dataset.key){const k=bub.dataset.key,btn=box.querySelector(`button[data-key="${k}"]`);if(dangerMsgs[k]&&btn)showDangerBubble(k,btn);else hideDangerBubble();}
+}
+function hideDangerBubble(){const bub=el('danger-bubble');if(!bub)return;bub.className='danger-bubble';bub.innerHTML='';bub.dataset.key='';}
+function showDangerBubble(key,btn){
+  const bub=el('danger-bubble'),d=dangerMsgs[key];if(!bub||!d||!btn)return;
+  const row=btn.closest('.section-title-row');if(!row)return;
+  const s=sinceStr(key);
+  bub.dataset.key=key;
+  bub.className=`danger-bubble show db-${d.sev==='danger'?'danger':'warn'}`;
+  bub.innerHTML=`<span class="db-ico">${dangerSvg(d.type)}</span><span>${esc(d.msg)}</span>${s?`<span class="db-since">${esc(s)}</span>`:''}`;
+  const rb=row.getBoundingClientRect(),bb=btn.getBoundingClientRect();
+  bub.style.top=(btn.offsetTop+btn.offsetHeight+9)+'px';
+  bub.style.left='0px';
+  const bw=bub.offsetWidth,rw=row.offsetWidth;
+  const iconCx=(bb.left-rb.left)+bb.width/2;
+  let left=Math.max(0,Math.min(iconCx-bw+22,rw-bw));
+  bub.style.left=left+'px';
+  bub.style.setProperty('--tail',Math.max(12,Math.min(bw-12,iconCx-left))+'px');
+}
+function toggleDangerBubble(key,btn){const bub=el('danger-bubble');if(!bub)return;if(bub.dataset.key===key&&bub.classList.contains('show')){hideDangerBubble();return;}showDangerBubble(key,btn);}
+document.addEventListener('click',e=>{const bub=el('danger-bubble');if(bub&&bub.classList.contains('show')&&!e.target.closest('#danger-bubble')&&!e.target.closest('.danger-icon'))hideDangerBubble();});
+document.addEventListener('keydown',e=>{if(e.key==='Escape')hideDangerBubble();});
+/* ═══ FÊTE & DICTON DU JOUR ═══ */
+const SAINTS=[
+"Jour de l'An,Basile,Geneviève,Odilon,Édouard,Mélaine,Raymond,Lucien,Alix,Guillaume,Pauline,Tatiana,Yvette,Nina,Rémi,Marcel,Roseline,Prisca,Marius,Sébastien,Agnès,Vincent,Barnard,François,Ananie,Paule,Angèle,Thomas,Gildas,Martine,Marcelle",
+"Ella,Chandeleur,Blaise,Véronique,Agathe,Gaston,Eugénie,Jacqueline,Apolline,Arnaud,Notre-Dame de Lourdes,Félix,Béatrice,Valentin,Claude,Julienne,Alexis,Bernadette,Gabin,Aimée,Pierre-Damien,Isabelle,Lazare,Modeste,Roméo,Nestor,Honorine,Romain,Auguste",
+"Aubin,Charles le Bon,Guénolé,Casimir,Olive,Colette,Félicité,Jean de Dieu,Françoise,Vivien,Rosine,Justine,Rodrigue,Mathilde,Louise,Bénédicte,Patrice,Cyrille,Joseph,Herbert,Clémence,Léa,Victorien,Catherine de Suède,Annonciation,Larissa,Habib,Gontran,Gwladys,Amédée,Benjamin",
+"Hugues,Sandrine,Richard,Isidore,Irène,Marcellin,Jean-Baptiste,Julie,Gautier,Fulbert,Stanislas,Jules,Ida,Maxime,Paterne,Benoît-Joseph,Anicet,Parfait,Emma,Odette,Anselme,Alexandre,Georges,Fidèle,Marc,Alida,Zita,Valérie,Catherine de Sienne,Robert",
+"Jérémie,Boris,Philippe & Jacques,Sylvain,Judith,Prudence,Gisèle,Désiré,Pacôme,Solange,Estelle,Achille,Rolande,Matthias,Denise,Honoré,Pascal,Éric,Yves,Bernardin,Constantin,Émile,Didier,Donatien,Sophie,Béranger,Augustin,Germain,Aymar,Ferdinand,Pétronille",
+"Justin,Blandine,Kévin,Clotilde,Igor,Norbert,Gilbert,Médard,Diane,Landry,Barnabé,Guy,Antoine de Padoue,Élisée,Germaine,Jean-François,Hervé,Léonce,Romuald,Silvère,Rodolphe,Alban,Audrey,Jean-Baptiste,Prosper,Anthelme,Fernand,Irénée,Pierre & Paul,Martial",
+"Thierry,Martinien,Thomas,Florent,Antoine,Mariette,Raoul,Thibaut,Amandine,Ulrich,Benoît,Olivier,Henri & Joël,Camille,Donald,Notre-Dame du Mont-Carmel,Charlotte,Frédéric,Arsène,Marina,Victor,Marie-Madeleine,Brigitte,Christine,Jacques,Anne & Joachim,Nathalie,Samson,Marthe,Juliette,Ignace",
+"Alphonse,Julien,Lydie,Jean-Marie,Abel,Transfiguration,Gaétan,Dominique,Amour,Laurent,Claire,Clarisse,Hippolyte,Évrard,Assomption,Armel,Hyacinthe,Hélène,Jean Eudes,Bernard,Christophe,Fabrice,Rose de Lima,Barthélemy,Louis,Natacha,Monique,Augustin,Sabine,Fiacre,Aristide",
+"Gilles,Ingrid,Grégoire,Rosalie,Raïssa,Bertrand,Reine,Nativité de Marie,Alain,Inès,Adelphe,Apollinaire,Aimé,La Sainte Croix,Roland,Édith,Renaud,Nadège,Émilie,Davy,Matthieu,Maurice,Constant,Thècle,Hermann,Côme & Damien,Vincent de Paul,Venceslas,Michel,Jérôme",
+"Thérèse,Léger,Gérard,François d'Assise,Fleur,Bruno,Serge,Pélagie,Denis,Ghislain,Firmin,Wilfried,Géraud,Juste,Thérèse d'Avila,Edwige,Baudouin,Luc,René,Adeline,Céline,Élodie,Jean de Capistran,Florentin,Crépin,Dimitri,Émeline,Simon & Jude,Narcisse,Bienvenue,Quentin",
+"Toussaint,Défunts,Hubert,Charles,Sylvie,Bertille,Carine,Geoffroy,Théodore,Léon,Martin,Christian,Brice,Sidoine,Albert,Marguerite,Élisabeth,Aude,Tanguy,Edmond,Présentation de Marie,Cécile,Clément,Flora,Catherine Labouré,Delphine,Séverin,Jacques de la Marche,Saturnin,André",
+"Florence,Viviane,François-Xavier,Barbara,Gérald,Nicolas,Ambroise,Immaculée Conception,Pierre Fourier,Romaric,Daniel,Jeanne-Françoise,Lucie,Odile,Ninon,Alice,Gaël,Gatien,Urbain,Théophile,Pierre Canisius,Françoise-Xavière,Armand,Adèle,Noël,Étienne,Jean,Innocents,David,Roger,Sylvestre"
+];
+const DICTON_MONTH=[
+["Janvier d'eau chiche fait le paysan riche.","Neige en janvier vaut du fumier.","Qui de janvier fait avril, d'avril fait janvier.","Le jour de l'an beau, le mois d'août très chaud.","Janvier sec et sage est d'un bon présage."],
+["Février trop doux, printemps en courroux.","Neige de février brûle le blé.","Février, le plus court des mois, est de tous le pire à la fois.","Fleur de février ne va pas au pommier.","Quand il tonne en février, il faut monter les tonneaux au grenier."],
+["Mars venteux, vergers pommeux.","En mars, quand il fait beau, prends ton manteau.","Brouillards de mars, gelées de mai.","Taille tôt, taille tard, rien ne vaut la taille de mars.","Mars sec et chaud remplit caves et tonneaux."],
+["En avril, ne te découvre pas d'un fil.","Avril pluvieux et mai venteux font l'an fertile et plantureux.","Bourgeon qui pousse en avril met peu de vin au baril.","Quand il pleut à la Saint-Marc, il ne naît ni foin ni regain.","Avril fait la fleur, mai en a l'honneur."],
+["En mai, fais ce qu'il te plaît.","Mai frais et venteux fait l'an plantureux.","Au mois de mai, manteau jeté.","Pluie de mai, argent qui plaît.","Mai fleuri, an réjoui."],
+["En juin, beau soleil qui donne, c'est le paradis sur terre.","Juin bien fleuri, vrai paradis.","Beau mois de juin change l'herbe rare en foin.","Prépare autant de tonneaux que juin te donne de jours beaux.","Été bien doux, si à la Saint-Médard il pleut, c'est tout."],
+["Juillet sans orage, famine au village.","Qui veut bon navet, le sème en juillet.","En juillet, la faucille au poignet.","Pluie du matin en juillet est bonne pour le sarrasin.","Juillet ensoleillé remplit caves et greniers."],
+["Ce que le mois d'août mûrit, tout l'hiver s'en nourrit.","Pluie de la mi-août à la ménagère est un dégoût.","En août, le blé du grenier fait le pain de l'année.","Quand août est bon, abondance à la maison.","Soleil rougissant en août, pluie et vent bientôt."],
+["Septembre humide, point de tonneaux vides.","Septembre se nomme le mai de l'automne.","En septembre, si tu es prudent, achète grains et vêtements.","Beau septembre est aux vendanges ce que mai est aux moissons.","Tonnerre de septembre annonce vendange abondante."],
+["En octobre qui n'a pas de manteau, en achète bientôt.","Octobre en bruine, hiver en ruine.","Brouillard d'octobre et pluvieux novembre font bon décembre.","Octobre glacé fait vermine trépasser.","En octobre, le vin nouveau rend le vieux à demi eau."],
+["À la Sainte-Catherine, tout bois prend racine.","Novembre est de tous les mois le plus tristement froid.","Brouillard en novembre, l'hiver sera tendre.","Quand novembre prend la teinte de l'hiver, c'est signe d'un doux hiver.","Gelée de novembre rend le blé tendre."],
+["Décembre trop beau, été dans l'eau.","Noël au balcon, Pâques au tison.","Tonnerre en décembre annonce belle année.","Décembre ensoleillé, été de mouches assuré.","Quand secheresse de décembre dure, le pain manque à la maison future."]
+];
+const DICTON_DATE={
+"1-1":"Si le jour de l'an est beau, mets ton vin dans un tonneau.","1-3":"À la Sainte-Geneviève, si le soleil se montre, on aura beaucoup de raisin.","1-6":"Les jours entre Noël et les Rois indiquent le temps des douze mois.","1-17":"Beau temps à la Saint-Antoine, sécheresse pour six mois.","1-20":"À la Saint-Sébastien, l'hiver reprend ou s'éteint.","1-21":"À la Sainte-Agnès, les jours croissent d'une heure et demie.","1-22":"À la Saint-Vincent, l'hiver monte ou descend ; s'il gèle, tout fend.","1-25":"À la conversion de Saint-Paul, si le ciel est serein, présage d'abondance.","1-30":"À la Sainte-Martine, sur trois jours le froid domine.",
+"2-1":"À la Sainte-Brigitte, l'hiver reprend ou nous quitte.","2-2":"À la Chandeleur, l'hiver se meurt ou prend vigueur.","2-3":"À la Saint-Blaise, l'hiver s'apaise ; mais souvent il redouble.","2-5":"À la Sainte-Agathe, sème ton oignon, fût-il dans la glace.","2-10":"À la Sainte-Scholastique, souvent la neige nous pique.","2-14":"À la Saint-Valentin, tous les vents sont marins.","2-24":"Saint Mathias casse la glace ; s'il n'y en a point, il en fait.","2-27":"À la Saint-Nestor, l'hiver rend son trésor.",
+"3-1":"À la Saint-Aubin, on tond les brebis et le foin.","3-9":"À la Sainte-Françoise, le soleil monte en franchise.","3-19":"À la Saint-Joseph, le bourgeon passe la nef.","3-21":"À la Saint-Benoît, le coucou chante aux bons endroits, ou il est mort de froid.","3-25":"Quand l'Annonciation est claire, il n'y a plus d'hiver.","3-31":"À la Saint-Benjamin, le mauvais temps prend fin.",
+"4-1":"À la Saint-Hugues, les blés lèvent dru.","4-5":"À la Sainte-Irène, le soleil ramène la sereine.","4-11":"À la Saint-Stanislas, la fleur s'ouvre à mi-voix.","4-16":"À la Saint-Fructueux, le temps se fait heureux.","4-23":"À la Saint-Georges, sème ton orge.","4-25":"Saint-Marc, quand il est passé, l'hiver est bien enterré.","4-29":"À la Sainte-Catherine de Sienne, la chaleur revient.",
+"5-1":"Au premier mai, rosée fait tout beau.","5-8":"À la Saint-Désiré, le beau temps est désiré.","5-11":"Saint Mamert, saint Pancrace et saint Servais sont bien nommés les saints de glace.","5-19":"S'il pleut à la Saint-Yves, il pleut sur les feuilles.","5-22":"À la Sainte-Rita, le beau temps s'en va ou reste là.","5-25":"Quand la Saint-Urbain est passée, le vigneron est rassuré.","5-31":"À la Visitation, la pluie est de saison.",
+"6-1":"À la Saint-Justin, la faux au foin.","6-8":"S'il pleut le jour de la Saint-Médard, il pleut quarante jours plus tard.","6-11":"S'il pleut à la Saint-Barnabé, c'est du bon vin pour l'année.","6-15":"À la Sainte-Germaine, se fauche l'avoine.","6-19":"À la Saint-Romuald, prends ton temps, il fait chaud.","6-24":"S'il pleut à la Saint-Jean, les noisettes seront gâtées.","6-29":"Saint-Pierre pluvieux, pour trente jours dangereux.",
+"7-2":"À la Visitation, le beau temps se maintient à foison.","7-4":"À la Saint-Florent, la chaleur monte au firmament.","7-11":"À la Saint-Benoît, la moisson mûrit sous le toit.","7-16":"À Notre-Dame du Mont-Carmel, le blé est mûr et beau.","7-20":"À la Sainte-Marguerite, forte pluie est bien maudite.","7-22":"À la Sainte-Madeleine, les noix sont pleines.","7-23":"Nuages de la Sainte-Brigitte, par le soleil sont chassés vite.","7-25":"Pluie de Saint-Jacques, pluie de quarante jours.","7-26":"À la Sainte-Anne, s'il fait beau, on aura du grain et des pruneaux.","7-29":"À la Sainte-Marthe, le raisin se colore et se garde.",
+"8-1":"À la Saint-Alphonse, l'été monte en abondance.","8-10":"À la Saint-Laurent, la faucille au froment.","8-15":"Beau temps à l'Assomption, abondance de bon vin.","8-20":"À la Saint-Bernard, la chaleur part ou repart.","8-24":"À la Saint-Barthélemy, l'automne a un pied à l'étrier.","8-25":"À la Saint-Louis, le soleil ardent est du blé bon garant.","8-28":"À la Saint-Augustin, les grandes chaleurs prennent fin.",
+"9-1":"À la Saint-Gilles, le gland sort de la coquille.","9-8":"Le lendemain de Notre-Dame, tout oiseau qui vole s'en va.","9-14":"À la Sainte-Croix, cueille tes pommes et gaule tes noix.","9-21":"À la Saint-Matthieu, sème si tu veux.","9-22":"À la Saint-Maurice, la chaleur se fait plus lisse.","9-29":"À la Saint-Michel, la chaleur remonte au ciel.","9-30":"À la Saint-Jérôme, hâte-toi de rentrer les pommes.",
+"10-1":"À la Sainte-Thérèse, le froid s'apprivoise.","10-9":"À la Saint-Denis, la bonne gelée n'est plus qu'à dix nuits.","10-15":"À la Sainte-Thérèse d'Avila, l'automne s'installe déjà.","10-18":"À la Saint-Luc, sème dru ou ne sème plus.","10-21":"À la Sainte-Ursule, le froid recule ; mais rien n'est moins sûr.","10-28":"À la Saint-Simon, une mouche vaut un pigeon.","10-31":"À la Saint-Quentin, la pluie du matin ne fait pas de chagrin.",
+"11-1":"À la Toussaint, le froid revient et met l'hiver en train.","11-11":"À la Saint-Martin, bois ton vin et laisse l'eau aller au moulin.","11-19":"À la Sainte-Élisabeth, ce que le vent gèle, le dégel l'achète.","11-21":"À la Présentation, la neige est de saison.","11-23":"À la Saint-Clément, l'hiver prend ses quartiers.","11-25":"Pour la Sainte-Catherine, tout bois prend racine.","11-30":"Neige de la Saint-André peut cent jours durer.",
+"12-4":"À la Sainte-Barbe, soleil ou pluie, toujours l'hiver poursuit son chemin.","12-6":"À la Saint-Nicolas, l'hiver est là.","12-13":"À la Sainte-Luce, les jours croissent du saut d'une puce.","12-21":"Pour la Saint-Thomas, cuis ton pain, lave tes draps.","12-24":"Beau temps à la veillée de Noël, belle année à venir.","12-25":"Noël au balcon, Pâques au tison.","12-27":"Au jour de la Saint-Jean, les jours vont croissant.","12-31":"Année de la Saint-Sylvestre venteuse, année vineuse."
+};
+const CITATIONS=[
+["La vie, c'est comme une bicyclette, il faut avancer pour ne pas perdre l'équilibre.","Albert Einstein"],
+["Il n'y a qu'un bonheur dans la vie, c'est d'aimer et d'être aimé.","George Sand"],
+["Le vent se lève, il faut tenter de vivre.","Paul Valéry"],
+["Ce n'est pas dans la science qu'est le bonheur, mais dans l'acquisition de la science.","Edgar Allan Poe"],
+["La simplicité est la sophistication suprême.","Léonard de Vinci"],
+["Rien ne sert de courir ; il faut partir à point.","Jean de La Fontaine"],
+["Le plus grand voyageur n'est pas celui qui a fait dix fois le tour du monde, mais celui qui a fait une seule fois le tour de lui-même.","Gandhi"],
+["Il faut cultiver notre jardin.","Voltaire"],
+["Chaque jour est une petite vie.","Arthur Schopenhauer"],
+["La patience est amère, mais son fruit est doux.","Jean-Jacques Rousseau"],
+["On ne voit bien qu'avec le cœur, l'essentiel est invisible pour les yeux.","Antoine de Saint-Exupéry"],
+["Le bonheur n'est réel que lorsqu'il est partagé.","Christopher McCandless"],
+["Un sourire coûte moins cher que l'électricité, mais donne autant de lumière.","Abbé Pierre"],
+["Après la pluie, le beau temps.","Proverbe français"],
+["La nature ne fait rien en vain.","Aristote"],
+["Le temps est un grand maître, il règle bien des choses.","Pierre Corneille"],
+["L'expérience est une lanterne accrochée dans le dos, qui n'éclaire que le chemin parcouru.","Confucius"],
+["Le savant n'est pas l'homme qui fournit les vraies réponses, c'est celui qui pose les vraies questions.","Claude Lévi-Strauss"],
+["La liberté commence où l'ignorance finit.","Victor Hugo"],
+["Ce que nous appelons le hasard n'est et ne peut être que la cause ignorée d'un effet connu.","Voltaire"],
+["Le doute est le commencement de la sagesse.","Aristote"],
+["Vivre, c'est ne pas se résigner.","Albert Camus"],
+["Il n'est jamais trop tard pour être ce que vous auriez pu être.","George Eliot"]
+];
+function getFeast(d){d=d||new Date();const arr=SAINTS[d.getMonth()].split(',');return(arr[d.getDate()-1]||'').trim();}
+function getDicton(d){d=d||new Date();const k=(d.getMonth()+1)+'-'+d.getDate();if(DICTON_DATE[k])return DICTON_DATE[k];const a=DICTON_MONTH[d.getMonth()];return a[(d.getDate()-1)%a.length];}
+function getCitation(d){d=d||new Date();const doy=Math.floor((d-new Date(d.getFullYear(),0,0))/864e5);return CITATIONS[doy%CITATIONS.length];}
+const FEAST_HOLIDAY=/^(Jour de l'An|Chandeleur|Assomption|Toussaint|Défunts|Annonciation|Nativité de Marie|Présentation de Marie|Immaculée Conception|Transfiguration|La Sainte Croix|Noël|Notre-Dame)/;
+function feastIcoSvg(){return`<svg viewBox="0 0 40 40" style="width:100%;height:100%;overflow:visible"><g style="transform-origin:20px 20px;animation:feastPulse 3.2s ease-in-out infinite"><path d="M20 4.5 L22.7 15.3 L33.5 18 L22.7 20.7 L20 31.5 L17.3 20.7 L6.5 18 L17.3 15.3 Z" fill="#c4b5fd"/></g><path d="M31.5 6 L32.8 10.2 L37 11.5 L32.8 12.8 L31.5 17 L30.2 12.8 L26 11.5 L30.2 10.2 Z" fill="#7dd3fc" style="transform-origin:31.5px 11.5px;animation:feastTwinkle 2.1s ease-in-out infinite"/><circle cx="7.5" cy="31" r="2" fill="#fbbf24" style="transform-origin:7.5px 31px;animation:feastTwinkle 2.5s ease-in-out infinite .6s"/><circle cx="33" cy="31.5" r="1.7" fill="#f9a8d4" style="transform-origin:33px 31.5px;animation:feastTwinkle 2.9s ease-in-out infinite .3s"/></svg>`;}
+/* Prénoms fêtés : récupérés en ligne (Nominis / Église catholique de France),
+   mis en cache par jour ; repli sur le calendrier embarqué si hors-ligne. */
+let feastState={key:'',names:[]};
+function feastKey(d){d=d||new Date();return(d.getMonth()+1)+'-'+d.getDate();}
+function collectNoms(o,out){if(!o)return;if(Array.isArray(o)){o.forEach(x=>collectNoms(x,out));return;}if(typeof o==='object'){if(typeof o.nom==='string')out.push(o.nom);for(const k in o)collectNoms(o[k],out);}else if(typeof o==='string'){out.push(o);}}
+function cleanFeastName(raw){if(!raw||typeof raw!=='string')return'';let s=raw.trim().replace(/<[^>]*>/g,'').replace(/&[a-z]+;/gi,' ').trim();s=s.replace(/^(les?\s+)?((tr[eè]s\s+)?(saintes?|saints?|sainte|ste?|st|bienheureux(se)?|bx|bse|v[ée]n[ée]rable)\b\.?\s+)+/i,'');s=s.split(/[,(;:]/)[0].trim();s=s.split(/\s+(?:de|du|des|d'|of)\s+/i)[0].trim();s=s.replace(/\s+/g,' ').trim();if(!/^[A-Za-zÀ-ÿ][A-Za-zÀ-ÿ' -]{1,26}$/.test(s))return'';return s.charAt(0).toUpperCase()+s.slice(1);}
+async function fetchFeastNames(d){const key=feastKey(d),ck='feast_names_'+key;try{const c=JSON.parse(localStorage.getItem(ck)||'null');if(Array.isArray(c)&&c.length)return c;}catch(e){}const ctrl=new AbortController(),to=setTimeout(()=>ctrl.abort(),7000);try{const r=await fetch(`https://nominis.cef.fr/json/nominis.php?jour=${d.getDate()}&mois=${d.getMonth()+1}`,{signal:ctrl.signal});clearTimeout(to);if(!r.ok)return null;const j=await r.json(),raw=[];collectNoms(j.response||j,raw);const seen=new Set(),names=[];raw.forEach(n=>{const c=cleanFeastName(n);if(c&&!seen.has(c.toLowerCase())){seen.add(c.toLowerCase());names.push(c);}});const top=names.slice(0,12);if(top.length){localStorage.setItem(ck,JSON.stringify(top));return top;}return null;}catch(e){clearTimeout(to);return null;}}
+function feastNames(){const k=feastKey();if(feastState.key===k&&feastState.names.length)return feastState.names;const l=getFeast();return l?[l]:[];}
+async function loadFeast(){const d=new Date(),k=feastKey(d);if(feastState.key===k&&feastState.names.length){renderFeast();return;}const on=await fetchFeastNames(d);feastState={key:k,names:(on&&on.length)?on:(getFeast(d)?[getFeast(d)]:[])};renderFeast();}
+function renderFeast(){const b=el('feast-banner');if(!b)return;const names=feastNames();if(!names.length){b.style.display='none';return;}b.style.display='flex';const primary=names[0];const intro=FEAST_HOLIDAY.test(primary)?`Aujourd'hui&nbsp;: <span class="fn">${esc(primary)}</span>`:`Bonne fête aux <span class="fn">${esc(primary)}</span>&nbsp;!`;b.innerHTML=`<span class="feast-ico">${feastIcoSvg()}</span><span class="feast-txt">${intro}</span><span class="feast-hint">Dicton ›</span>`;}
+/* Citation du jour récupérée en ligne (API citation.lecog.fr), en cache par
+   jour, avec repli sur les citations embarquées. */
+async function fetchCitationOnline(){const key=feastKey(),ck='citation_'+key;try{const c=JSON.parse(localStorage.getItem(ck)||'null');if(c&&c.text)return c;}catch(e){}const ctrl=new AbortController(),to=setTimeout(()=>ctrl.abort(),7000);try{const r=await fetch('https://citation.lecog.fr/public/api/random-quote.php',{signal:ctrl.signal});clearTimeout(to);if(!r.ok)return null;const j=await r.json(),d=(j&&j.data)?j.data:j;const text=d&&(d.text||d.quote||d.citation||d.contenu);if(!text)return null;const a=d.author||d.auteur||{};const author=(typeof a==='string')?a:[a.forename||a.prenom,a.name||a.nom].filter(Boolean).join(' ').trim();const out={text:String(text).trim(),author:String(author||'').trim()};localStorage.setItem(ck,JSON.stringify(out));return out;}catch(e){clearTimeout(to);return null;}}
+/* Fiche « en lien avec le prénom » : résumé Wikipédia (fr) du prénom du jour. */
+async function fetchPrenomInfo(name){if(!name)return null;const ck='prenom_wiki_'+name.toLowerCase();try{const c=JSON.parse(localStorage.getItem(ck)||'null');if(c&&c.extract)return c;}catch(e){}const titles=[name+' (prénom)',name];for(let i=0;i<titles.length;i++){const ctrl=new AbortController(),to=setTimeout(()=>ctrl.abort(),7000);try{const r=await fetch('https://fr.wikipedia.org/api/rest_v1/page/summary/'+encodeURIComponent(titles[i].replace(/ /g,'_')),{signal:ctrl.signal,headers:{Accept:'application/json'}});clearTimeout(to);if(!r.ok)continue;const j=await r.json();if(j.type==='disambiguation'&&i<titles.length-1)continue;const extract=String(j.extract||'').trim();if(extract.length>25){const info={title:j.title||name,extract,url:(j.content_urls&&j.content_urls.desktop&&j.content_urls.desktop.page)||''};localStorage.setItem(ck,JSON.stringify(info));return info;}}catch(e){clearTimeout(to);}}return null;}
+function openFeastModal(){const c=el('feast-modal-content');if(!c)return;loadFeast();const now=new Date(),names=feastNames(),primary=names[0]||getFeast(now),others=names.slice(1),dic=getDicton(now),[cit,aut]=getCitation(now);const dateStr=`${now.getDate()} ${MFL[now.getMonth()]}`;const isHol=FEAST_HOLIDAY.test(primary);const title=isHol?esc(primary):`Bonne fête aux ${esc(primary)} !`;const sub=isHol?'':`On souhaite leur fête à tous les ${esc(primary)} aujourd'hui.`;const othersHtml=others.length?`<div class="feast-others"><span class="feast-others-label">On fête aussi</span> ${others.map(n=>`<span class="feast-chip">${esc(n)}</span>`).join('')}</div>`:'';const prenomHtml=isHol?'':`<div class="feast-card c-prenom" id="fc-prenom"><div class="feast-card-label">📖 Le prénom ${esc(primary)}</div><div id="fc-prenom-body" class="feast-loading">Recherche en ligne…</div></div>`;c.innerHTML=`<div class="feast-hero"><div class="feast-hero-ico">${feastIcoSvg()}</div><div class="feast-hero-date">${esc(dateStr)}</div><div class="feast-hero-name">${title}</div>${sub?`<div class="feast-hero-sub">${sub}</div>`:''}</div>${othersHtml}<div class="feast-card c-dicton"><div class="feast-card-label">🌾 Dicton du jour</div><div class="feast-card-text">« ${esc(dic)} »</div></div><div class="feast-card c-citation"><div class="feast-card-label">✨ Citation du jour</div><div class="feast-card-text" id="fc-cit-text">« ${esc(cit)} »</div><div class="feast-card-author" id="fc-cit-author">— ${esc(aut)}</div></div>${prenomHtml}`;openModal('feast-modal-overlay');enrichFeastModal(primary);}
+async function enrichFeastModal(primary){
+  const co=await fetchCitationOnline();const ct=el('fc-cit-text'),ca=el('fc-cit-author');
+  if(co&&co.text&&ct){ct.innerHTML=`« ${esc(co.text)} »`;if(ca)ca.innerHTML=co.author?`— ${esc(co.author)}`:'';}
+  const body=el('fc-prenom-body');if(!body)return;
+  const info=await fetchPrenomInfo(primary);
+  if(info&&info.extract){body.className='feast-card-text t-prenom';body.innerHTML=`${esc(info.extract)}${info.url?`<a class="feast-src" href="${esc(info.url)}" target="_blank" rel="noopener">Lire sur Wikipédia ›</a>`:''}`;}
+  else{const card=el('fc-prenom');if(card)card.remove();}
+}
 function getSeasonModalGridHtml(){const cur=getSeason();
 const sprSvg=`<svg class="season-icon-modal" viewBox="0 0 46 46"><g><line x1="14" y1="24" x2="14" y2="40" stroke="#4ade80" stroke-width="1.3" opacity=".6"/><circle cx="14" cy="22" r="2" fill="#fde68a" opacity=".8"/><g fill="#f9a8d4" opacity=".8"><ellipse cx="14" cy="17" rx="2" ry="3"/><ellipse cx="19" cy="22" rx="3" ry="2"/><ellipse cx="14" cy="27" rx="2" ry="3"/><ellipse cx="9" cy="22" rx="3" ry="2"/></g><animateTransform attributeName="transform" type="rotate" values="-6 14 40;6 14 40;-6 14 40" keyTimes="0;0.5;1" calcMode="spline" keySplines="0.45 0 0.55 1;0.45 0 0.55 1" dur="4s" repeatCount="indefinite"/></g><g style="animation:decoFlutter 3.2s ease-in-out infinite"><ellipse cx="25" cy="12" ry="2.4" fill="#a78bfa" opacity=".8" transform="rotate(-20 25 12)"><animate attributeName="rx" values="3.4;0.5;3.4" dur="0.55s" repeatCount="indefinite" calcMode="spline" keyTimes="0;0.5;1" keySplines="0.42 0 0.58 1;0.42 0 0.58 1"/></ellipse><ellipse cx="25" cy="17" ry="1.8" fill="#a78bfa" opacity=".7" transform="rotate(20 25 17)"><animate attributeName="rx" values="2.6;0.4;2.6" dur="0.55s" repeatCount="indefinite" calcMode="spline" keyTimes="0;0.5;1" keySplines="0.42 0 0.58 1;0.42 0 0.58 1"/></ellipse><ellipse cx="31" cy="12" ry="2.4" fill="#f9a8d4" opacity=".8" transform="rotate(20 31 12)"><animate attributeName="rx" values="3.4;0.5;3.4" dur="0.55s" repeatCount="indefinite" calcMode="spline" keyTimes="0;0.5;1" keySplines="0.42 0 0.58 1;0.42 0 0.58 1"/></ellipse><ellipse cx="31" cy="17" ry="1.8" fill="#f9a8d4" opacity=".7" transform="rotate(-20 31 17)"><animate attributeName="rx" values="2.6;0.4;2.6" dur="0.55s" repeatCount="indefinite" calcMode="spline" keyTimes="0;0.5;1" keySplines="0.42 0 0.58 1;0.42 0 0.58 1"/></ellipse><line x1="28" y1="10" x2="28" y2="19" stroke="#1e293b" stroke-width="1" opacity=".5"/></g></svg>`;
 const sumSvg=`<svg class="season-icon-modal" viewBox="0 0 46 46"><g stroke="#fbbf24" stroke-width="1.3" stroke-linecap="round" fill="none" opacity=".65"><line x1="37" y1="3" x2="37" y2="6"/><line x1="37" y1="14" x2="37" y2="17"/><line x1="30" y1="10" x2="32.5" y2="10"/><line x1="41.5" y1="10" x2="44" y2="10"/><line x1="32.5" y1="5.5" x2="34.3" y2="7.3"/><line x1="39.7" y1="12.7" x2="41.5" y2="14.5"/><line x1="32.5" y1="14.5" x2="34.3" y2="12.7"/><line x1="39.7" y1="7.3" x2="41.5" y2="5.5"/><animateTransform attributeName="transform" type="rotate" from="0 37 10" to="360 37 10" dur="18s" repeatCount="indefinite"/></g><circle cx="37" cy="10" r="4.3" fill="#fbbf24"><animate attributeName="opacity" values=".8;1;.8" dur="3.5s" repeatCount="indefinite"/></circle><g style="animation:decoWave 4s ease-in-out infinite" stroke="#38bdf8" stroke-width="1.2" fill="none" opacity=".6"><path d="M1 36 Q5 33 9 36 T17 36 T25 36 T33 36 T41 36 T45 36"/></g><g style="animation:decoWave 5s ease-in-out infinite .5s" stroke="#7dd3fc" stroke-width="1" fill="none" opacity=".45"><path d="M1 40 Q5 38 9 40 T17 40 T25 40 T33 40 T41 40 T45 40"/></g><ellipse cx="16" cy="37" rx="10" ry="3.6" fill="#e0c08c" opacity=".6"/><path d="M16 37 Q14 29 17 21" stroke="#a16207" stroke-width="1.5" fill="none" stroke-linecap="round" opacity=".75"/><g opacity=".8" stroke="#4ade80" stroke-width="1.5" fill="none" stroke-linecap="round"><path d="M17 21 Q10 17 5 20"/><path d="M17 21 Q24 15 30 17"/><path d="M17 21 Q13 13 14 7"/><animateTransform attributeName="transform" type="rotate" values="-6 17 21;6 17 21;-6 17 21" keyTimes="0;0.5;1" calcMode="spline" keySplines="0.45 0 0.55 1;0.45 0 0.55 1" dur="4.5s" repeatCount="indefinite"/></g></svg>`;
@@ -439,7 +635,7 @@ const autSvg=`<svg class="season-icon-modal" viewBox="0 0 46 46"><line x1="23" y
 const winSvg=`<svg class="season-icon-modal" viewBox="0 0 46 46"><g><circle cx="23" cy="35" r="9" fill="#f8fafc" opacity=".6"/><circle cx="23" cy="21" r="6" fill="#f8fafc" opacity=".65"/><rect x="18" y="11" width="10" height="3" rx="1" fill="#1e293b" opacity=".65"/><rect x="20" y="6" width="6" height="6" fill="#1e293b" opacity=".65"/><g><line x1="16" y1="33" x2="6" y2="28" stroke="#92400e" stroke-width="1.3" stroke-linecap="round" opacity=".6"/><animateTransform attributeName="transform" type="rotate" values="0 16 33;-14 16 33;0 16 33" keyTimes="0;0.5;1" calcMode="spline" keySplines="0.45 0 0.55 1;0.45 0 0.55 1" dur="2.5s" repeatCount="indefinite"/></g><line x1="30" y1="33" x2="39" y2="36" stroke="#92400e" stroke-width="1.3" stroke-linecap="round" opacity=".6"/><circle cx="20.5" cy="20" r=".8" fill="#1e293b" opacity=".75"/><circle cx="25.5" cy="20" r=".8" fill="#1e293b" opacity=".75"/><path d="M22 22.3 L26.5 23.3 L22 24.3 Z" fill="#f97316" opacity=".8"/><circle cx="23" cy="32" r=".7" fill="#1e293b" opacity=".6"/><circle cx="23" cy="37" r=".7" fill="#1e293b" opacity=".6"/><animateTransform attributeName="transform" type="rotate" values="-5 23 44;5 23 44;-5 23 44" keyTimes="0;0.5;1" calcMode="spline" keySplines="0.45 0 0.55 1;0.45 0 0.55 1" dur="5s" repeatCount="indefinite"/></g><circle cx="8" cy="4" r="1" fill="#7dd3fc" style="animation:decoSnow 3.2s linear infinite"/><circle cx="38" cy="2" r="1.1" fill="#7dd3fc" style="animation:decoSnow 4s linear infinite .9s"/><circle cx="20" cy="0" r=".9" fill="#7dd3fc" style="animation:decoSnow 3.6s linear infinite 1.8s"/><circle cx="32" cy="4" r="1" fill="#7dd3fc" style="animation:decoSnow 4.4s linear infinite 2.4s"/></svg>`;
 const yS=new Date().getFullYear(),fSD=d=>`${d.getDate()} ${MF[d.getMonth()]}`;const spD=seasonInstant(yS,0),suD=seasonInstant(yS,1),auD=seasonInstant(yS,2),wiD=seasonInstant(yS,3),spN=seasonInstant(yS+1,0);const seasons=[{id:'spring',cls:'s-spring-card',name:'Printemps',dates:`${fSD(spD)} → ${fSD(suD)}`,color:'#a78bfa',svg:sprSvg},{id:'summer',cls:'s-summer-card',name:'Été',dates:`${fSD(suD)} → ${fSD(auD)}`,color:'#fbbf24',svg:sumSvg},{id:'autumn',cls:'s-autumn-card',name:'Automne',dates:`${fSD(auD)} → ${fSD(wiD)}`,color:'#f97316',svg:autSvg},{id:'winter',cls:'s-winter-card',name:'Hiver',dates:`${fSD(wiD)} → ${fSD(spN)}`,color:'#7dd3fc',svg:winSvg}];
 return seasons.map(s=>{const isCur=cur===s.id;return`<div class="season-card-modal ${s.cls}${isCur?' s-current':''}">${isCur?`<div class="season-badge-modal">En cours</div>`:''} ${s.svg} <div class="season-name-modal"${isCur?` style="color:${s.color}"`:''}>  ${s.name}</div><div class="season-dates-modal">${s.dates}</div></div>`;}).join('');}
-document.addEventListener('DOMContentLoaded',()=>{['enphase_key','enphase_cid','enphase_csec','enphase_proxy','enphase_system','enphase_at','enphase_rt','enphase_at_exp','enphase_quota'].forEach(k=>localStorage.removeItem(k));prefillSettings();checkCredsUI();renderSeasonDeco();switchSubTab('live');if(hasCredentials())refreshLive();if('serviceWorker'in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});});
+document.addEventListener('DOMContentLoaded',()=>{['enphase_key','enphase_cid','enphase_csec','enphase_proxy','enphase_system','enphase_at','enphase_rt','enphase_at_exp','enphase_quota'].forEach(k=>localStorage.removeItem(k));prefillSettings();checkCredsUI();renderSeasonDeco();renderFeast();loadFeast();switchSubTab('live');if(hasCredentials())refreshLive();if('serviceWorker'in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});});
 document.addEventListener('keydown',e=>{if(e.key==='Escape')document.querySelectorAll('.modal-overlay.open').forEach(o=>closeModal(o.id));});
 const el=id=>document.getElementById(id);
 
@@ -803,15 +999,15 @@ function renderLiveGrid(data,trend,nm1,fc,aq){
   trackAlert('gel',isGel);trackAlert('froid',isFroid);
   trackAlert('tempete',isTempete);trackAlert('ventfort',isVentFort);
   trackAlert('uvcritique',isUVCrit);trackAlert('uveleve',isUVEleve);
-  function ab(cls,icon,msg,key){const s=sinceStr(key);return`<div class="alert-banner ${cls}">${icon} ${msg}${s?`<span class="alert-since">${s}</span>`:''}</div>`;}
-  let ah='';
-  if(isGel)ah+=ab('alert-danger','🥶',`Alerte Gel : Risque de verglas (${temp}°C)`,'gel');
-  else if(isFroid)ah+=ab('alert-warning','❄️',`Risque de Gel : Vigilance requise (${temp}°C)`,'froid');
-  if(isTempete)ah+=ab('alert-danger','🌬️',`Alerte Tempête : Rafales violentes (${maxWind} km/h)`,'tempete');
-  else if(isVentFort)ah+=ab('alert-warning','💨',`Vent Fort : Rafales à ${maxWind} km/h`,'ventfort');
-  if(isUVCrit)ah+=ab('alert-danger','☀️',`Index UV Critique : Évitez l'exposition (${uviVal?.toFixed(1)})`,'uvcritique');
-  else if(isUVEleve)ah+=ab('alert-warning','☀️',`Index UV Élevé : Protection requise (${uviVal?.toFixed(1)})`,'uveleve');
-  el('alerts-container').innerHTML=ah;
+  const dangers=[];
+  if(isGel)dangers.push({key:'gel',sev:'danger',type:'frost',msg:`Alerte Gel : risque de verglas (${temp}°C)`});
+  else if(isFroid)dangers.push({key:'froid',sev:'warn',type:'frost',msg:`Risque de gel : vigilance requise (${temp}°C)`});
+  if(isTempete)dangers.push({key:'tempete',sev:'danger',type:'wind',msg:`Alerte Tempête : rafales violentes (${maxWind} km/h)`});
+  else if(isVentFort)dangers.push({key:'ventfort',sev:'warn',type:'wind',msg:`Vent fort : rafales à ${maxWind} km/h`});
+  if(isUVCrit)dangers.push({key:'uvcritique',sev:'danger',type:'uv',msg:`Index UV critique : évitez l'exposition (${uviVal?.toFixed(1)})`});
+  else if(isUVEleve)dangers.push({key:'uveleve',sev:'warn',type:'uv',msg:`Index UV élevé : protection requise (${uviVal?.toFixed(1)})`});
+  renderDangerIcons(dangers);
+  renderFeast();loadFeast();
 
   /* TEMP MIN/MAX JOUR */
   const tList=trend?.outdoor?.temperature?.list||{};let tMin=null,tMax=null,tMinTs=null,tMaxTs=null;
