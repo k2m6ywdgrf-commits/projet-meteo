@@ -1,9 +1,13 @@
 /* Météo Glass — coquille en cache pour le hors-ligne.
    Seuls les fichiers de l'appli et le CDN chart.js sont mis en cache :
    aucune donnée ni URL d'API (Ecowitt, Open-Meteo…) n'y entre. */
-const CACHE='meteo-glass-v8';
-const ASSETS=['index.html','manifest.json','icon.svg','favicon-32.png','apple-touch-icon.png','icon-192.png','icon-512.png','https://cdn.jsdelivr.net/npm/chart.js@4.5.0/dist/chart.umd.min.js'];
-self.addEventListener('install',e=>{e.waitUntil(caches.open(CACHE).then(c=>c.addAll(ASSETS)).then(()=>self.skipWaiting()));});
+const CACHE='meteo-glass-v9';
+/* CORE : indispensable, mis en cache de façon atomique (addAll).
+   EXTRA : best-effort. Un CDN injoignable ne doit pas faire échouer tout
+   l'install — sinon l'appli se retrouve sans coquille hors-ligne du tout. */
+const CORE=['index.html','manifest.json','icon.svg','favicon-32.png','apple-touch-icon.png','icon-192.png','icon-512.png'];
+const EXTRA=['https://cdn.jsdelivr.net/npm/chart.js@4.5.0/dist/chart.umd.min.js'];
+self.addEventListener('install',e=>{e.waitUntil(caches.open(CACHE).then(c=>c.addAll(CORE).then(()=>Promise.allSettled(EXTRA.map(u=>c.add(u))))).then(()=>self.skipWaiting()));});
 self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(ks=>Promise.all(ks.filter(k=>k!==CACHE).map(k=>caches.delete(k)))).then(()=>self.clients.claim()));});
 self.addEventListener('fetch',e=>{
   if(e.request.method!=='GET')return;
