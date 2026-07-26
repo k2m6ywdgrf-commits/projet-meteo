@@ -187,7 +187,8 @@ input:focus{outline:none;border-color:var(--neon-blue);box-shadow:0 0 10px rgba(
 .modal-overlay.open{display:flex}
 .modal-sheet{width:100%;max-width:480px;background:rgba(12,18,38,.97);backdrop-filter:blur(40px);-webkit-backdrop-filter:blur(40px);border:1px solid rgba(255,255,255,.10);border-bottom:none;border-radius:24px 24px 0 0;padding:24px 18px calc(28px + env(safe-area-inset-bottom));overscroll-behavior:contain;box-shadow:0 -20px 60px rgba(0,0,0,.7),inset 0 1px 1px rgba(255,255,255,.07);position:relative;max-height:92vh;overflow-y:auto;animation:slideUp .28s cubic-bezier(.32,1.2,.55,1) forwards}
 @keyframes slideUp{from{transform:translateY(100%);opacity:.4}to{transform:translateY(0);opacity:1}}
-.modal-handle{width:40px;height:4px;background:rgba(255,255,255,.18);border-radius:2px;margin:0 auto 20px}
+.modal-handle{width:40px;height:5px;background:rgba(255,255,255,.22);border-radius:3px;margin:0 auto 20px;cursor:grab}
+.modal-sheet.dragging{cursor:grabbing;will-change:transform}
 .modal-close{position:sticky;top:10px;margin:-36px 0 4px auto;z-index:30;background:rgba(255,255,255,.09);border:1px solid rgba(255,255,255,.13);color:var(--text-muted);width:32px;height:32px;border-radius:50%;font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s;line-height:1}
 .modal-close:active{background:rgba(255,255,255,.2);color:var(--text-main);transform:scale(.93)}
 .modal-title{font-size:17px;font-weight:700;margin:0 0 16px;letter-spacing:.2px}
@@ -726,8 +727,65 @@ function switchSubTab(tab){['live','settings'].forEach(t=>{el(`tab-${t}`).classL
 
 /* MODALS */
 let modalPrevFocus=null;
-function openModal(id){const o=el(id);if(!document.querySelector('.modal-overlay.open'))modalPrevFocus=document.activeElement;o.classList.add('open');document.body.style.overflow='hidden';const f=o.querySelector('.modal-close')||o.querySelector('.modal-sheet');if(f&&f.focus)f.focus();}
+function openModal(id){const o=el(id);if(!document.querySelector('.modal-overlay.open'))modalPrevFocus=document.activeElement;resetSheet(o);o.classList.add('open');document.body.style.overflow='hidden';const f=o.querySelector('.modal-close')||o.querySelector('.modal-sheet');if(f&&f.focus)f.focus();}
 function closeModal(id){el(id).classList.remove('open');if(!document.querySelector('.modal-overlay.open')){document.body.style.overflow='';if(modalPrevFocus&&modalPrevFocus.focus)modalPrevFocus.focus();modalPrevFocus=null;}}
+/* ═══ FERMETURE PAR GLISSEMENT VERS LE BAS ═══
+   La feuille modale se ferme aussi en la faisant glisser vers le bas, comme une
+   feuille iOS native. Deux précautions pour ne pas voler le geste :
+   — on n'embraye que si la feuille est déjà en haut de son défilement, sinon
+     c'est le contenu qui doit défiler ;
+   — on n'embraye qu'au-delà de 8 px et si le mouvement est franchement vertical,
+     pour laisser passer le défilement horizontal de la bande horaire.
+   L'animation CSS d'ouverture est en fill forwards : elle l'emporterait sur un
+   transform inline, d'où sa neutralisation le temps du glissement. */
+const DRAG_CLOSE_PX=110,DRAG_CLOSE_V=.45;
+let drag=null;
+function resetSheet(overlay){
+  if(!overlay)return;
+  const sh=overlay.querySelector('.modal-sheet');
+  if(sh){sh.style.transition='';sh.style.transform='';sh.style.animation='';sh.classList.remove('dragging');}
+  overlay.style.transition='';overlay.style.background='';
+}
+document.addEventListener('touchstart',e=>{
+  if(e.touches.length!==1)return;
+  const sh=e.target.closest&&e.target.closest('.modal-sheet');
+  if(!sh||sh.scrollTop>0)return;
+  if(e.target.closest('.fc-hscroll'))return;              /* défilement horizontal prioritaire */
+  drag={sh,ov:sh.closest('.modal-overlay'),y0:e.touches[0].clientY,x0:e.touches[0].clientX,t0:Date.now(),dy:0,on:false};
+},{passive:true});
+document.addEventListener('touchmove',e=>{
+  if(!drag||e.touches.length!==1)return;
+  const dy=e.touches[0].clientY-drag.y0,dx=e.touches[0].clientX-drag.x0;
+  if(!drag.on){
+    if(dy>8&&dy>Math.abs(dx)*1.2){drag.on=true;drag.sh.classList.add('dragging');drag.sh.style.animation='none';drag.sh.style.transition='none';}
+    else if(Math.abs(dx)>8||dy<-8){drag=null;return;}
+    else return;
+  }
+  if(drag.sh.scrollTop>0){endDrag(true);return;}
+  e.preventDefault();
+  drag.dy=dy<0?dy/4:dy;                                    /* résistance vers le haut */
+  drag.sh.style.transform=`translateY(${drag.dy.toFixed(1)}px)`;
+  const k=Math.max(0,1-drag.dy/(drag.sh.offsetHeight||600));
+  if(drag.ov)drag.ov.style.background=`rgba(0,0,0,${(.72*k).toFixed(3)})`;
+},{passive:false});
+function endDrag(force){
+  if(!drag)return;const d=drag;drag=null;
+  if(!d.on){return;}
+  d.sh.classList.remove('dragging');
+  const v=d.dy/Math.max(1,Date.now()-d.t0);
+  if(!force&&(d.dy>DRAG_CLOSE_PX||v>DRAG_CLOSE_V)){
+    d.sh.style.transition='transform .2s ease-out';
+    d.sh.style.transform='translateY(100%)';
+    if(d.ov){d.ov.style.transition='background .2s ease-out';d.ov.style.background='rgba(0,0,0,0)';}
+    setTimeout(()=>{if(d.ov){closeModal(d.ov.id);resetSheet(d.ov);}},200);
+  }else{
+    d.sh.style.transition='transform .28s cubic-bezier(.32,1.2,.55,1)';
+    d.sh.style.transform='translateY(0)';
+    if(d.ov){d.ov.style.transition='background .28s ease-out';d.ov.style.background='';}
+  }
+}
+document.addEventListener('touchend',()=>endDrag(false),{passive:true});
+document.addEventListener('touchcancel',()=>endDrag(true),{passive:true});
 /* Piège de tabulation : au clavier, Tab ne doit pas s'échapper vers le tableau
    de bord resté derrière la feuille modale. */
 document.addEventListener('keydown',e=>{
