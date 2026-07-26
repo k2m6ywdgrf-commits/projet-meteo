@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>Météo Glass</title>
 <meta name="description" content="Dashboard météo personnel connecté à votre station Ecowitt : temps réel, prévisions, historique et ambiances animées.">
 <meta name="theme-color" content="#0F0D38">
@@ -22,7 +22,17 @@
   --neon-orange:#fbbf24;--neon-purple:#a78bfa;
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+/* Le fond porte aussi sur <html> : sans lui, tout ce qui dépasse la boîte du
+   <body> (dézoom, rebond de défilement, encoche) retombait sur le blanc par
+   défaut du navigateur. #000 est la couleur de bord du dégradé, la jonction est
+   donc invisible. */
+html{background:#000;overflow-x:hidden;overscroll-behavior-x:none;height:100%}
+/* pan-x pan-y = défilement autorisé dans les deux sens (la bande horaire des
+   prévisions défile horizontalement) mais NI pincement NI double-tap pour
+   zoomer. Combiné à overflow-x:hidden, il n'y a rien à faire déborder sur les
+   côtés : on ne peut que scroller. */
+body{touch-action:pan-x pan-y;overflow-x:hidden;overscroll-behavior-x:none;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
   background:radial-gradient(circle at 50% -20%,#1e1b4b 0%,#000 70%) fixed;
   color:var(--text-main);margin:0;
   padding:calc(45px + env(safe-area-inset-top)) 16px calc(30px + env(safe-area-inset-bottom));
@@ -165,7 +175,7 @@ input:focus{outline:none;border-color:var(--neon-blue);box-shadow:0 0 10px rgba(
 .reorder-active .weather-row{outline:1px dashed rgba(56,189,248,.45);outline-offset:4px;border-radius:14px}
 .modal-overlay{display:none;position:fixed;inset:0;z-index:1000;background:rgba(0,0,0,.72);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);align-items:flex-end;justify-content:center;animation:fadeIn .2s ease}
 .modal-overlay.open{display:flex}
-.modal-sheet{width:100%;max-width:480px;background:rgba(12,18,38,.97);backdrop-filter:blur(40px);-webkit-backdrop-filter:blur(40px);border:1px solid rgba(255,255,255,.10);border-bottom:none;border-radius:24px 24px 0 0;padding:24px 18px calc(28px + env(safe-area-inset-bottom));box-shadow:0 -20px 60px rgba(0,0,0,.7),inset 0 1px 1px rgba(255,255,255,.07);position:relative;max-height:92vh;overflow-y:auto;animation:slideUp .28s cubic-bezier(.32,1.2,.55,1) forwards}
+.modal-sheet{width:100%;max-width:480px;background:rgba(12,18,38,.97);backdrop-filter:blur(40px);-webkit-backdrop-filter:blur(40px);border:1px solid rgba(255,255,255,.10);border-bottom:none;border-radius:24px 24px 0 0;padding:24px 18px calc(28px + env(safe-area-inset-bottom));overscroll-behavior:contain;box-shadow:0 -20px 60px rgba(0,0,0,.7),inset 0 1px 1px rgba(255,255,255,.07);position:relative;max-height:92vh;overflow-y:auto;animation:slideUp .28s cubic-bezier(.32,1.2,.55,1) forwards}
 @keyframes slideUp{from{transform:translateY(100%);opacity:.4}to{transform:translateY(0);opacity:1}}
 .modal-handle{width:40px;height:4px;background:rgba(255,255,255,.18);border-radius:2px;margin:0 auto 20px}
 .modal-close{position:sticky;top:10px;margin:-36px 0 4px auto;z-index:30;background:rgba(255,255,255,.09);border:1px solid rgba(255,255,255,.13);color:var(--text-muted);width:32px;height:32px;border-radius:50%;font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s;line-height:1}
@@ -685,6 +695,9 @@ return seasons.map(s=>{const isCur=cur===s.id;return`<div class="season-card-mod
 document.addEventListener('DOMContentLoaded',()=>{['enphase_key','enphase_cid','enphase_csec','enphase_proxy','enphase_system','enphase_at','enphase_rt','enphase_at_exp','enphase_quota'].forEach(k=>localStorage.removeItem(k));pruneLocalCaches();prefillSettings();checkCredsUI();renderSeasonDeco();renderFeast();loadFeast();switchSubTab('live');if(hasCredentials()){renderGridSkeleton();refreshLive();}if('serviceWorker'in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});});
 document.addEventListener('keydown',e=>{if(e.key==='Escape')document.querySelectorAll('.modal-overlay.open').forEach(o=>closeModal(o.id));});
 const el=id=>document.getElementById(id);
+/* Safari iOS ignore user-scalable=no depuis iOS 10 : seule l'interception des
+   évènements de geste bloque réellement le pincement pour zoomer. */
+['gesturestart','gesturechange','gestureend'].forEach(t=>document.addEventListener(t,e=>e.preventDefault(),{passive:false}));
 
 function getCreds(){const ls=k=>localStorage.getItem(k),lat=ls('ecowitt_lat'),lon=ls('ecowitt_lon');return{appKey:ls('ecowitt_app_key')||'',apiKey:ls('ecowitt_api_key')||'',mac:ls('ecowitt_mac')||'',lat:lat?parseFloat(lat):null,lon:lon?parseFloat(lon):null};}
 function getThresholds(){const num=(k,def)=>{const v=localStorage.getItem(k);if(v===null)return def;const n=parseFloat(v);return Number.isFinite(n)?n:def;};return{gel:num('ecowitt_t_gel',2),ventFort:num('ecowitt_t_vent_fort',40),ventTempete:num('ecowitt_t_vent_tempete',60),uvEleve:num('ecowitt_t_uv_eleve',6),uvCritique:num('ecowitt_t_uv_critique',8),windMultiplier:num('ecowitt_wind_multiplier',1)};}
