@@ -26,14 +26,24 @@
    <body> (dézoom, rebond de défilement, encoche) retombait sur le blanc par
    défaut du navigateur. #000 est la couleur de bord du dégradé, la jonction est
    donc invisible. */
-html{background:#000;overflow-x:hidden;overscroll-behavior-x:none;height:100%}
+/* Le dégradé est porté par <html> et non par <body> : c'est la racine que le
+   navigateur étend dans la zone de rebond du défilement. En background-attachment
+   fixed il reste ancré au viewport, donc le rendu de l'appli est strictement
+   identique, mais la zone révélée en haut ou en bas de course suit le fond au
+   lieu de retomber sur du noir franc.
+   La couleur de base (#0a0820) est un indigo très sombre pris dans le dégradé :
+   si le navigateur ne peint que la couleur dans la zone de rebond, elle reste
+   dans la famille du fond au lieu de trancher. */
+html{background-color:#0a0820;
+  background-image:radial-gradient(circle at 50% -20%,#1e1b4b 0%,#000 70%);
+  background-attachment:fixed;background-repeat:no-repeat;
+  overflow-x:hidden;overscroll-behavior-x:none;height:100%}
 /* pan-x pan-y = défilement autorisé dans les deux sens (la bande horaire des
    prévisions défile horizontalement) mais NI pincement NI double-tap pour
    zoomer. Combiné à overflow-x:hidden, il n'y a rien à faire déborder sur les
    côtés : on ne peut que scroller. */
 body{touch-action:pan-x pan-y;overflow-x:hidden;overscroll-behavior-x:none;
   font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
-  background:radial-gradient(circle at 50% -20%,#1e1b4b 0%,#000 70%) fixed;
   color:var(--text-main);margin:0;
   padding:calc(45px + env(safe-area-inset-top)) 16px calc(30px + env(safe-area-inset-bottom));
   min-height:100vh;display:flex;justify-content:center;
