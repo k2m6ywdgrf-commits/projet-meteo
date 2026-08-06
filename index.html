@@ -389,6 +389,13 @@ input:focus{outline:none;border-color:var(--neon-blue);box-shadow:0 0 10px rgba(
   <div id="subview-settings" style="display:none">
     <div class="glass-card">
       <h1 style="text-align:left;font-size:18px;margin-bottom:20px">⚙ Réglages</h1>
+      <div class="settings-section-title" style="margin-top:0">Sauvegarde des paramètres</div>
+      <div class="form-row">
+        <button type="button" class="btn-secondary" onclick="exportSettings()">⬇️ Exporter</button>
+        <button type="button" class="btn-secondary" onclick="triggerImportSettings()">⬆️ Importer</button>
+      </div>
+      <input type="file" id="import-file-input" accept="application/json,.json" style="display:none" onchange="importSettingsFile(event)">
+      <div style="font-size:10.5px;color:var(--text-muted);line-height:1.5;margin-top:8px;margin-bottom:24px">Le fichier exporté contient vos identifiants Ecowitt en clair — gardez-le privé, comme un mot de passe.</div>
       <div class="settings-section-title">Connexion Ecowitt</div>
       <div class="form-group"><label>APPLICATION KEY</label><input type="password" id="s-app-key" autocomplete="off"></div>
       <div class="form-group"><label>API KEY</label><input type="password" id="s-api-key" autocomplete="off"></div>
@@ -1091,6 +1098,49 @@ async function fetchCityName(){if(detectedCity||!hasGPS())return;const{lat,lon}=
 function prefillSettings(){const c=getCreds(),th=getThresholds();if(c.appKey)el('s-app-key').value=c.appKey;if(c.apiKey)el('s-api-key').value=c.apiKey;if(c.mac)el('s-mac').value=c.mac;if(c.lat!==null)el('s-lat').value=c.lat;if(c.lon!==null)el('s-lon').value=c.lon;el('s-t-gel').value=th.gel;el('s-t-vent-fort').value=th.ventFort;el('s-t-vent-tempete').value=th.ventTempete;el('s-t-uv-eleve').value=th.uvEleve;el('s-t-uv-critique').value=th.uvCritique;el('s-w-multiplier').value=th.windMultiplier;el('s-refresh-interval').value=getRefreshInterval();}
 async function saveSettings(){const appKey=el('s-app-key').value.trim(),apiKey=el('s-api-key').value.trim(),mac=el('s-mac').value.trim(),lat=el('s-lat').value.trim(),lon=el('s-lon').value.trim(),fb=el('settings-feedback');if(!appKey||!apiKey||!mac){fb.style.color='var(--neon-red)';fb.innerText='App Key, API Key et MAC obligatoires.';fb.style.display='block';return;}fb.style.color='var(--text-muted)';fb.innerText='Vérification...';fb.style.display='block';try{const ok=await fetchLiveData(appKey,apiKey,mac);if(!ok){fb.style.color='var(--neon-red)';fb.innerText='❌ Clés ou adresse MAC invalides.';return;}}catch{fb.style.color='var(--neon-red)';fb.innerText='❌ Erreur réseau ou timeout.';return;}localStorage.setItem('ecowitt_app_key',appKey);localStorage.setItem('ecowitt_api_key',apiKey);localStorage.setItem('ecowitt_mac',mac);if(lat)localStorage.setItem('ecowitt_lat',lat);else localStorage.removeItem('ecowitt_lat');if(lon)localStorage.setItem('ecowitt_lon',lon);else localStorage.removeItem('ecowitt_lon');[['t_gel','s-t-gel',2],['t_vent_fort','s-t-vent-fort',40],['t_vent_tempete','s-t-vent-tempete',60],['t_uv_eleve','s-t-uv-eleve',6],['t_uv_critique','s-t-uv-critique',8]].forEach(([k,id,def])=>{const v=el(id).value.trim();localStorage.setItem(`ecowitt_${k}`,v!==''&&Number.isFinite(parseFloat(v))?v:String(def));});const wm=el('s-w-multiplier').value.trim();localStorage.setItem('ecowitt_wind_multiplier',Number.isFinite(parseFloat(wm))?wm:'1.0');localStorage.setItem('ecowitt_refresh_interval',el('s-refresh-interval').value.trim()||'30');modalCaches={};modalInflight={};lyRainCache=null;lyRainFailUntil=0;trendCache=null;forecastCache=null;aqCache=null;alertStartTimes={};prefillSettings();checkCredsUI();startAutoRefresh();fb.style.color='var(--neon-green)';fb.innerText='✓ Connexion établie';setTimeout(()=>{switchSubTab('live');refreshLive();},800);}
 function clearSettings(){if(!confirm('Réinitialiser vos identifiants ?'))return;clearInterval(countdownTimer);modalCaches={};modalInflight={};lyRainCache=null;lyRainFailUntil=0;trendCache=null;forecastCache=null;aqCache=null;detectedCity='';alertStartTimes={};['ecowitt_app_key','ecowitt_api_key','ecowitt_mac','ecowitt_lat','ecowitt_lon','ecowitt_t_gel','ecowitt_t_vent_fort','ecowitt_t_vent_tempete','ecowitt_t_uv_eleve','ecowitt_t_uv_critique','ecowitt_wind_multiplier','ecowitt_refresh_interval'].forEach(k=>localStorage.removeItem(k));['s-app-key','s-api-key','s-mac','s-lat','s-lon','s-t-gel','s-t-vent-fort','s-t-vent-tempete','s-t-uv-eleve','s-t-uv-critique','s-w-multiplier'].forEach(id=>el(id).value='');el('settings-feedback').style.display='none';checkCredsUI();}
+
+/* IMPORT / EXPORT — sauvegarde locale des réglages en fichier JSON, pour
+   éviter de tout ressaisir à la main (nouvel appareil, réinstallation…).
+   Aucun serveur tiers : le fichier part directement du navigateur
+   (Blob + <a download>), comme tout le reste de l'app. */
+const SETTINGS_KEYS=['ecowitt_app_key','ecowitt_api_key','ecowitt_mac','ecowitt_lat','ecowitt_lon','ecowitt_t_gel','ecowitt_t_vent_fort','ecowitt_t_vent_tempete','ecowitt_t_uv_eleve','ecowitt_t_uv_critique','ecowitt_wind_multiplier','ecowitt_refresh_interval','weather_row_order'];
+function exportSettings(){
+  const fb=el('settings-feedback');
+  const data={};SETTINGS_KEYS.forEach(k=>{const v=localStorage.getItem(k);if(v!==null)data[k]=v;});
+  if(!data.ecowitt_app_key){fb.style.color='var(--neon-red)';fb.innerText='Rien à exporter — configurez d\'abord votre connexion.';fb.style.display='block';return;}
+  const payload={app:'meteo-glass',version:1,exportedAt:new Date().toISOString(),settings:data};
+  const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');a.href=url;a.download=`meteo-glass-parametres-${new Date().toISOString().slice(0,10)}.json`;
+  document.body.appendChild(a);a.click();a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url),1000);
+  fb.style.color='var(--neon-green)';fb.innerText='✓ Fichier exporté';fb.style.display='block';
+}
+function triggerImportSettings(){el('import-file-input').click();}
+async function importSettingsFile(evt){
+  const file=evt.target.files&&evt.target.files[0];
+  evt.target.value='';/* permet de réimporter le même fichier une 2e fois si besoin */
+  if(!file)return;
+  const fb=el('settings-feedback');
+  try{
+    const json=JSON.parse(await file.text());
+    /* tolère aussi bien {settings:{...}} (notre export) qu'un objet brut {clé:valeur} */
+    const data=(json&&typeof json.settings==='object')?json.settings:json;
+    if(!data||typeof data!=='object')throw new Error('format invalide');
+    if(!data.ecowitt_app_key||!data.ecowitt_api_key||!data.ecowitt_mac)throw new Error('fichier incomplet (identifiants manquants)');
+    if(hasCredentials()&&!confirm('Remplacer vos réglages actuels par ceux du fichier importé ?'))return;
+    SETTINGS_KEYS.forEach(k=>{if(Object.prototype.hasOwnProperty.call(data,k)&&data[k]!=null)localStorage.setItem(k,String(data[k]));});
+    /* Même validation que le chargement au démarrage : un ordre de cartes
+       corrompu ou d'une version antérieure ne doit jamais casser l'affichage. */
+    try{const s=localStorage.getItem('weather_row_order');if(s){const p=JSON.parse(s);if(Array.isArray(p)&&p.every(x=>typeof x==='string')){rowOrder=p;ROW_IDS.forEach(id=>{if(!rowOrder.includes(id))rowOrder.push(id);});}}}catch(e){}
+    modalCaches={};modalInflight={};lyRainCache=null;lyRainFailUntil=0;trendCache=null;forecastCache=null;aqCache=null;detectedCity='';alertStartTimes={};
+    prefillSettings();checkCredsUI();startAutoRefresh();
+    fb.style.color='var(--neon-green)';fb.innerText='✓ Paramètres importés';fb.style.display='block';
+    setTimeout(()=>{switchSubTab('live');refreshLive();},800);
+  }catch(e){
+    fb.style.color='var(--neon-red)';fb.innerText='❌ Import impossible : '+(e.message||'fichier invalide');fb.style.display='block';
+  }
+}
 
 /* LIVE FETCHERS */
 async function fetchLiveData(appKey,apiKey,mac){const r=await fetchWTimeout(`https://api.ecowitt.net/api/v3/device/real_time?${credQS(appKey,apiKey,mac)}&call_back=all&temp_unitid=1&wind_speed_unitid=7&rainfall_unitid=12&pressure_unitid=3`);const j=await r.json();return(j.code===0&&j.data)?j.data:false;}
