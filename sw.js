@@ -1,7 +1,7 @@
 /* Météo Glass — coquille en cache pour le hors-ligne.
    Seuls les fichiers de l'appli et le CDN chart.js sont mis en cache :
    aucune donnée ni URL d'API (Ecowitt, Open-Meteo…) n'y entre. */
-const CACHE='meteo-glass-v14';
+const CACHE='meteo-glass-v15';
 /* CORE : indispensable, mis en cache de façon atomique (addAll).
    EXTRA : best-effort. Un CDN injoignable ne doit pas faire échouer tout
    l'install — sinon l'appli se retrouve sans coquille hors-ligne du tout. */
