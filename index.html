@@ -53,9 +53,29 @@ input{-webkit-user-select:text;user-select:text}
 .screen{display:none;animation:fadeIn .3s ease-in-out forwards}
 .screen.active{display:block}
 @keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
-.glass-card{background:var(--glass-bg);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
-  border:var(--glass-border);border-radius:16px;padding:20px;position:relative;
-  box-shadow:0 10px 25px rgba(0,0,0,.4);margin-bottom:16px}
+/* Arrêt/reprise explicite des ambiances animées : un seul point de contrôle,
+   posé sur le conteneur (onglet caché, app en arrière-plan…), qui gèle TOUTES
+   les animations qu'il contient sans toucher à leur code. animation-play-state
+   (et non display:none) est utilisé exprès : il fige l'image en cours plutôt
+   que de réinitialiser la boucle, donc la reprise se fait pile où c'était
+   arrêté, sans à-coup. */
+.ambiance-paused,.ambiance-paused *{animation-play-state:paused!important}
+/* Petit fondu d'accueil rejoué à chaque retour sur l'onglet — même famille
+   que fadeIn ci-dessus, pour que la reprise ait l'air volontaire plutôt que
+   de « juste se remettre à bouger ». Ponctuel (non infinite) : coût nul une
+   fois joué. */
+.ambiance-reveal{animation:fadeIn .3s ease-in-out}
+/* Le flou est isolé dans un pseudo-élément séparé du contenu de la carte :
+   sur WebKit/iOS, un backdrop-filter recalcule son flou à CHAQUE repaint de
+   tout son sous-arbre — y compris quand un enfant (prévisions animées,
+   remplissage humidité…) change à chaque frame. En sortant le flou sur
+   ::before, il ne dépend plus que du fond de page (statique) : le moteur
+   peut le mettre en cache au lieu de le refaire en boucle. Rendu écran
+   strictement identique, juste moins cher à composer. */
+.glass-card{background:transparent;border:var(--glass-border);border-radius:16px;padding:20px;
+  position:relative;z-index:0;box-shadow:0 10px 25px rgba(0,0,0,.4);margin-bottom:16px}
+.glass-card::before{content:'';position:absolute;inset:0;z-index:-1;border-radius:inherit;
+  background:var(--glass-bg);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px)}
 h1{font-size:22px;font-weight:700;text-align:center;letter-spacing:.5px;margin:0 0 4px}
 .section-title{font-size:11px;text-transform:uppercase;letter-spacing:1px;font-weight:700;
   color:var(--text-muted);margin-bottom:12px;text-align:center}
@@ -723,7 +743,32 @@ async function fetchWTimeout(url,ms=8000,opts={}){const ctrl=new AbortController
 function fmtDate(d){const p=n=>String(n).padStart(2,'0');return`${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}`;}
 
 /* NAV */
-function switchSubTab(tab){['live','settings'].forEach(t=>{el(`tab-${t}`).classList.toggle('active',t===tab);el(`subview-${t}`).style.display=t===tab?'block':'none';});}
+/* L'onglet quitté est explicitement figé (ambiance-paused) avant d'être
+   masqué, et l'onglet affiché est explicitement relancé + rejoue son petit
+   fondu d'accueil (ambiance-reveal). Le reflow forcé (offsetWidth) est le
+   seul moyen fiable de rejouer une animation CSS déjà posée sur l'élément —
+   sans lui, retirer/remettre la même classe dans le même tick ne relance
+   rien. */
+function switchSubTab(tab){['live','settings'].forEach(t=>{
+  const active=t===tab,sv=el(`subview-${t}`);
+  el(`tab-${t}`).classList.toggle('active',active);
+  if(active){
+    sv.classList.remove('ambiance-paused');
+    sv.style.display='block';
+    sv.classList.remove('ambiance-reveal');void sv.offsetWidth;
+    sv.classList.add('ambiance-reveal');
+  }else{
+    sv.classList.add('ambiance-paused');
+    sv.style.display='none';
+  }
+});}
+/* Idem quand l'app entière passe en arrière-plan (verrouillage, changement
+   d'appli) : rien n'est démonté (pas de display:none), donc la reprise via
+   animation-play-state est garantie pile-frame — pas de redémarrage, pas de
+   petit saut visuel au retour. */
+document.addEventListener('visibilitychange',()=>{
+  document.body.classList.toggle('ambiance-paused',document.hidden);
+});
 
 /* MODALS */
 let modalPrevFocus=null;
